@@ -1,0 +1,188 @@
+muni,hood,munihood_display,NeighborhoodGroup,GeographyType,match_method
+"Pittsburgh city (Allegheny, PA)",Strip District,Strip District,Strip District,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Polish Hill,Polish Hill,Polish Hill,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Lower Lawrenceville,Lower Lawrenceville,Lower Lawrenceville,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Central Lawrenceville,Central Lawrenceville,Central Lawrenceville,neighborhood,acs_neighborhood_name
+"Braddock borough (Allegheny, PA)",,Braddock bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Shadyside,Shadyside,Shadyside,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Point Breeze,Point Breeze,Point Breeze-RegentSquare,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",North Oakland,North Oakland,North Oakland,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",West Oakland,West Oakland,Terrace Village - West Oakland,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",Crawford-Roberts,Crawford-Roberts,Central Business District - Crawford Roberts,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",Larimer,Larimer,Larimer,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Point Breeze North,Point Breeze North,Point Breeze North,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Squirrel Hill North,Squirrel Hill North,Squirrel Hill North,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Bluff,Bluff,Bluff,neighborhood,acs_neighborhood_name
+"Trafford borough (Westmoreland, PA)",,"Trafford bgh, Westmoreland Cty",,none,outside_city_profiles
+"North Braddock borough (Allegheny, PA)",,North Braddock bgh,,none,outside_city_profiles
+"Penn Hills township (Allegheny, PA)",,Penn Hills twp,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Upper Hill,Upper Hill,Upper Hill,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Garfield,Garfield,Garfield,neighborhood,acs_neighborhood_name
+"Turtle Creek borough (Allegheny, PA)",,Turtle Creek bgh,,none,outside_city_profiles
+"Wilmerding borough (Allegheny, PA)",,Wilmerding bgh,,none,outside_city_profiles
+"Churchill borough (Allegheny, PA)",,Churchill bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Hazelwood,Hazelwood,Hazelwood-Glen Hazel -New Homestead-Hays,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",Greenfield,Greenfield,Greenfield,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",East Liberty,East Liberty,East Liberty,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",South Oakland,South Oakland,South Oakland,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Central Oakland,Central Oakland,Central Oakland,neighborhood,acs_neighborhood_name
+"Monroeville municipality (Allegheny, PA)",,Monroeville municipality,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Regent Square,Regent Square,Point Breeze-RegentSquare,neighborhood group,override_csv
+"Swissvale borough (Allegheny, PA)",,Swissvale bgh,,none,outside_city_profiles
+"Edgewood borough (Allegheny, PA)",,Edgewood bgh,,none,outside_city_profiles
+"Wilkinsburg borough (Allegheny, PA)",,Wilkinsburg bgh,,none,outside_city_profiles
+"Braddock Hills borough (Allegheny, PA)",,Braddock Hills bgh,,none,outside_city_profiles
+"Forest Hills borough (Allegheny, PA)",,Forest Hills bgh,,none,outside_city_profiles
+"Pitcairn borough (Allegheny, PA)",,Pitcairn bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Squirrel Hill South,Squirrel Hill South,Squirrel Hill South,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Highland Park,Highland Park,Highland Park,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Upper Lawrenceville,Upper Lawrenceville,Upper Lawrenceville,neighborhood,acs_neighborhood_name
+"Verona borough (Allegheny, PA)",,Verona bgh,,none,outside_city_profiles
+"Oakmont borough (Allegheny, PA)",,Oakmont bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Terrace Village,Terrace Village,Terrace Village - West Oakland,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",Morningside,Morningside,Morningside,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Bloomfield,Bloomfield,Bloomfield,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Friendship,Friendship,Friendship,neighborhood,acs_neighborhood_name
+"East Pittsburgh borough (Allegheny, PA)",,East Pittsburgh bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Lincoln-Lemington-Belmar,Lincoln-Lemington-Belmar,Lincoln-Lemington-Belmar,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Middle Hill,Middle Hill,Middle Hill,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Homewood South,Homewood South,Homewood South,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",East Hills,East Hills,East Hills,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Stanton Heights,Stanton Heights,Stanton Heights,neighborhood,acs_neighborhood_name
+"Plum borough (Allegheny, PA)",,Plum bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Swisshelm Park,Swisshelm Park,Swisshelm Park,neighborhood,acs_neighborhood_name
+"North Versailles township (Allegheny, PA)",,North Versailles twp,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Homewood West,Homewood West,Homewood North - Homewood West,neighborhood group,override_csv
+"Rankin borough (Allegheny, PA)",,Rankin bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Homewood North,Homewood North,Homewood North - Homewood West,neighborhood group,override_csv
+"White Oak borough (Allegheny, PA)",,White Oak bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Glen Hazel,Glen Hazel,Hazelwood-Glen Hazel -New Homestead-Hays,neighborhood group,override_csv
+"East McKeesport borough (Allegheny, PA)",,East McKeesport bgh,,none,outside_city_profiles
+"Wilkins township (Allegheny, PA)",,Wilkins twp,,none,outside_city_profiles
+"Sewickley borough (Allegheny, PA)",,Sewickley bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Chateau,Chateau,East Allegheny-North Shore,neighborhood group,override_csv
+"Leetsdale borough (Allegheny, PA)",,Leetsdale bgh,,none,outside_city_profiles
+"Edgeworth borough (Allegheny, PA)",,Edgeworth bgh,,none,outside_city_profiles
+"Glen Osborne borough (Allegheny, PA)",,Glen Osborne bgh,,none,outside_city_profiles
+"Haysville borough (Allegheny, PA)",,Haysville bgh,,none,outside_city_profiles
+"McCandless township (Allegheny, PA)",,McCandless twp,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Brighton Heights,Brighton Heights,Brighton Heights,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Perry South,Perry South,Perry South,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",California-Kirkbride,California-Kirkbride,Manchester-California-Kirkbride,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",Central Northside,Central Northside,Central Northside,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Marshall-Shadeland,Marshall-Shadeland,Marshall-Shadeland,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Allegheny West,Allegheny West,Allegheny Center-Allegheny West,neighborhood group,override_csv
+"Ross township (Allegheny, PA)",,Ross twp,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Spring Hill-City View,Spring Hill-City View,Spring Hill-City View,neighborhood,acs_neighborhood_name
+"Etna borough (Allegheny, PA)",,Etna bgh,,none,outside_city_profiles
+"Avalon borough (Allegheny, PA)",,Avalon bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Manchester,Manchester,Manchester-California-Kirkbride,neighborhood group,override_csv
+"Harmar township (Allegheny, PA)",,Harmar twp,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Bedford Dwellings,Bedford Dwellings,Bedford Dwellings,neighborhood,acs_neighborhood_name
+"Trafford borough (Allegheny, PA)",,Trafford bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Fineview,Fineview,Fineview,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Allegheny Center,Allegheny Center,Allegheny Center-Allegheny West,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",East Allegheny,East Allegheny,East Allegheny-North Shore,neighborhood group,override_csv
+"Emsworth borough (Allegheny, PA)",,Emsworth bgh,,none,outside_city_profiles
+"West View borough (Allegheny, PA)",,West View bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Summer Hill,Summer Hill,Northview Heights - Summer Hill,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",North Shore,North Shore,East Allegheny-North Shore,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",Troy Hill,Troy Hill,Troy Hill - Spring Garden,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",Spring Garden,Spring Garden,Troy Hill - Spring Garden,neighborhood group,override_csv
+"Ben Avon borough (Allegheny, PA)",,Ben Avon bgh,,none,outside_city_profiles
+"Tarentum borough (Allegheny, PA)",,Tarentum bgh,,none,outside_city_profiles
+"Millvale borough (Allegheny, PA)",,Millvale bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Central Business District,Central Business District,Central Business District - Crawford Roberts,neighborhood group,override_csv
+"New Kensington city (Westmoreland, PA)",,New Kensington city,,none,outside_city_profiles
+"Brackenridge borough (Allegheny, PA)",,Brackenridge bgh,,none,outside_city_profiles
+"Ambridge borough (Beaver, PA)",,Ambridge bgh,,none,outside_city_profiles
+"Bellevue borough (Allegheny, PA)",,Bellevue bgh,,none,outside_city_profiles
+"Springdale township (Allegheny, PA)",,Springdale twp,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Northview Heights,Northview Heights,Northview Heights - Summer Hill,neighborhood group,override_csv
+"Harrison township (Allegheny, PA)",,Harrison twp,,none,outside_city_profiles
+"East Deer township (Allegheny, PA)",,East Deer twp,,none,outside_city_profiles
+"O'Hara township (Allegheny, PA)",,O'Hara twp,,none,outside_city_profiles
+"Aspinwall borough (Allegheny, PA)",,Aspinwall bgh,,none,outside_city_profiles
+"Blawnox borough (Allegheny, PA)",,Blawnox bgh,,none,outside_city_profiles
+"Springdale borough (Allegheny, PA)",,Springdale bgh,,none,outside_city_profiles
+"Hampton township (Allegheny, PA)",,Hampton twp,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Perry North,Perry North,Perry North,neighborhood,acs_neighborhood_name
+"Shaler township (Allegheny, PA)",,Shaler twp,,none,outside_city_profiles
+"Sharpsburg borough (Allegheny, PA)",,Sharpsburg bgh,,none,outside_city_profiles
+"Cheswick borough (Allegheny, PA)",,Cheswick bgh,,none,outside_city_profiles
+"Reserve township (Allegheny, PA)",,Reserve twp,,none,outside_city_profiles
+"Glenfield borough (Allegheny, PA)",,Glenfield bgh,,none,outside_city_profiles
+"Munhall borough (Allegheny, PA)",,Munhall bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Mt. Oliver,Mt. Oliver,Arlington - Arlington Heights - Mount Oliver(City Neighborhood) - St. Clair,neighborhood group,override_csv
+"Homestead borough (Allegheny, PA)",,Homestead bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",South Side Slopes,South Side Slopes,South Side Slopes,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",South Side Flats,South Side Flats,South Side Flats,neighborhood,acs_neighborhood_name
+"Duquesne city (Allegheny, PA)",,Duquesne city,,none,outside_city_profiles
+"Elizabeth borough (Allegheny, PA)",,Elizabeth bgh,,none,outside_city_profiles
+"McKeesport city (Allegheny, PA)",,McKeesport city,,none,outside_city_profiles
+"Clairton city (Allegheny, PA)",,Clairton city,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Bon Air,Bon Air,Beltzhoover - Bon Air,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",Knoxville,Knoxville,Knoxville,neighborhood,acs_neighborhood_name
+"Mount Oliver borough (Allegheny, PA)",,Mount Oliver bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Arlington-Arlington Heights,Arlington-Arlington Heights,Arlington - Arlington Heights - Mount Oliver(City Neighborhood) - St. Clair,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",Allentown,Allentown,Allentown,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Hays,Hays,Hazelwood-Glen Hazel -New Homestead-Hays,neighborhood group,override_csv
+"Whitehall borough (Allegheny, PA)",,Whitehall bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Beltzhoover,Beltzhoover,Beltzhoover - Bon Air,neighborhood group,override_csv
+"Baldwin borough (Allegheny, PA)",,Baldwin bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Carrick,Carrick,Carrick,neighborhood,acs_neighborhood_name
+"Brentwood borough (Allegheny, PA)",,Brentwood bgh,,none,outside_city_profiles
+"South Park township (Allegheny, PA)",,South Park twp,,none,outside_city_profiles
+"West Mifflin borough (Allegheny, PA)",,West Mifflin bgh,,none,outside_city_profiles
+"Fox Chapel borough (Allegheny, PA)",,Fox Chapel bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Mount Washington,Mount Washington,Mount Washington,neighborhood,acs_neighborhood_name
+"Jefferson Hills borough (Allegheny, PA)",,Jefferson Hills bgh,,none,outside_city_profiles
+"Pleasant Hills borough (Allegheny, PA)",,Pleasant Hills bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Overbrook,Overbrook,Overbrook,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Lincoln Place,Lincoln Place,Lincoln Place,neighborhood,acs_neighborhood_name
+"Whitaker borough (Allegheny, PA)",,Whitaker bgh,,none,outside_city_profiles
+"Dravosburg borough (Allegheny, PA)",,Dravosburg bgh,,none,outside_city_profiles
+"Bethel Park municipality (Allegheny, PA)",,Bethel Park municipality,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",New Homestead,New Homestead,Hazelwood-Glen Hazel -New Homestead-Hays,neighborhood group,override_csv
+"Versailles borough (Allegheny, PA)",,Versailles bgh,,none,outside_city_profiles
+"West Homestead borough (Allegheny, PA)",,West Homestead bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",South Shore,South Shore,South Shore,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",St. Clair,St. Clair,Arlington - Arlington Heights - Mount Oliver(City Neighborhood) - St. Clair,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",Brookline,Brookline,Brookline,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Beechview,Beechview,Beechview,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Westwood,Westwood,Westwood - Ridgemont,neighborhood group,override_csv
+"North Fayette township (Allegheny, PA)",,North Fayette twp,,none,outside_city_profiles
+"Findlay township (Allegheny, PA)",,Findlay twp,,none,outside_city_profiles
+"Carnegie borough (Allegheny, PA)",,Carnegie bgh,,none,outside_city_profiles
+"Coraopolis borough (Allegheny, PA)",,Coraopolis bgh,,none,outside_city_profiles
+"Moon township (Allegheny, PA)",,Moon twp,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Sheraden,Sheraden,Esplen-Sheraden-ChartiersCity-Windgap-Fairywood,neighborhood group,override_csv
+"Scott township (Allegheny, PA)",,Scott twp,,none,outside_city_profiles
+"Green Tree borough (Allegheny, PA)",,Green Tree bgh,,none,outside_city_profiles
+"Robinson township (Allegheny, PA)",,Robinson twp,,none,outside_city_profiles
+"Ingram borough (Allegheny, PA)",,Ingram bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Windgap,Windgap,Esplen-Sheraden-ChartiersCity-Windgap-Fairywood,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",Fairywood,Fairywood,Esplen-Sheraden-ChartiersCity-Windgap-Fairywood,neighborhood group,override_csv
+"Stowe township (Allegheny, PA)",,Stowe twp,,none,outside_city_profiles
+"McKees Rocks borough (Allegheny, PA)",,McKees Rocks bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Elliott,Elliott,West End - Elliott,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",Crafton Heights,Crafton Heights,Crafton Heights,neighborhood,acs_neighborhood_name
+"Pittsburgh city (Allegheny, PA)",Chartiers City,Chartiers City,Esplen-Sheraden-ChartiersCity-Windgap-Fairywood,neighborhood group,override_csv
+"Kennedy township (Allegheny, PA)",,Kennedy twp,,none,outside_city_profiles
+"Collier township (Allegheny, PA)",,Collier twp,,none,outside_city_profiles
+"Crafton borough (Allegheny, PA)",,Crafton bgh,,none,outside_city_profiles
+"Neville township (Allegheny, PA)",,Neville twp,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",East Carnegie,East Carnegie,East Carnegie - Oakwood,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",Oakwood,Oakwood,East Carnegie - Oakwood,neighborhood group,override_csv
+"Heidelberg borough (Allegheny, PA)",,Heidelberg bgh,,none,outside_city_profiles
+"Mount Lebanon township (Allegheny, PA)",,Mount Lebanon twp,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",West End,West End,West End - Elliott,neighborhood group,override_csv
+"Glassport borough (Allegheny, PA)",,Glassport bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Esplen,Esplen,Esplen-Sheraden-ChartiersCity-Windgap-Fairywood,neighborhood group,override_csv
+"Bridgeville borough (Allegheny, PA)",,Bridgeville bgh,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Duquesne Heights,Duquesne Heights,Duquesne Heights,neighborhood,acs_neighborhood_name
+"Dormont borough (Allegheny, PA)",,Dormont bgh,,none,outside_city_profiles
+"Castle Shannon borough (Allegheny, PA)",,Castle Shannon bgh,,none,outside_city_profiles
+"Upper St. Clair township (Allegheny, PA)",,Upper St. Clair twp,,none,outside_city_profiles
+"Pittsburgh city (Allegheny, PA)",Ridgemont,Ridgemont,Westwood - Ridgemont,neighborhood group,override_csv
+"Pittsburgh city (Allegheny, PA)",Banksville,Banksville,Banksville,neighborhood,acs_neighborhood_name

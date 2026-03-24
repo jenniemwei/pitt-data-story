@@ -1,0 +1,45 @@
+---
+description: Require documented findings, joins, and dataset caveats for Pitt data story analysis work
+globs: docs/**,data/**,scripts/**
+alwaysApply: false
+---
+
+# Pitt data story — findings and documentation
+
+When adding or updating **analysis notes, trends, or findings** in this project:
+
+## Use the findings template (repo)
+
+Record each finding in [docs/FINDINGS_LOG.md](docs/FINDINGS_LOG.md) (copy-paste template at the top of that file). When join keys or definitions change, update the relevant finding(s) and [docs/DATASET_LIMITATIONS.md](docs/DATASET_LIMITATIONS.md) if dataset caveats shift.
+
+Each finding must include:
+
+- **Status, date, and ID** (or title) so updates are traceable.
+- **Research question** in one sentence.
+- **Steps taken** (numbered, reproducible: script name, command, or query order).
+- **Key numbers** with units, geography, and time range; cite column names, row filters, or export filenames where applicable.
+- **Tables and files referenced** — bullet list with repo paths (e.g. `data/monthly_avg_ridership.csv`) or external table IDs.
+- **Joins and table actions** — dedicated subsection listing:
+  - Left/right inputs and **grain** (route, stop, tract, neighborhood, etc.).
+  - **Join keys** (e.g. `ridership_route_code`, stop ID, GEOID).
+  - Filters, `GROUP BY`, deduplication, and **spatial** operations (e.g. point-in-polygon) in order.
+- **Outputs** (CSVs, figures, notebook cells) with paths or links.
+- **Limitations and sensitivity checks**; cross-check [docs/DATASET_LIMITATIONS.md](docs/DATASET_LIMITATIONS.md) for dataset-specific caveats.
+- **Next checks** (optional) for follow-up validation.
+
+## No undocumented joins
+
+If a conclusion combines two or more sources, the finding must explicitly document **every** join or merge. Do not present integrated metrics without stating how tables were combined.
+
+## Dataset caveats
+
+Before interpreting results, consult [docs/DATASET_LIMITATIONS.md](docs/DATASET_LIMITATIONS.md) for pros, cons, and how each source is used despite limitations.
+
+## Repo anchors (for join documentation)
+
+- Route cuts: `data/prt_fy2026_route_cuts.csv` — key `ridership_route_code` (and `route`).
+- Monthly ridership by route: `data/monthly_avg_ridership.csv` — keys include `ridership_route_code`, `year_month`, `day_type`, `avg_riders`.
+- Builder for cuts CSV: `scripts/build_prt_fy2026_route_cuts.py`.
+- FY2026 eliminated routes table: `data/fy2026_eliminated_route_findings.csv` — `scripts/generate_fy2026_eliminated_route_findings.py`.
+
+When definitions or join keys change, update **repo** ([docs/FINDINGS_LOG.md](docs/FINDINGS_LOG.md)) and [docs/CURSOR_DATA_STORY.md](docs/CURSOR_DATA_STORY.md) if anchors change.
