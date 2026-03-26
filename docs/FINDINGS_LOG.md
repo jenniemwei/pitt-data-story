@@ -143,16 +143,19 @@ For each PRT route proposed for **elimination** in FY2026, what are interpretive
 
 1. Filter `data/prt_fy2026_route_cuts.csv` to `primary_reduction_action = eliminate`.
 2. Map routes to primary neighborhood anchors (`ROUTE_NEIGHBORHOODS` in `scripts/generate_fy2026_eliminated_route_findings.py`).
-3. Pull ACS fields from `data/neighborhood_profiles.csv` (neighborhood rows or Allegheny County proxy).
+3. Pull ACS 2022 fields from `data/n_profiles_new.csv`: neighborhood rows (`geography_type = neighborhood`) by `neighborhood_group`, or the **Allegheny County** region row as a suburban proxy when anchors are absent.
 4. Mean weekday `avg_riders` by year groups from `data/monthly_avg_ridership.csv` (`day_type = WEEKDAY`).
+5. **Count estimates** (rounded integers) beside each resident/household/worker share: race/Hispanic use `affected_total_pop_2022 × pct/100`; top income brackets use summed `income_households_total × pct/100`; below–100% FPL uses summed `poverty_status_determined_pop × pct/100`; commute modes use summed `workers_16_plus × pct/100`.
 
 **Key numbers**
 
-- One row per eliminated route; columns include population, race/ethnicity %, income/poverty, journey-to-work (auto vs public transit), baseline / COVID / recent weekday ridership, and percent changes vs baseline.
+- One row per eliminated route; columns include `affected_total_pop_2022` (sum of `total_pop` from `n_profiles_new` for anchor geography), race/ethnicity and related **population estimates**, household and worker estimates for income/poverty/commute shares, weekday ridership windows, and percent changes vs baseline. Shares align with `n__data_dict.csv` semantics (e.g. `white_alone_share` / `black_alone_share`; public transit = `share_commute_public_transit`; poverty = `share_below_100pct_poverty_threshold`).
 
 **Tables and files referenced**
 
 - `data/fy2026_eliminated_route_findings.csv` — generated output.
+- `data/fy2026_reduced_route_findings.csv` — same ACS columns for major/minor reductions (same script).
+- `data/n_profiles_new.csv` — ACS source for this export.
 - `scripts/generate_fy2026_eliminated_route_findings.py` — regeneration command.
 
 **Joins and table actions**
@@ -161,7 +164,8 @@ For each PRT route proposed for **elimination** in FY2026, what are interpretive
 |------|-----------|--------------|---------------|------|
 | 1 | Filter | route cuts | — | `primary_reduction_action = eliminate` |
 | 2 | Manual map | route | neighborhood name(s) | `ROUTE_NEIGHBORHOODS` |
-| 3 | Mean weekday ridership | monthly ridership | — | Normalized `ridership_route_code`; `day_type = WEEKDAY` |
+| 3 | Lookup ACS | anchor name(s) | neighborhood profile row | `neighborhood_group`; or county row `neighborhood_group = Allegheny County`, `geography_type = region` |
+| 4 | Mean weekday ridership | monthly ridership | — | Normalized `ridership_route_code`; `day_type = WEEKDAY` |
 
 **Outputs**
 
