@@ -1,0 +1,46 @@
+row_type,metric,homewood_south,lower_lawrenceville,notes,neighborhood,route_code,route_label,schedule_name,route_status_fy26,in_neighborhood_routes_losing_list,weekday_avg_riders_baseline_2017_2019,weekday_avg_riders_covid_2020_2021,weekday_avg_riders_recent_2023_2024,pct_change_weekday_riders_recent_vs_baseline,primary_reduction_step,primary_reduction_action,primary_reduction_detail,official_efficiency_tier
+compare,population_total_2022_acs,2177,2448,ACS 2022; n_profiles_new / fy26_route_n_profiles_all,,,,,,,,,,,,,,
+compare,below_poverty_pct,0.3633,0.1454,Share of residents below poverty line (ACS 2022),,,,,,,,,,,,,,
+compare,below_poverty_count,791,356,Estimated count (rounded),,,,,,,,,,,,,,
+compare,workers_commute_public_transit_share,0.1992,0.0993,Workers commuting by public transportation (ACS),,,,,,,,,,,,,,
+compare,workers_commute_car_truck_van_share,0.7031,0.5784,Workers commuting by car/truck/van (incl. carpool),,,,,,,,,,,,,,
+compare,renter_occupied_housing_share,0.5917,0.5759,Renter share of occupied housing units,,,,,,,,,,,,,,
+compare,routes_before_count,15,7,Routes with stop in neighborhood (project spatial logic),,,,,,,,,,,,,,
+compare,routes_eliminated_entirely_count,7,0,Count proposed for full elimination touching neighborhood,,,,,,,,,,,,,,
+compare,routes_reduced_not_eliminated_count,8,7,Routes remaining with reductions (frequency/span/etc.),,,,,,,,,,,,,,
+compare,routes_after_count,8,7,Distinct routes remaining after proposed cuts,,,,,,,,,,,,,,
+compare,sum_weekday_avg_ridership_routes_before_baseline_2017_2019,31525.2,21001.4,Sum of system weekday avg riders over routes_before; not neighborhood O-D boardings,,,,,,,,,,,,,,
+compare,sum_weekday_avg_ridership_routes_before_recent_2023_2024,16304.6,12553.5,,,,,,,,,,,,,,,
+compare,pct_change_sum_ridership_routes_before_recent_vs_baseline,-48.3,-40.2,Percent change of summed route-level averages,,,,,,,,,,,,,,
+compare,sum_weekday_avg_ridership_routes_eliminated_only_baseline,5187.7,,Homewood only: 7 eliminated routes,,,,,,,,,,,,,,
+compare,sum_weekday_avg_ridership_routes_eliminated_only_recent_2023_2024,1654.0,,Homewood only,,,,,,,,,,,,,,
+compare,black_alone_share_acs,0.0583,0.8174,Share of population Black alone (ACS 2022),,,,,,,,,,,,,,
+compare,white_alone_share_acs,0.8443,0.0964,Share of population White alone (ACS 2022),,,,,,,,,,,,,,
+compare,hispanic_share_acs,0.0138,0.0274,Share Hispanic (any race),,,,,,,,,,,,,,
+compare,share_bachelors_or_higher_25plus,0.1586,0.6874,Adults 25+ with bachelor's or higher,,,,,,,,,,,,,,
+compare,share_unemployed_civilian_labor_force,0.0704,0.0161,Unemployed share of civilian labor force,,,,,,,,,,,,,,
+compare,share_worked_from_home,0.0192,0.255,Workers working from home,,,,,,,,,,,,,,
+compare,workers_16_plus_count,522,1812,ACS worker count for commute denominators,,,,,,,,,,,,,,
+meta,sources,FY26_route_status_all; prt_fy2026_route_cuts; fy26_route_n_profiles_all; n_profiles_new,same,Generated for scrollytelling pair Homewood South vs Lower Lawrenceville,,,,,,,,,,,,,,
+route_detail,,,,,Homewood South,071D,71D,71D - HAMILTON,reduced,no,4525.0,1858.2,2435.8,-46.2,4,end_service_11pm,"End all bus, light rail, and incline service at 11:00 p.m. daily; step 4",high_efficiency_gt_20_pph
+route_detail,,,,,Homewood South,074,74,74 - HOMEWOOD-SQUIRREL HILL,reduced,no,975.6,451.8,676.5,-30.7,6,frequency_reduction_30pct_plus,Major frequency reduction; step 6,moderate_efficiency_15_to_20_pph
+route_detail,,,,,Homewood South,077,77,77 - PENN HILLS,reduced,no,2341.0,1132.7,1188.8,-49.2,6,frequency_reduction_30pct_plus,Major frequency reduction; step 6,moderate_efficiency_15_to_20_pph
+route_detail,,,,,Homewood South,086,86,86 - LIBERTY,reduced,no,2895.4,1444.4,1834.3,-36.6,4,end_service_11pm,"End all bus, light rail, and incline service at 11:00 p.m. daily; step 4",high_efficiency_gt_20_pph
+route_detail,,,,,Homewood South,P1,P1,P1 - EAST BUSWAY-ALL STOPS,reduced,no,10442.8,3855.3,4694.6,-55.0,4,end_service_11pm,"End all bus, light rail, and incline service at 11:00 p.m. daily; step 4",high_efficiency_gt_20_pph
+route_detail,,,,,Homewood South,P12,P12,P12 - HOLIDAY PARK FLYER,eliminated,yes,1202.6,251.6,292.6,-75.7,5,eliminate,Low efficiency commuter/local; step 5 (Silver Line = SLVR),moderate_low_efficiency_lt_20_pph
+route_detail,,,,,Homewood South,P16,P16,P16 - PENN HILLS FLYER,eliminated,yes,897.2,260.1,321.8,-64.1,5,eliminate,Low efficiency commuter/local; step 5 (Silver Line = SLVR),moderate_low_efficiency_lt_20_pph
+route_detail,,,,,Homewood South,P3,P3,P3 - EAST BUSWAY-OAKLAND,reduced,no,2751.8,1148.6,1767.8,-35.8,4,end_service_11pm,"End all bus, light rail, and incline service at 11:00 p.m. daily; step 4",high_efficiency_gt_20_pph
+route_detail,,,,,Homewood South,P67,P67,P67 - MONROEVILLE FLYER,eliminated,yes,496.3,147.1,141.0,-71.6,2,eliminate,Substantial service duplication/overlap; step 2,high_efficiency_gt_20_pph
+route_detail,,,,,Homewood South,P68,P68,P68 - BRADDOCK HILLS FLYER,reduced,no,1174.0,759.5,1267.8,8.0,6,frequency_reduction_30pct_plus,Major frequency reduction; step 6,moderate_efficiency_15_to_20_pph
+route_detail,,,,,Homewood South,P69,P69,P69 - TRAFFORD FLYER,eliminated,yes,259.0,118.7,170.3,-34.2,7,eliminate,Remaining commuter routes; step 7,high_efficiency_gt_20_pph
+route_detail,,,,,Homewood South,P7,P7,P7 - MCKEESPORT FLYER,eliminated,yes,736.1,233.3,276.5,-62.4,5,eliminate,Low efficiency commuter/local; step 5 (Silver Line = SLVR),moderate_low_efficiency_lt_20_pph
+route_detail,,,,,Homewood South,P71,P71,P71 - SWISSVALE FLYER,eliminated,yes,582.0,144.8,151.0,-74.1,2,eliminate,Substantial service duplication/overlap; step 2,moderate_low_efficiency_lt_20_pph
+route_detail,,,,,Homewood South,P76,P76,P76 - LINCOLN HIGHWAY FLYER,eliminated,yes,1014.5,270.6,300.8,-70.3,5,eliminate,Low efficiency commuter/local; step 5 (Silver Line = SLVR),moderate_low_efficiency_lt_20_pph
+route_detail,,,,,Homewood South,P78,P78,P78 - OAKMONT FLYER,reduced,no,1231.9,583.0,785.0,-36.3,6,frequency_reduction_30pct_plus,Major frequency reduction; step 6,moderate_efficiency_15_to_20_pph
+route_detail,,,,,Lower Lawrenceville,054,54,54 - NORTH SIDE-OAKLAND-SOUTH SIDE,reduced,n/a,4018.5,2073.0,2961.7,-26.3,6,frequency_reduction_30pct_plus,Major frequency reduction; step 6,high_efficiency_gt_20_pph
+route_detail,,,,,Lower Lawrenceville,064,64,64 - LAWRENCEVILLE - WATERFRONT,reduced,n/a,1795.7,1065.7,1586.4,-11.7,6,frequency_reduction_30pct_plus,Major frequency reduction; step 6,high_efficiency_gt_20_pph
+route_detail,,,,,Lower Lawrenceville,086,86,86 - LIBERTY,reduced,n/a,2895.4,1444.4,1834.3,-36.6,4,end_service_11pm,"End all bus, light rail, and incline service at 11:00 p.m. daily; step 4",high_efficiency_gt_20_pph
+route_detail,,,,,Lower Lawrenceville,087,87,87 - FRIENDSHIP,reduced,n/a,2784.6,1107.0,1232.3,-55.7,6,frequency_reduction_30pct_plus,Major frequency reduction; step 6,moderate_efficiency_15_to_20_pph
+route_detail,,,,,Lower Lawrenceville,088,88,88 - PENN,reduced,n/a,3131.9,1180.7,1179.4,-62.3,6,frequency_reduction_30pct_plus,Major frequency reduction; step 6,moderate_efficiency_15_to_20_pph
+route_detail,,,,,Lower Lawrenceville,091,91,91 - BUTLER STREET,reduced,n/a,4421.4,2005.8,2182.4,-50.6,6,frequency_reduction_30pct_plus,Major frequency reduction; step 6,moderate_efficiency_15_to_20_pph
+route_detail,,,,,Lower Lawrenceville,093,93,93 - LAWRENCEVILLE - HAZELWOOD,reduced,n/a,1953.9,1060.8,1577.0,-19.3,4,end_service_11pm,"End all bus, light rail, and incline service at 11:00 p.m. daily; step 4",high_efficiency_gt_20_pph

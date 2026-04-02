@@ -1,0 +1,101 @@
+finding_id,route_status,source_route_code,canonical_route_id,source_route_label,route_name,in_route_lines_geojson,match_rule,note_069_vs_p69
+FIND-20260324-002,eliminated,002,2,2,2 - MOUNT ROYAL,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-004,eliminated,004,4,4,4 - TROY HILL,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-007,eliminated,007,7,7,7 - SPRING GARDEN,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-014,eliminated,014,14,14,14 - OHIO VALLEY,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-018,eliminated,018,18,18,18 - MANCHESTER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-019L,eliminated,019L,19L,19L,19L - EMSWORTH LIMITED,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-020,eliminated,020,20,20,20 - KENNEDY,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-026,eliminated,026,26,26,26 - CHARTIERS,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-029,eliminated,029,29,29,29 - ROBINSON,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-036,eliminated,036,36,36,36 - BANKSVILLE,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-038,eliminated,038,38,38,38 - GREEN TREE,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-039,eliminated,039,39,39,39 - BROOKLINE,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-040,eliminated,040,40,40,40 - MOUNT WASHINGTON,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-041,eliminated,041,41,41,41 - BOWER HILL,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-043,eliminated,043,43,43,43 - BAILEY,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-051L,eliminated,051L,51L,51L,51L - CARRICK LIMITED,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-052L,eliminated,052L,52L,52L,52L - HOMEVILLE LIMITED,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-053L,eliminated,053L,53L,53L,53L - HOMESTEAD PARK LIMITED,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-058,eliminated,058,58,58,58 - GREENFIELD,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-065,eliminated,065,65,65,65 - SQUIRREL HILL,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-071,eliminated,071,71,71,71 - EDGEWOOD TOWN CENTER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-G3,eliminated,G3,G3,G3,G3 - MOON FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-G31,eliminated,G31,G31,G31,G31 - BRIDGEVILLE FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-O1,eliminated,O1,O1,O1,O1 - ROSS FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-O12,eliminated,O12,O12,O12,O12 - MCKNIGHT FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-O5,eliminated,O5,O5,O5,O5 - THOMPSON RUN FLYER VIA 279,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-P10,eliminated,P10,P10,P10,P10 - ALLEGHENY VALLEY FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-P12,eliminated,P12,P12,P12,P12 - HOLIDAY PARK FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-P13,eliminated,P13,P13,P13,P13 - MOUNT ROYAL FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-P16,eliminated,P16,P16,P16,P16 - PENN HILLS FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-P17,eliminated,P17,P17,P17,P17 - LINCOLN PARK FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-P67,eliminated,P67,P67,P67,P67 - MONROEVILLE FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-P69,eliminated,P69,P69,P69,P69 - TRAFFORD FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-P7,eliminated,P7,P7,P7,P7 - MCKEESPORT FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-P71,eliminated,P71,P71,P71,P71 - SWISSVALE FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-P76,eliminated,P76,P76,P76,P76 - LINCOLN HIGHWAY FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-SLVR,eliminated,SLVR,SLVR,SLVR,SLVR - Libary via Overbrook,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-Y1,eliminated,Y1,Y1,Y1,Y1 - LARGE FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-Y45,eliminated,Y45,Y45,Y45,Y45 - BALDWIN MANOR FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-Y47,eliminated,Y47,Y47,Y47,Y47 - CURRY FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-Y49,eliminated,Y49,Y49,Y49,Y49 - PROSPECT FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-000,reduced,000,MI,MI,MONONGAHELA INCLINE,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-001,reduced,001,1,1,1 - FREEPORT ROAD,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-006,reduced,006,6,6,6 - SPRING HILL,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-008,reduced,008,8,8,8 - PERRYSVILLE,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-011,reduced,011,11,11,11 - FINEVIEW,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-012,reduced,012,12,12,12 - MCKNIGHT,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-013,reduced,013,13,13,13 - BELLEVUE,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-016,reduced,016,16,16,16 - BRIGHTON,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-017,reduced,017,17,17,17 - SHADELAND,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-021,reduced,021,21,21,21 - CORAOPOLIS,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-022,reduced,022,22,22,22 - MCCOY,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-024,reduced,024,24,24,24 - WEST PARK,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-027,reduced,027,27,27,27 - FAIRYWOOD,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-028X,reduced,028X,28X,28X,28X - AIRPORT FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-031,reduced,031,31,31,31 - BRIDGEVILLE,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-044,reduced,044,44,44,44 - VIA KNOXVILLE,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-048,reduced,048,48,48,48 - ARLINGTON,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-051,reduced,051,51,51,51 - CARRICK,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-053,reduced,053,53,53,53 - HOMESTEAD PARK,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-054,reduced,054,54,54,54 - NORTH SIDE-OAKLAND-SOUTH SIDE,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-055,reduced,055,55,55,55 - GLASSPORT,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-056,reduced,056,56,56,56 - LINCOLN PLACE,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-057,reduced,057,57,57,57 - HAZELWOOD,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-059,reduced,059,59,59,59 - MON VALLEY,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-060,reduced,060,60,60,60 - MCKEESPORT - WALNUT,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-061A,reduced,061A,61A,61A,61A - NORTH BRADDOCK,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-061B,reduced,061B,61B,61B,61B - BRADDOCK-SWISSVALE,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-061C,reduced,061C,61C,61C,61C - MCKEESPORT-HOMESTEAD,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-061D,reduced,061D,61D,61D,61D - MURRAY,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-064,reduced,064,64,64,64 - LAWRENCEVILLE - WATERFRONT,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-067,reduced,067,67,67,67 - MONROEVILLE,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-069,reduced,069,69,69,69 - TRAFFORD,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-071A,reduced,071A,71A,71A,71A - NEGLEY,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-071B,reduced,071B,71B,71B,71B - HIGHLAND PARK,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-071C,reduced,071C,71C,71C,71C - POINT BREEZE,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-071D,reduced,071D,71D,71D,71D - HAMILTON,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-074,reduced,074,74,74,74 - HOMEWOOD-SQUIRREL HILL,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-075,reduced,075,75,75,75 - ELLSWORTH,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-077,reduced,077,77,77,77 - PENN HILLS,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-081,reduced,081,81,81,81 - OAK HILL,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-082,reduced,082,82,82,82 - LINCOLN,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-083,reduced,083,83,83,83 - BEDFORD HILL,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-086,reduced,086,86,86,86 - LIBERTY,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-087,reduced,087,87,87,87 - FRIENDSHIP,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-088,reduced,088,88,88,88 - PENN,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-091,reduced,091,91,91,91 - BUTLER STREET,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-093,reduced,093,93,93,93 - LAWRENCEVILLE - HAZELWOOD,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-BLLB,reduced,BLLB,BLUE,BLLB,BLUE LINE - LIBRARY,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-BLSV,reduced,BLSV,BLUE,BLSV,BLUE LINE - SOUTH HILLS VILLAGE,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-BLUE,reduced,BLUE,BLUE,BLUE,BLUE - SouthHills Village via Overbrook,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-G2,reduced,G2,G2,G2,G2 - WEST BUSWAY,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-P1,reduced,P1,P1,P1,P1 - EAST BUSWAY-ALL STOPS,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-P3,reduced,P3,P3,P3,P3 - EAST BUSWAY-OAKLAND,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-P68,reduced,P68,P68,P68,P68 - BRADDOCK HILLS FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-P78,reduced,P78,P78,P78,P78 - OAKMONT FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-RED,reduced,RED,RED,RED,RED - Castle Shannon via Beechview,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-Y46,reduced,Y46,Y46,Y46,Y46 - ELIZABETH FLYER,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-015,unaffected,015,15,15,15 - CHARLES,yes,exact_or_normalized_match,kept distinct keys
+FIND-20260324-089,unaffected,089,89,89,89 - GARFIELD COMMONS,yes,exact_or_normalized_match,kept distinct keys

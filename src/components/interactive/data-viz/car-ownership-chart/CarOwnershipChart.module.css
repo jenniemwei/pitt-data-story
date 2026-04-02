@@ -1,0 +1,167 @@
+.wrap {
+  --choice: #378add;
+  --dependent: #d85a30;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --tooltip-bg: rgba(17, 24, 39, 0.92);
+  --tooltip-fg: #f9fafb;
+  max-width: 36rem;
+  margin: 0 auto;
+  font-family: var(--font-family-main);
+}
+
+.title {
+  font: var(--font-story-narrative);
+  line-height: 1.25;
+  color: var(--color-text-primary);
+  margin: 0 0 1rem;
+  text-decoration: none;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 1fr) minmax(0, 11rem);
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+}
+
+@media (min-width: 480px) {
+  .row {
+    grid-template-columns: minmax(11rem, 1.1fr) minmax(0, 14rem);
+  }
+}
+
+.labelBlock {
+  min-width: 0;
+}
+
+.primaryLabel {
+  font: var(--font-body-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 1.25;
+}
+
+.incomeMuted {
+  display: block;
+  font: var(--font-caption-2);
+  color: var(--color-text-caption-2);
+  margin-top: 0.15rem;
+}
+
+.track {
+  position: relative;
+  height: 1.35rem;
+  border-radius: 0.2rem;
+  background: #f3f4f6;
+  overflow: hidden;
+}
+
+.bar {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border-radius: 0.2rem;
+  transform-origin: left center;
+  transform: scaleX(var(--bar-scale, 0));
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--bar-delay, 0ms);
+}
+
+.barChoice {
+  background: var(--choice);
+}
+
+.barDependent {
+  background: var(--dependent);
+}
+
+.hit {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: default;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border-radius: 0.2rem;
+}
+
+.hit:focus-visible {
+  outline: 2px solid #111827;
+  outline-offset: 2px;
+}
+
+.groupDivider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.15rem 0;
+  flex-wrap: wrap;
+}
+
+.dividerLabel {
+  font: var(--font-caption-2);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-caption-2);
+  white-space: nowrap;
+}
+
+.dividerLabelDependent {
+  color: var(--dependent);
+}
+
+.dividerLabelChoice {
+  color: var(--choice);
+}
+
+.dividerLine {
+  flex: 1;
+  min-width: 2rem;
+  height: 1px;
+  background: var(--border);
+}
+
+.source {
+  margin-top: 1.25rem;
+  font: var(--font-caption-2);
+  line-height: 1.45;
+  color: var(--color-text-caption-2);
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  max-width: 16rem;
+  padding: 0.55rem 0.65rem;
+  font: var(--font-caption-1);
+  line-height: 1.4;
+  color: var(--tooltip-fg);
+  background: var(--tooltip-bg);
+  border-radius: 0.35rem;
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.tooltipTitle {
+  font-weight: 500;
+  margin-bottom: 0.35rem;
+}
+
+.tooltipMuted {
+  opacity: 0.85;
+  font: var(--font-caption-2);
+}
+
+.loading {
+  font: var(--font-body-sm);
+  color: var(--color-text-muted);
+}

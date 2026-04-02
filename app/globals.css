@@ -1,0 +1,245 @@
+:root {
+  /* —— Font stack — Albert Sans only —— */
+  --font-family-sans: var(--font-albert-sans), "Albert Sans", Inter, system-ui, -apple-system, Segoe UI, Roboto,
+    sans-serif;
+  --font-family-main: var(--font-family-sans);
+  --font-family-caption: var(--font-family-sans);
+
+  /**
+   * Full-story prototype: three text roles (Albert Sans only).
+   * Use color in chart/map layers only; chrome stays greyscale.
+   */
+  --font-story-narrative: 500 20px/1.45 var(--font-family-sans);
+  --font-story-vis: 500 clamp(1.2rem, 2.4vw, 1.5rem)/1.28 var(--font-family-sans);
+  --font-story-caption: 400 0.8125rem/1.45 var(--font-family-sans);
+
+  /* —— Typography scale (composites) —— */
+  --font-body-sm: 400 1rem/1.55 var(--font-family-sans);
+  /** Industry / corridor category labels (e.g. trip-purpose legend) — Albert Sans 16 */
+  --font-route-type-label: 400 16px/1.35 var(--font-family-sans);
+  /** Info panel chrome title — lowercase “info panel” */
+  --font-info-panel-heading: 500 15px/1.25 var(--font-family-sans);
+  --font-caption-1: var(--font-story-caption);
+  --font-caption-2: var(--font-story-caption);
+  --font-mono-label: var(--font-story-caption);
+  --font-num: 500 1.25rem/1.2 var(--font-family-sans);
+  /** @deprecated — use --font-story-vis */
+  --font-narrative: var(--font-story-vis);
+  --font-page-title: var(--font-story-vis);
+
+  /* —— Text colors —— */
+  --color-bg-page: #f6f6f4;
+  --color-bg-surface: #ffffff;
+  --color-text-primary: #0a0a0a;
+  --color-text-muted: #4a4a4a;
+  --color-text-subtle: #6e6e6e;
+  /** UI labels, kickers, nav chrome (medium grey) */
+  --color-text-label: #5e5e5e;
+  /** Footnotes, methods, sources (lighter grey) */
+  --color-text-disclaimer: #a0a0a0;
+  /** Caption 1 → label tier */
+  --color-text-caption-1: var(--color-text-label);
+  /** Caption 2 → disclaimer tier */
+  --color-text-caption-2: var(--color-text-disclaimer);
+
+  --color-border-default: #d8d5cf;
+  --color-border-strong: #bdb8ad;
+  --border-minimal: none;
+
+  --color-accent: #2c7be5;
+  --color-warn-text: #6d4a12;
+  --color-warn-bg: #fff4df;
+  --color-warn-border: #edd4a7;
+
+  /* —— Special / emphasis (use for callouts, stats, alerts) —— */
+  --color-special-accent: #2c7be5;
+  --color-special-data: #0f4c81;
+  --color-special-highlight: #7c3aed;
+  --color-special-positive: #047857;
+  --color-special-positive-bg: #ecfdf5;
+  --color-special-negative: #b91c1c;
+  --color-special-negative-bg: #fef2f2;
+  --color-special-caution: #9a3412;
+  --color-special-neutral: #525252;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 40px;
+  --space-7: 56px;
+  --space-8: 80px;
+
+  --equity-map-line-xs: 0.5px;
+  --equity-map-line-s: 1px;
+  --equity-map-line-m: 2px;
+
+  --narrative-ink: #2a2a2a;
+}
+
+/* —— Utility classes (compose in modules or HTML) —— */
+.type-body-sm {
+  font: var(--font-body-sm);
+  color: var(--color-text-primary);
+}
+
+.type-caption-1 {
+  font: var(--font-caption-1);
+  color: var(--color-text-caption-1);
+}
+
+.type-caption-2 {
+  font: var(--font-caption-2);
+  color: var(--color-text-caption-2);
+}
+
+.type-num {
+  font: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+}
+
+.type-narrative {
+  font: var(--font-story-narrative);
+  color: var(--color-text-primary);
+}
+
+.special-accent {
+  color: var(--color-special-accent);
+}
+.special-data {
+  color: var(--color-special-data);
+}
+.special-highlight {
+  color: var(--color-special-highlight);
+}
+.special-positive {
+  color: var(--color-special-positive);
+}
+.special-negative {
+  color: var(--color-special-negative);
+}
+.special-caution {
+  color: var(--color-special-caution);
+}
+
+/**
+ * Unified narrative line: centered measure, left-aligned type (same as .type-narrative + layout).
+ */
+.narrativeLine {
+  text-align: left;
+  margin-left: auto;
+  margin-right: auto;
+  font: var(--font-story-narrative);
+  color: var(--color-text-primary);
+}
+
+.narrativeLineWide {
+  max-width: 48rem;
+}
+
+.narrativeLineNarrow {
+  max-width: 38rem;
+}
+
+.narrativeSectionTitle {
+  text-align: left;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 48rem;
+  font: var(--font-story-narrative);
+  color: var(--color-text-primary);
+}
+
+.narrativeKicker {
+  display: block;
+  text-align: left;
+  font: var(--font-story-caption);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-label);
+  margin-bottom: var(--space-2);
+}
+
+.narrativeFootnote {
+  text-align: left;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 40rem;
+  font: var(--font-story-caption);
+  line-height: 1.5;
+  color: var(--color-text-disclaimer);
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font: var(--font-body-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-page);
+}
+
+body a,
+body a:hover,
+body a:focus,
+body a:active {
+  text-decoration: none;
+}
+
+.app-shell {
+  padding: var(--space-5) var(--space-4) var(--space-8);
+}
+
+.app-header {
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+}
+
+.app-header h1 {
+  margin: 0 0 var(--space-3);
+  font: var(--font-story-narrative);
+  color: var(--color-text-primary);
+}
+
+.app-header-dek {
+  margin: 0 0 var(--space-6);
+  font: var(--font-story-narrative);
+  color: var(--color-text-primary);
+}
+
+.app-header-meta {
+  margin: 0 0 var(--space-3);
+  font: var(--font-story-caption);
+  color: var(--color-text-disclaimer);
+}
+
+.app-header-meta a {
+  font-weight: 500;
+  color: var(--color-text-label);
+  text-decoration: none;
+}
+
+.app-header-meta a:hover {
+  color: var(--color-text-primary);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

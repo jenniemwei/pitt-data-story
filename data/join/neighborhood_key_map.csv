@@ -1,0 +1,51 @@
+source_neighborhood,normalized_key,canonical_neighborhood_geojson_hood,match_rule
+Allentown,allentown,Allentown,normalized_exact
+Banksville,banksville,Banksville,normalized_exact
+Bedford Dwellings,bedford dwellings,Bedford Dwellings,normalized_exact
+Beechview,beechview,Beechview,normalized_exact
+Bloomfield,bloomfield,Bloomfield,normalized_exact
+Bluff,bluff,Bluff,normalized_exact
+Brighton Heights,brighton heights,Brighton Heights,normalized_exact
+Brookline,brookline,Brookline,normalized_exact
+Carrick,carrick,Carrick,normalized_exact
+Central Lawrenceville,central lawrenceville,Central Lawrenceville,normalized_exact
+Central Northside,central northside,Central Northside,normalized_exact
+Central Oakland,central oakland,Central Oakland,normalized_exact
+Crafton Heights,crafton heights,Crafton Heights,normalized_exact
+Duquesne Heights,duquesne heights,Duquesne Heights,normalized_exact
+East Hills,east hills,East Hills,normalized_exact
+East Liberty,east liberty,East Liberty,normalized_exact
+Fineview,fineview,Fineview,normalized_exact
+Friendship,friendship,Friendship,normalized_exact
+Garfield,garfield,Garfield,normalized_exact
+Greenfield,greenfield,Greenfield,normalized_exact
+Highland Park,highland park,Highland Park,normalized_exact
+Homewood South,homewood south,Homewood South,normalized_exact
+Knoxville,knoxville,Knoxville,normalized_exact
+Larimer,larimer,Larimer,normalized_exact
+Lincoln Place,lincoln place,Lincoln Place,normalized_exact
+Lincoln-Lemington-Belmar,lincoln lemington belmar,Lincoln-Lemington-Belmar,normalized_exact
+Lower Lawrenceville,lower lawrenceville,Lower Lawrenceville,normalized_exact
+Marshall-Shadeland,marshall shadeland,Marshall-Shadeland,normalized_exact
+Middle Hill,middle hill,Middle Hill,normalized_exact
+Morningside,morningside,Morningside,normalized_exact
+Mount Washington,mount washington,Mount Washington,normalized_exact
+North Oakland,north oakland,North Oakland,normalized_exact
+Overbrook,overbrook,Overbrook,normalized_exact
+Perry North,perry north,Perry North,normalized_exact
+Perry South,perry south,Perry South,normalized_exact
+Point Breeze North,point breeze north,Point Breeze North,normalized_exact
+Polish Hill,polish hill,Polish Hill,normalized_exact
+Shadyside,shadyside,Shadyside,normalized_exact
+South Oakland,south oakland,South Oakland,normalized_exact
+South Shore,south shore,South Shore,normalized_exact
+South Side Flats,south side flats,South Side Flats,normalized_exact
+South Side Slopes,south side slopes,South Side Slopes,normalized_exact
+Spring Hill-City View,spring hill city view,Spring Hill-City View,normalized_exact
+Squirrel Hill North,squirrel hill north,Squirrel Hill North,normalized_exact
+Squirrel Hill South,squirrel hill south,Squirrel Hill South,normalized_exact
+Stanton Heights,stanton heights,Stanton Heights,normalized_exact
+Strip District,strip district,Strip District,normalized_exact
+Swisshelm Park,swisshelm park,Swisshelm Park,normalized_exact
+Upper Hill,upper hill,Upper Hill,normalized_exact
+Upper Lawrenceville,upper lawrenceville,Upper Lawrenceville,normalized_exact

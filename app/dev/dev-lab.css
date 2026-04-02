@@ -1,0 +1,97 @@
+/* Temporary dev playground — remove or narrow when shipping */
+
+.dev-lab-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.65rem 1rem;
+  background: var(--color-bg-surface);
+  border-bottom: none;
+  font: var(--font-caption-1);
+}
+
+.dev-lab-nav a {
+  color: var(--color-special-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.dev-lab-nav a:hover {
+  text-decoration: none;
+  opacity: 0.88;
+}
+
+.dev-lab-nav a[data-active="true"] {
+  color: var(--color-text-primary);
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.dev-lab-nav-sep {
+  color: var(--color-text-caption-2);
+  user-select: none;
+}
+
+.dev-lab-main {
+  padding: var(--space-4);
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.dev-lab-hub h1 {
+  margin: 0 0 var(--space-2);
+}
+
+.dev-lab-hub > p {
+  margin: 0 0 var(--space-4);
+  font: var(--font-body-sm);
+  color: var(--color-text-muted);
+}
+
+.dev-lab-cards {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+}
+
+.dev-lab-card {
+  display: block;
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border: none;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.15s ease;
+}
+
+.dev-lab-card:hover {
+  box-shadow: 0 4px 14px rgba(44, 123, 229, 0.12);
+}
+
+.dev-lab-card h2 {
+  margin: 0 0 var(--space-2);
+  font: var(--font-caption-1);
+  font-weight: 500;
+  color: var(--color-special-accent);
+}
+
+.dev-lab-card p {
+  margin: 0;
+  font: var(--font-body-sm);
+  color: var(--color-text-muted);
+}
+
+.dev-lab-card--muted {
+  opacity: 0.75;
+  cursor: default;
+  pointer-events: none;
+}
+
+.dev-lab-card--muted h2 {
+  color: var(--color-text-muted);
+}

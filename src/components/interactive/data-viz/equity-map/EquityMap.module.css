@@ -1,0 +1,270 @@
+/*
+ * Equity map — UI chrome and legend presentation.
+ * Map paint (hood fills, route colors, basemap) → `mapStyles.js`.
+ * Route miniature stroke heights → `app/globals.css` (--equity-map-line-*).
+ *
+ * Sections:
+ *  1. Layout shell
+ *  2. Neighborhood fill legend (swatches)
+ *  3. Route legend (line miniatures — solid greys)
+ *  4. Text & typography (legend copy, side panel, hints, warnings)
+ *  5. Controls
+ *  6. Map viewport
+ *  7. Side panel
+ *  8. Placeholder / errors
+ */
+
+/* =============================================================================
+   1. Layout shell
+   ============================================================================= */
+
+.equityMapGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(200px, 1fr);
+  gap: var(--space-3);
+}
+
+/* =============================================================================
+   2. Neighborhood fill legend — vulnerability / water chips (not route lines)
+   ============================================================================= */
+
+.legendStrip {
+  grid-column: 1 / -1;
+  background: var(--color-bg-surface);
+  border: var(--border-minimal);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font: var(--font-body-sm);
+  line-height: 1.45;
+}
+
+.legendSwatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.legendSwatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: var(--font-caption-2);
+  color: var(--color-text-caption-1);
+}
+
+.legendSwatchColor {
+  width: 22px;
+  height: 14px;
+  border-radius: 3px;
+  border: none;
+}
+
+/* =============================================================================
+   3. Route legend — miniature strokes (align with map route line weights)
+   ============================================================================= */
+
+.legendLineSwatchM {
+  display: inline-block;
+  width: 22px;
+  height: var(--equity-map-line-m);
+  border-radius: var(--equity-map-line-xs);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.legendLineSwatchS {
+  display: inline-block;
+  width: 22px;
+  height: var(--equity-map-line-s);
+  border-radius: var(--equity-map-line-xs);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* =============================================================================
+   4. Text & typography — titles, notes, lists, panel copy, footnotes
+   ============================================================================= */
+
+.legendTitleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.35rem;
+  margin: var(--space-2) 0 4px;
+}
+
+.legendTitleRow .legendTitle {
+  margin: 0;
+}
+
+.legendTitle {
+  font: var(--font-caption-1);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.legendStrip .legendTitleRow:first-of-type {
+  margin-top: 0;
+}
+
+.legendNoteInline {
+  margin: 0 0 var(--space-2);
+  font: var(--font-caption-2);
+  color: var(--color-text-caption-2);
+}
+
+.legendNote {
+  margin: 0 0 var(--space-2);
+  font: var(--font-caption-2);
+  color: var(--color-text-caption-2);
+}
+
+.legendList {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.legendList li {
+  margin: 4px 0;
+  list-style: disc;
+}
+
+.metricHint {
+  display: block;
+  margin-top: 4px;
+  font: var(--font-caption-2);
+  color: var(--color-text-caption-2);
+  font-weight: 500;
+}
+
+.equitySidepanel {
+  background: color-mix(in srgb, var(--color-bg-surface) 94%, var(--color-bg-page));
+  border: var(--border-minimal);
+  border-radius: var(--radius-md);
+  padding: 1rem 1rem 1.1rem;
+  min-height: 11rem;
+}
+
+.equitySidepanel dl {
+  margin: 0;
+}
+
+.equitySidepanel dt {
+  margin-top: var(--space-2);
+  font: var(--font-caption-1);
+  color: var(--color-text-caption-1);
+}
+
+.equitySidepanel dt:first-child {
+  margin-top: 0;
+}
+
+.metricDt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem;
+  max-width: 100%;
+}
+
+.equitySidepanel dd {
+  margin: 2px 0 0;
+  font: var(--font-body-sm);
+  color: var(--color-text-primary);
+}
+
+.metricValue {
+  font: var(--font-num);
+  color: var(--color-text-primary);
+}
+
+.warn {
+  margin-top: 14px;
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-bg-page) 88%, var(--color-border-default));
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font: var(--font-story-caption);
+}
+
+.checkbox {
+  font: var(--font-body-sm);
+}
+
+/* =============================================================================
+   5. Controls
+   ============================================================================= */
+
+.equityControls {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-bg-surface);
+  border: var(--border-minimal);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) 10px;
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.controlButton {
+  border: var(--border-minimal);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  cursor: pointer;
+  font: var(--font-caption-1);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.controlButtonActive {
+  background: #ece7de;
+}
+
+.controlCheckStack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+/* =============================================================================
+   6. Map viewport
+   ============================================================================= */
+
+.equityMapWrap {
+  min-height: 620px;
+  border: var(--border-minimal);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+/* =============================================================================
+   7. Side panel — chrome + typography (see .equitySidepanel above)
+   ============================================================================= */
+
+/* =============================================================================
+   8. Placeholder (no Mapbox token)
+   ============================================================================= */
+
+.equityMapPanel {
+  background: var(--color-bg-surface);
+  border: var(--border-minimal);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+}
+
+@media (max-width: 1024px) {
+  .equityMapGrid {
+    grid-template-columns: 1fr;
+  }
+}

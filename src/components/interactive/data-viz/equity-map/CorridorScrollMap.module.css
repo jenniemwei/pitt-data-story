@@ -1,0 +1,130 @@
+/* Sticky map column is self-centered via .corridorSticky */
+.corridorShell {
+  align-items: start;
+}
+
+.corridorSticky {
+  position: sticky;
+  top: max(1.5rem, env(safe-area-inset-top, 0px));
+  padding-top: var(--space-5);
+  width: 100%;
+  max-width: min(42rem, 100%);
+  margin-left: auto;
+  margin-right: auto;
+  justify-self: center;
+}
+
+@media (max-width: 900px) {
+  .corridorSticky {
+    position: relative;
+    top: auto;
+    padding-top: var(--space-3);
+    max-width: 100%;
+  }
+}
+
+.mapInner {
+  width: 100%;
+  min-height: 400px;
+  height: min(52vh, 560px);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #e8e6e2;
+}
+
+.hoverReadout {
+  margin-top: 0.65rem;
+  padding: 0.5rem 0.35rem 0;
+  font: var(--font-caption-2);
+  line-height: 1.45;
+  color: var(--color-text-caption-1);
+  max-width: 28rem;
+}
+
+.hoverReadout dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.15rem 0.65rem;
+}
+
+.hoverReadout dt {
+  font-weight: 500;
+  color: var(--color-text-label);
+}
+
+.hoverReadout dd {
+  margin: 0;
+}
+
+.tokenMissing {
+  margin: 0;
+  padding: var(--space-4);
+  font: var(--font-body-sm);
+  color: var(--color-text-caption-1);
+}
+
+.fullControls {
+  margin: 0.75rem 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  text-align: center;
+}
+
+.metricToggle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle, #ddd);
+  overflow: hidden;
+  background: var(--sd-bg, #faf9f6);
+}
+
+.metricBtn {
+  font: var(--font-caption-1);
+  padding: 0.4rem 0.85rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-body);
+  cursor: pointer;
+}
+
+.metricBtn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.metricBtnActive {
+  background: var(--color-text-primary);
+  color: var(--color-bg-elevated, #fff);
+}
+
+.metricBtnActive:hover {
+  background: var(--color-text-primary);
+}
+
+.fullToggleRow {
+  margin: 0;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font: var(--font-caption-2);
+  line-height: 1.4;
+  color: var(--color-text-body);
+  cursor: pointer;
+}
+
+.toggle input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+/* Step copy with • lines from narrative */
+.stepBodyBullets {
+  white-space: pre-line;
+}

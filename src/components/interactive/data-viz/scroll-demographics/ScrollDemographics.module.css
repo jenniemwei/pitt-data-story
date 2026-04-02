@@ -1,0 +1,271 @@
+.wrap {
+  --sd-bg: #faf9f6;
+  --sd-ink: #1a1a1a;
+  --sd-muted: #5c5c5c;
+  --sd-coral: #ff5a5f;
+  --sd-blue-soft: rgba(130, 150, 255, 0.48);
+  --sd-coral-soft: rgba(255, 100, 100, 0.55);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0 0 var(--space-6);
+  margin: 0 auto var(--space-6);
+  max-width: 72rem;
+}
+
+.head {
+  max-width: 48rem;
+  margin: 0 auto var(--space-6);
+  text-align: left;
+}
+
+.head h2 {
+  margin: 0 0 var(--space-2);
+}
+
+.head p {
+  margin: 0;
+}
+
+.leadTitle {
+  margin: 0 0 var(--space-2);
+  text-align: left;
+  font: var(--font-story-narrative);
+  color: var(--color-text-primary);
+}
+
+.leadBody {
+  margin: 0 auto;
+  max-width: 42rem;
+  text-align: left;
+  font: var(--font-story-narrative);
+  color: var(--color-text-primary);
+}
+
+.stepBody {
+  margin: 0 auto;
+  max-width: 28rem;
+  text-align: left;
+  font: var(--font-story-narrative);
+  color: var(--color-text-primary);
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(220px, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 901px) {
+  .steps {
+    padding-left: 1.25rem;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sticky {
+  position: sticky;
+  top: var(--space-3);
+}
+
+@media (max-width: 900px) {
+  .sticky {
+    position: relative;
+    top: auto;
+  }
+}
+
+.figure {
+  position: relative;
+  border-radius: var(--radius-md);
+  background: var(--sd-bg);
+  border: none;
+  overflow: visible;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 400 / 360;
+  overflow: visible;
+}
+
+.citySilhouette {
+  fill: #e3dfd6;
+  opacity: 0.45;
+}
+
+/* Invisible geometry for sampling stop positions along the abstract routes */
+.routeSamplePath {
+  fill: none;
+  stroke: transparent;
+  pointer-events: none;
+}
+
+.routeSegKeep,
+.routeSegCut {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.routeSegKeep {
+  stroke: #243a5e;
+}
+
+.routeSegCut {
+  stroke: #141414;
+}
+
+/* Route id only (e.g. RED, 52L) — no long caption */
+.routeCodeKeep {
+  font-size: 10.5px;
+  font-weight: 700;
+  fill: #243a5e;
+  letter-spacing: 0.03em;
+  paint-order: stroke fill;
+  stroke: #faf9f6;
+  stroke-width: 4px;
+}
+
+.routeCodeCut {
+  font-size: 10.5px;
+  font-weight: 700;
+  fill: #141414;
+  letter-spacing: 0.03em;
+  paint-order: stroke fill;
+  stroke: #faf9f6;
+  stroke-width: 4px;
+}
+
+.leaderLine {
+  stroke: #8a8580;
+  stroke-width: 0.9;
+}
+
+.valueLabelRidership {
+  font-family: var(--font-family-caption);
+  font-size: 10px;
+  font-weight: 400;
+  fill: var(--sd-ink);
+  text-anchor: middle;
+}
+
+.valueLabelPoverty {
+  font-family: var(--font-family-caption);
+  font-size: 10px;
+  font-weight: 400;
+  fill: var(--sd-ink);
+  text-anchor: middle;
+}
+
+.overlayLayer {
+  transition: opacity 0.4s ease;
+}
+
+.overlayHidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.overlayVisible {
+  opacity: 1;
+}
+
+.summaryChip {
+  font-family: var(--font-family-caption);
+  font-size: 10px;
+  font-weight: 400;
+  fill: var(--color-text-caption-1);
+}
+
+.sourceRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.sourceLabel {
+  font: var(--font-mono-label, var(--font-caption-1));
+  font-weight: 400;
+  color: var(--color-text-caption-1);
+}
+
+.legend {
+  margin-top: 0.65rem;
+  font: var(--font-caption-2);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-text-caption-1);
+  padding: 0 0.35rem;
+}
+
+.source {
+  margin-top: 0.5rem;
+  font: var(--font-caption-2);
+  color: var(--color-text-caption-2);
+}
+
+.motionNote {
+  margin-top: 0.35rem;
+  font: var(--font-caption-2);
+  color: var(--color-text-disclaimer);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.step {
+  min-height: 78vh;
+  padding: 2rem 0 2.5rem;
+  padding-left: 0;
+  margin-left: 0;
+  scroll-margin-top: 6rem;
+  text-align: left;
+}
+
+.stepActive .stepTitle {
+  color: var(--color-text-primary);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.stepActive .stepIndex {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.stepTitle {
+  margin: 0 0 0.5rem;
+  max-width: 28rem;
+  font: var(--font-story-narrative);
+  line-height: 1.35;
+  color: var(--color-text-primary);
+}
+
+.step p {
+  margin: 0;
+}
+
+.stepIndex {
+  font: var(--font-caption-2);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--color-text-label);
+  margin-bottom: 0.35rem;
+  text-align: left;
+}

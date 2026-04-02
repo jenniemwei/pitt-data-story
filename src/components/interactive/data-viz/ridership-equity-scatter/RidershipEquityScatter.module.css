@@ -1,0 +1,195 @@
+.wrap {
+  --eliminated: #e24b4a;
+  --reduced: #ef9f27;
+  --unchanged: #888780;
+  --muted: #6b7280;
+  --plot-bg: #fafaf9;
+  --border: #e7e5e4;
+  max-width: 64rem;
+  margin: 0 auto;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(10rem, 1fr);
+  gap: 1rem 1.25rem;
+  align-items: start;
+}
+
+.vizColumn {
+  min-width: 0;
+}
+
+.infoColumn {
+  border-left: 1px solid var(--border);
+  padding-left: 1rem;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .infoColumn {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+  }
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1c1917;
+  margin: 0 0 0.5rem;
+}
+
+.subtitle {
+  font-size: 0.8125rem;
+  color: var(--muted);
+  margin: 0 0 1rem;
+  line-height: 1.45;
+}
+
+.chartFrame {
+  position: relative;
+  background: var(--plot-bg);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.5rem 0.25rem;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+.axisLabel {
+  font-size: 0.6875rem;
+  fill: #57534e;
+}
+
+.quadrantLabel {
+  font-size: 0.625rem;
+  font-weight: 500;
+  fill: rgba(120, 113, 108, 0.22);
+  pointer-events: none;
+}
+
+.refLine {
+  stroke: #d6d3d1;
+  stroke-width: 1.25;
+  stroke-dasharray: 4 5;
+}
+
+.refLabel {
+  font-size: 0.5625rem;
+  fill: #78716c;
+  font-weight: 500;
+}
+
+.personaLabel {
+  font-size: 0.5625rem;
+  font-weight: 600;
+  fill: #1c1917;
+  paint-order: stroke fill;
+  stroke: rgba(255, 255, 255, 0.92);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.point {
+  cursor: crosshair;
+  opacity: 1;
+  transition: opacity 0.45s ease-out;
+}
+
+.point.pointDim {
+  opacity: 0;
+}
+
+.pointHit {
+  fill: transparent;
+  cursor: crosshair;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  margin-top: 0;
+  font-size: 0.6875rem;
+  color: #44403c;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.swatch {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.loading {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.honesty {
+  margin-top: 1rem;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: #44403c;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 0.35rem;
+}
+
+.honesty strong {
+  color: #9a3412;
+}
+
+.source {
+  margin-top: 0.65rem;
+  font-size: 0.625rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  min-width: 12rem;
+  max-width: 18rem;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: #fafaf9;
+  background: rgba(28, 25, 23, 0.94);
+  border-radius: 0.35rem;
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.tooltipTitle {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.tooltipMuted {
+  opacity: 0.88;
+  font-size: 0.6875rem;
+  margin-top: 0.2rem;
+}

@@ -1,0 +1,398 @@
+.sectionHeadingVisible {
+  margin: 0 auto 2.75rem;
+  max-width: 56rem;
+  padding: 0 0.5rem 0.5rem;
+  text-align: left;
+  font: var(--font-story-narrative);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.sectionHeadingSub {
+  display: block;
+  margin-top: 0.65rem;
+  font: var(--font-story-narrative);
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+
+.journeyGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.25rem;
+  align-items: start;
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+@media (max-width: 720px) {
+  .journeyGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.journeyCard {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Persona identity — no filled “card”; hierarchy via hairline + left accent */
+.journeyCardHead {
+  margin: 0;
+  padding: 0.65rem 0 1rem;
+  color: var(--color-text-primary, #1e1e1e);
+  background: transparent;
+  border-bottom: none;
+  text-align: left;
+}
+
+.journeyCardHeadA {
+  border-left: none;
+  border-top: none;
+  padding: 0.65rem 0 0.85rem;
+  margin-left: 0;
+}
+
+.journeyCardHeadB {
+  border-left: none;
+  border-top: none;
+  padding: 0.65rem 0 0.85rem;
+  margin-left: 0;
+}
+
+.tag {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  font-family: var(--font-family-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--color-text-primary);
+}
+
+.name {
+  margin: 0;
+  font-family: var(--font-family-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--color-text-primary);
+}
+
+.meta {
+  margin: 0.45rem 0 0;
+  font-family: var(--font-family-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.carBadge {
+  display: block;
+  margin-top: 0.45rem;
+  padding-top: 0.45rem;
+  border-top: none;
+  font-family: var(--font-family-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+/* —— Vertical journey: continuous spine + sticky stops (scroll ∝ minutes) —— */
+
+.track {
+  position: relative;
+  padding: 1.35rem 1rem 1.25rem 1.65rem;
+  flex: 1;
+  background: #faf9f6;
+}
+
+.trackSpine {
+  position: absolute;
+  left: calc(1.65rem + 10px);
+  top: 1.45rem;
+  bottom: 1.35rem;
+  width: 3px;
+  transform: translateX(-50%) scaleY(var(--spine-progress, 0));
+  transform-origin: top center;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(180deg, #2a2a2a 0%, #141414 55%, #0a0a0a 100%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trackSpine {
+    transition: none;
+    transform: translateX(-50%) scaleY(1);
+  }
+}
+
+.trackNodeRow {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 1.35rem;
+  padding: 0.4rem 0;
+  margin-left: 0;
+  background: transparent;
+}
+
+.dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  margin-left: 0;
+  border-radius: 50%;
+  background: #141414;
+  border: none;
+  box-shadow: 0 0 0 1px #141414;
+  transform: translateX(-1px);
+}
+
+.mono {
+  font: var(--font-caption-1);
+  color: var(--color-text-primary);
+  letter-spacing: 0.02em;
+}
+
+.trackSegRow {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: stretch;
+  gap: 0.65rem;
+  padding: 0.2rem 0 0.35rem;
+  margin-left: 0;
+}
+
+.segmentTextCol {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.35rem 0 0.45rem;
+}
+
+.edgeLabel {
+  font: var(--font-caption-1);
+  color: var(--color-text-caption-1);
+  line-height: 1.4;
+  text-transform: lowercase;
+  text-decoration: none;
+}
+
+.minutesBadge {
+  font: var(--font-caption-2);
+  color: var(--color-text-caption-2);
+  letter-spacing: 0.04em;
+}
+
+/* Journey stop visuals: grey placeholder rects (mixed sizes + vertical stagger) or photo when `src` is set */
+.journeyThumbSeg,
+.journeyThumbNode {
+  flex-shrink: 0;
+  margin: 0;
+  border-radius: 5px;
+  overflow: hidden;
+  align-self: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.07);
+}
+
+.journeyThumbSeg.phSizeS {
+  width: min(3.4rem, 31%);
+  height: 2.55rem;
+}
+
+.journeyThumbSeg.phSizeM {
+  width: min(5rem, 38%);
+  height: 3.4rem;
+}
+
+.journeyThumbSeg.phSizeL {
+  width: min(5.5rem, 42%);
+  height: 2.85rem;
+}
+
+.journeyThumbNode.phSizeS {
+  width: min(2.9rem, 27%);
+  height: 2.1rem;
+}
+
+.journeyThumbNode.phSizeM {
+  width: min(4.1rem, 34%);
+  height: 2.95rem;
+}
+
+.journeyThumbNode.phSizeL {
+  width: min(4.6rem, 36%);
+  height: 2.4rem;
+}
+
+.phStagger0 {
+  transform: translateY(-7px);
+}
+
+.phStagger1 {
+  transform: translateY(12px);
+}
+
+.phStagger2 {
+  transform: translateY(-3px);
+}
+
+.journeyThumbLeft {
+  margin-right: 0.2rem;
+}
+
+.journeyThumbRight {
+  margin-left: 0.2rem;
+}
+
+.journeyPlaceholderBlock {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 2rem;
+  background: linear-gradient(168deg, #e8e5e1 0%, #cbc6be 42%, #dedad4 100%);
+}
+
+.journeyThumbHasImg .journeyThumbImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.statsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  padding: 0.85rem 1rem 1.1rem;
+  border-top: none;
+  background: #faf9f6;
+}
+
+.statPill {
+  flex: 1 1 auto;
+  min-width: 5rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
+  text-align: center;
+}
+
+.statPillDelta {
+  background: color-mix(in srgb, var(--color-border-default) 45%, var(--color-bg-surface));
+  outline: none;
+}
+
+.statValue {
+  display: block;
+  font: var(--font-num);
+  color: var(--color-text-primary);
+}
+
+.statLabel {
+  display: block;
+  font: var(--font-story-caption);
+  color: var(--color-text-label);
+  margin-top: 0.1rem;
+  line-height: 1.25;
+}
+
+.footer {
+  margin-top: 0;
+  padding: 0.85rem 1rem 1rem;
+  border-top: none;
+}
+
+.footerManageable {
+  background: linear-gradient(180deg, #f3f3f1 0%, #e8e8e4 100%);
+}
+
+.footerCritical {
+  background: linear-gradient(180deg, #ececea 0%, #dededc 100%);
+}
+
+.footerTitle {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-family-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: normal;
+  text-transform: none;
+  text-align: left;
+}
+
+.footerTitleManageable {
+  color: var(--color-text-label);
+}
+
+.footerTitleCritical {
+  color: var(--color-text-primary);
+}
+
+.consequences {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consequence {
+  position: relative;
+  font-family: var(--font-family-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  padding-left: 0;
+  margin-bottom: 0.55rem;
+  text-align: left;
+}
+
+.consequence:last-child {
+  margin-bottom: 0;
+}
+
+.consequence::before {
+  content: none;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.revealVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.methodNoteRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1rem;
+  margin: 1.25rem auto 0;
+  max-width: 56rem;
+}

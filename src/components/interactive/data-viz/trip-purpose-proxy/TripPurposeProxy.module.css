@@ -1,0 +1,511 @@
+/**
+ * Trip purpose proxy — employment-mix visualization
+ * Layout: page header → main grid (chart ~3/4 + info column ~1/4)
+ */
+
+/* -------------------------------------------------------------------------- */
+/* Design tokens                                                              */
+/* -------------------------------------------------------------------------- */
+
+.purposeProxy {
+  padding-bottom: var(--space-4, 1rem);
+  --color-office: #0066ff;
+  --color-health: #ff8585;
+  --color-education: #ff8e53;
+  --color-retail-food: #ffd54f;
+  --color-mfg: #003d4d;
+  --color-other: #e0e0e0;
+
+  --frame-border: rgba(0, 0, 0, 0.12);
+  --frame-bg: #ffffff;
+  --surface-muted: color-mix(in srgb, var(--color-bg-surface, #fff) 94%, var(--color-bg-page, #f6f6f4));
+  --text: #171717;
+  --text-muted: #737373;
+  --text-soft: #a3a3a3;
+  --border-subtle: #e5e5e5;
+
+  --tooltip-bg: rgba(23, 23, 23, 0.94);
+  --tooltip-fg: #fafafa;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --font-sans: var(--font-family-main);
+
+  max-width: 72rem;
+  margin: 0 auto;
+  font-family: var(--font-sans);
+  color: var(--text);
+}
+
+.columnCaption,
+.columnTitle,
+.columnSubtitle,
+.legend,
+.legendItem,
+.source {
+  font-family: var(--font-sans);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Page header (title, methods popover, dek)                                  */
+/* -------------------------------------------------------------------------- */
+
+.header {
+  margin: 0 auto var(--space-5, 1.25rem);
+  max-width: 48rem;
+  text-align: left;
+}
+
+.titleRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.title {
+  margin: 0;
+  max-width: 48rem;
+  font: var(--font-story-narrative);
+  color: var(--color-text-primary);
+  text-align: left;
+}
+
+/* “Corridor & methods” disclosure */
+.methodsWrap {
+  position: relative;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.methodsTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  font: var(--font-caption-2);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-caption-2);
+  background: var(--surface-muted);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: help;
+  white-space: nowrap;
+}
+
+.methodsTrigger:hover,
+.methodsTrigger:focus-visible {
+  color: var(--text);
+  outline: none;
+}
+
+.methodsTrigger:focus-visible {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-border-strong, #bdb8ad);
+}
+
+.methodsIcon {
+  display: inline-flex;
+  width: 1rem;
+  height: 1rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #e5e5e5;
+  font-size: 0.65rem;
+  font-weight: 800;
+  font-style: normal;
+  line-height: 1;
+}
+
+.methodsPanel {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  width: min(22rem, calc(100vw - 2rem));
+  max-height: min(70vh, 22rem);
+  overflow-y: auto;
+  padding: 0.65rem 0.75rem;
+  font: var(--font-caption-2);
+  line-height: 1.45;
+  color: var(--color-text-caption-2);
+  background: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+  z-index: 55;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.12s ease,
+    visibility 0.12s ease;
+}
+
+.methodsWrap:hover .methodsPanel,
+.methodsWrap:focus-within .methodsPanel {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.methodsPanelHeading {
+  margin: 0 0 0.35rem;
+  font: var(--font-caption-2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-caption-1);
+}
+
+.methodsPanelHeading:not(:first-child) {
+  margin-top: 0.85rem;
+  padding-top: 0;
+  border-top: none;
+}
+
+.methodsPanel p {
+  margin: 0 0 0.45rem;
+}
+
+.dek {
+  margin: 0.5rem 0 0;
+  max-width: 48rem;
+  font: var(--font-story-narrative);
+  color: var(--color-text-primary);
+  text-align: left;
+}
+
+.edgeToggle {
+  margin: 0;
+  padding: 0.4rem 0.35rem;
+  align-self: start;
+  font: inherit;
+  color: var(--text-muted);
+  background: var(--surface-muted);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.edgeToggle:hover,
+.edgeToggle:focus-visible {
+  color: var(--text);
+  outline: none;
+}
+
+.edgeToggle:focus-visible {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-border-strong, #bdb8ad);
+}
+
+.edgeToggleGlyph {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: min-content minmax(10rem, 1fr) minmax(0, 3fr);
+  gap: 0.65rem 1rem;
+  align-items: start;
+}
+
+.bodyChartOnly {
+  grid-template-columns: min-content minmax(0, 1fr);
+}
+
+@media (max-width: 768px) {
+  .body {
+    grid-template-columns: min-content 1fr;
+  }
+
+  .body:not(.bodyChartOnly) {
+    grid-template-columns: min-content 1fr;
+  }
+
+  .body:not(.bodyChartOnly) .infoPanel {
+    grid-column: 2 / -1;
+  }
+
+  .body:not(.bodyChartOnly) .chartWell {
+    grid-column: 1 / -1;
+  }
+
+  .bodyChartOnly {
+    grid-template-columns: min-content 1fr;
+  }
+}
+
+.infoPanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 11rem;
+  padding: 1rem 1rem 1.1rem;
+  background: var(--surface-muted);
+  border: none;
+  border-radius: var(--radius-md);
+}
+
+.infoPanelBody {
+  margin: 0;
+  font: var(--font-body-sm);
+  line-height: 1.5;
+  color: var(--text);
+  flex: 1;
+}
+
+/* Route demographics vis — minimal frame; type labels Albert 16 in legend + columns */
+.chartWell {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0.85rem 1rem 1.15rem;
+  background: var(--frame-bg);
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  overflow: visible;
+}
+
+.chartWellInner {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: row;
+  gap: 0.75rem 1rem;
+  align-items: flex-start;
+  min-height: 0;
+  overflow: visible;
+}
+
+@media (max-width: 480px) {
+  .chartWellInner {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Category legend (matches bubble colors)                                    */
+/* -------------------------------------------------------------------------- */
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0 0.25rem 0 0;
+  list-style: none;
+  border: none;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font: var(--font-route-type-label);
+  line-height: 1.35;
+  color: var(--text);
+  text-transform: lowercase;
+}
+
+.swatch {
+  flex-shrink: 0;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+}
+
+.swatchOffice {
+  background: var(--color-office);
+}
+
+.swatchHealth {
+  background: var(--color-health);
+}
+
+.swatchEdu {
+  background: var(--color-education);
+}
+
+.swatchRetailFood {
+  background: var(--color-retail-food);
+}
+
+.swatchMfg {
+  background: var(--color-mfg);
+}
+
+.swatchOther {
+  background: var(--color-other);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Bubble columns                                                             */
+/* -------------------------------------------------------------------------- */
+
+.columns {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: stretch;
+  gap: 0.5rem 1.5rem;
+}
+
+.column {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.columnCaption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 0 0.5rem;
+  width: 100%;
+  text-align: center;
+}
+
+.columnTitle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font: var(--font-route-type-label);
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.columnSubtitle {
+  display: block;
+  margin-top: 0.25rem;
+  font: var(--font-caption-2);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-label);
+}
+
+.columnBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.badgeChoice {
+  background: var(--color-office);
+}
+
+.badgeDependent {
+  background: var(--color-mfg);
+}
+
+.bubbleSvg {
+  flex: 1;
+  width: 100%;
+  max-width: min(20rem, 100%);
+  height: auto;
+  min-height: 360px;
+  overflow: visible;
+}
+
+.bubbleHit {
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.bubbleHit:hover,
+.bubbleHit:focus {
+  opacity: 0.92;
+}
+
+.bubbleHit:focus {
+  outline: none;
+}
+
+.bubbleHit:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.fillOffice {
+  fill: var(--color-office);
+}
+
+.fillHealth {
+  fill: var(--color-health);
+}
+
+.fillEdu {
+  fill: var(--color-education);
+}
+
+.fillRetailFood {
+  fill: var(--color-retail-food);
+}
+
+.fillMfg {
+  fill: var(--color-mfg);
+}
+
+.fillOther {
+  fill: var(--color-other);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Footer source line                                                         */
+/* -------------------------------------------------------------------------- */
+
+.source {
+  margin: 1rem auto 0;
+  max-width: 48rem;
+  text-align: center;
+  font: var(--font-caption-2);
+  line-height: 1.45;
+  color: var(--color-text-caption-2);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Floating tooltip (pointer follow)                                          */
+/* -------------------------------------------------------------------------- */
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  max-width: 14rem;
+  padding: 0.5rem 0.6rem;
+  font: var(--font-caption-1);
+  line-height: 1.4;
+  color: var(--tooltip-fg);
+  background: var(--tooltip-bg);
+  border-radius: var(--radius-md);
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.tooltipTitle {
+  margin-bottom: 0.2rem;
+  font-weight: 500;
+}
+
+.tooltipMuted {
+  font: var(--font-caption-2);
+  opacity: 0.88;
+}
