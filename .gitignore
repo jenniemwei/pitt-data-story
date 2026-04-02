@@ -1,5 +1,11 @@
 .DS_Store
 
+# Cursor (local AI rules — not shared via repo)
+.cursor/
+
+# Planning docs (local / Cursor-generated)
+docs/transit_cuts_equity_analysis_2802ad58.plan.md
+
 # Dependencies
 node_modules/
 .pnp
