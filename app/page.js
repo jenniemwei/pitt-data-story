@@ -11,8 +11,8 @@ export default function HomePage() {
         </p>
         <h1>PRT FY26 cuts: full story</h1>
         <p className="app-header-dek">
-          Regional scale, two riders, FY26 cuts, a corridor compare, limits of ridership, after cuts, trip purpose, then
-          the equity map.
+          Regional scale, two riders, FY26 cuts, corridor map, limits of ridership framing, after cuts, and trip purpose
+          proxy.
         </p>
       </header>
       <StoryFullExperience />

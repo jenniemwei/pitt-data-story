@@ -24,6 +24,7 @@ import {
   simplifyRouteGeometry,
 } from "../../../lib/equity-map/simplifyRouteGeometry";
 import { hoodNamesTouchingRoutes } from "../../../lib/equity-map/corridorRouteSegments";
+import { dataAssetUrl } from "../../../lib/dataAssetUrl";
 
 const STORY_ROUTES = new Set(["RED", "52L"]);
 
@@ -297,10 +298,10 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
 
     let cancelled = false;
     Promise.all([
-      fetch("/api/data?name=neighborhoods.geojson").then((r) => r.json()),
-      fetchCsv("/api/data?name=fy26_route_n_profiles_all.csv"),
-      fetchCsv("/api/data?name=FY26_route_status_all.csv"),
-      fetch("/api/data?name=route_lines_current.geojson")
+      fetch(dataAssetUrl("neighborhoods.geojson")).then((r) => r.json()),
+      fetchCsv(dataAssetUrl("fy26_route_n_profiles_all.csv")),
+      fetchCsv(dataAssetUrl("FY26_route_status_all.csv")),
+      fetch(dataAssetUrl("route_lines_current.geojson"))
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null),
     ]).then(([hoodGeo, hoodStats, routeStats, routeGeo]) => {

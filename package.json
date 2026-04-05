@@ -2,7 +2,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "sync-data": "node scripts/sync-public-data.mjs",
+    "build:static": "node scripts/sync-public-data.mjs && STATIC_EXPORT=1 next build",
+    "preview:static": "npx --yes serve out"
   },
   "dependencies": {
     "@turf/turf": "^7.3.4",

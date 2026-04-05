@@ -20,6 +20,9 @@ node_modules/
 .next/
 out/
 
+# Static export: copied from data/ (see scripts/sync-public-data.mjs)
+/public/data/
+
 # Vite / legacy build output
 dist/
 

@@ -36,6 +36,7 @@ import {
   simplifyRouteGeometry,
 } from "../../../lib/equity-map/simplifyRouteGeometry";
 import { computeVScoreMap } from "../../../lib/equity-map/vulnerabilityScore";
+import { dataAssetUrl } from "../../../lib/dataAssetUrl";
 
 const FEATURED_HOODS = new Set(["Homewood South", "Lower Lawrenceville"]);
 /** Filter: composite V and share of routes lost */
@@ -126,10 +127,10 @@ export default function EquityMap() {
 
     let cancelled = false;
     Promise.all([
-      fetch("/api/data?name=neighborhoods.geojson").then((r) => r.json()),
-      fetchCsv("/api/data?name=fy26_route_n_profiles_all.csv"),
-      fetchCsv("/api/data?name=FY26_route_status_all.csv"),
-      fetch("/api/data?name=route_lines_current.geojson")
+      fetch(dataAssetUrl("neighborhoods.geojson")).then((r) => r.json()),
+      fetchCsv(dataAssetUrl("fy26_route_n_profiles_all.csv")),
+      fetchCsv(dataAssetUrl("FY26_route_status_all.csv")),
+      fetch(dataAssetUrl("route_lines_current.geojson"))
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null),
     ]).then(([hoodGeo, hoodStats, routeStats, routeGeo]) => {

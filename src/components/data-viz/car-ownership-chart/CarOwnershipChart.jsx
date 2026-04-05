@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
 import styles from "./CarOwnershipChart.module.css";
+import { dataAssetUrl } from "../../../lib/dataAssetUrl";
 
 const CHOICE = "choice";
 const DEPENDENT = "dependent";
@@ -63,7 +64,7 @@ function formatMoney(n) {
   }).format(n);
 }
 
-const DEFAULT_DATA_PATH = "/api/data?name=demographics.csv";
+const DEFAULT_DATA_PATH = dataAssetUrl("demographics.csv");
 
 /**
  * @param {object} props

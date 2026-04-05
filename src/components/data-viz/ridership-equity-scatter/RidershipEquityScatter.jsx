@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
 import styles from "./RidershipEquityScatter.module.css";
+import { dataAssetUrl } from "../../../lib/dataAssetUrl";
 
 const COLORS = {
   eliminated: "#E24B4A",
@@ -10,7 +11,7 @@ const COLORS = {
   unchanged: "#888780",
 };
 
-const DEFAULT_DATA_URL = "/api/data?name=routes_with_demographics.csv";
+const DEFAULT_DATA_URL = dataAssetUrl("routes_with_demographics.csv");
 
 /** @typedef {{ route_id: string; route_name: string; avg_daily_riders: number; pct_corridor_no_car: number; cut_type: 'eliminated'|'reduced'|'unchanged'; neighborhoods_served: string; is_persona_a_route: boolean; is_persona_b_route: boolean }} RouteRow */
 
