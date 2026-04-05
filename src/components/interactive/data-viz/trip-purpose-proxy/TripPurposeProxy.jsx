@@ -385,7 +385,7 @@ export function TripPurposeProxy({
                       aria-label={`${routeTitle}: employment mix across ${total} workers in model data`}
                     >
                       <title>
-                        {routeTitle}: bubble sizes show employment share by industry category.
+                        {`${routeTitle}: bubble sizes show employment share by industry category.`}
                       </title>
                       {[...bubbles].reverse().map((b) => (
                         <g key={b.key}>
