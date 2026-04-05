@@ -1,6 +1,6 @@
 /**
- * Copy approved data files into public/data for static export (GitHub Pages).
- * Keep list in sync with app/api/data/route.js ALLOWED keys.
+ * Copy approved data files into public/data for Next dev, static export, and GitHub Pages.
+ * Keep this allowlist in sync with data consumers (viz components).
  */
 import { cpSync, existsSync, mkdirSync } from "fs";
 import { dirname, join } from "path";

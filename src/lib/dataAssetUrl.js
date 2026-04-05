@@ -1,7 +1,6 @@
 /**
- * Builds a URL for whitelisted CSV/GeoJSON in `data/` (see `app/api/data/route.js`).
- * - Next dev: `/api/data?name=…` (routed server-side).
- * - Static export / GitHub Pages: `/data/…` (files copied into `public/data` before build).
+ * URL for CSV/GeoJSON served from `public/data/` (see scripts/sync-public-data.mjs).
+ * Same path in `next dev`, static export, and GitHub Pages — run sync before dev/build.
  */
 
 function publicPathPrefix() {
@@ -16,18 +15,7 @@ function publicPathPrefix() {
   return "";
 }
 
-function dataMode() {
-  if (typeof process !== "undefined" && process.env.NEXT_PUBLIC_DATA_MODE) {
-    return process.env.NEXT_PUBLIC_DATA_MODE;
-  }
-  return "public";
-}
-
 export function dataAssetUrl(filename) {
   const base = publicPathPrefix();
-  const mode = dataMode();
-  if (mode === "api") {
-    return `${base}/api/data?name=${encodeURIComponent(filename)}`;
-  }
   return `${base}/data/${filename}`;
 }

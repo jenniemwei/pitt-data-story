@@ -12,7 +12,7 @@ export default function DevCarOwnershipPage() {
           Car ownership chart (dev)
         </h1>
         <p style={{ margin: 0, color: "var(--color-text-muted)" }}>
-          Loads <code>data/demographics.csv</code> via <code>/api/data</code>. Toggle{" "}
+          Loads <code>public/data/demographics.csv</code> (synced from <code>data/</code>). Toggle{" "}
           <code>animated=&#123;false&#125;</code> in this file for print-style bars.
         </p>
       </header>

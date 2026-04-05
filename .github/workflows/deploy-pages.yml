@@ -25,7 +25,6 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci
-      - run: node scripts/sync-public-data.mjs
       - name: Set BASE_PATH for GitHub Pages
         run: |
           REPO="${{ github.event.repository.name }}"
