@@ -1,4 +1,4 @@
-import { PersonaDayCard } from "../../../src/components/interactive/data-viz";
+import { PersonaDayCard } from "../../../src/components/data-viz";
 
 export const metadata = {
   title: "Dev · Persona day cards",

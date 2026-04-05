@@ -1,4 +1,4 @@
-import { EquityMap } from "../../../src/components/interactive/data-viz";
+import { EquityMap } from "../../../src/components/data-viz";
 
 export const metadata = {
   title: "Dev · Equity map",

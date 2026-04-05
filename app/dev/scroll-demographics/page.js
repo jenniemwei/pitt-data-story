@@ -1,4 +1,4 @@
-import { ScrollDemographics } from "../../../src/components/interactive/data-viz";
+import { ScrollDemographics } from "../../../src/components/data-viz";
 
 export const metadata = {
   title: "Dev · Scroll demographics",

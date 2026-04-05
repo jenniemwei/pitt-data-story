@@ -17,13 +17,13 @@ import {
   WATER_FILL,
 } from "./mapStyles";
 import { DataRationaleIcon } from "../../ui/DataRationaleIcon";
-import { fullStoryNarrative, scrollDemographicsNarrative } from "../../../../narrative";
-import { normalizeRouteId } from "../../../../lib/equity-map/constants";
+import { fullStoryNarrative, scrollDemographicsNarrative } from "../../../narrative";
+import { normalizeRouteId } from "../../../lib/equity-map/constants";
 import {
   ROUTE_GEOMETRY_SIMPLIFY_TOLERANCE_DEG,
   simplifyRouteGeometry,
-} from "../../../../lib/equity-map/simplifyRouteGeometry";
-import { hoodNamesTouchingRoutes } from "../../../../lib/equity-map/corridorRouteSegments";
+} from "../../../lib/equity-map/simplifyRouteGeometry";
+import { hoodNamesTouchingRoutes } from "../../../lib/equity-map/corridorRouteSegments";
 
 const STORY_ROUTES = new Set(["RED", "52L"]);
 

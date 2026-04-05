@@ -1,4 +1,4 @@
-import { TripPurposeProxy } from "../../../src/components/interactive/data-viz";
+import { TripPurposeProxy } from "../../../src/components/data-viz";
 
 export const metadata = {
   title: "Dev · Trip purpose proxy",

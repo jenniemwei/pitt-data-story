@@ -30,12 +30,12 @@ import {
   WATER_FILL,
 } from "./mapStyles";
 import { DataRationaleIcon } from "../../ui/DataRationaleIcon";
-import { normalizeRouteId } from "../../../../lib/equity-map/constants";
+import { normalizeRouteId } from "../../../lib/equity-map/constants";
 import {
   ROUTE_GEOMETRY_SIMPLIFY_TOLERANCE_DEG,
   simplifyRouteGeometry,
-} from "../../../../lib/equity-map/simplifyRouteGeometry";
-import { computeVScoreMap } from "../../../../lib/equity-map/vulnerabilityScore";
+} from "../../../lib/equity-map/simplifyRouteGeometry";
+import { computeVScoreMap } from "../../../lib/equity-map/vulnerabilityScore";
 
 const FEATURED_HOODS = new Set(["Homewood South", "Lower Lawrenceville"]);
 /** Filter: composite V and share of routes lost */

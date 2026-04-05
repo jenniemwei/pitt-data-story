@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import useScrollama from "../../../../lib/scrollama/useScrollama";
+import useScrollama from "../../../lib/scrollama/useScrollama";
 
 export default function ScrollScene({ steps = [], onStepEnter, onStepExit, children }) {
   const containerRef = useRef(null);

@@ -1,4 +1,4 @@
-import { CarOwnershipChart } from "../../../src/components/interactive/data-viz";
+import { CarOwnershipChart } from "../../../src/components/data-viz";
 
 export const metadata = {
   title: "Dev · Car ownership chart",

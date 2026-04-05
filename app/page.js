@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { StoryFullExperience } from "../src/components/interactive/data-viz";
+import { StoryFullExperience } from "../src/components/data-viz";
 
 export default function HomePage() {
   return (

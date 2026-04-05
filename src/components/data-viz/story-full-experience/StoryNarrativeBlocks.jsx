@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import { fullStoryNarrative as defaultCopy } from "../../../../narrative";
+import { fullStoryNarrative as defaultCopy } from "../../../narrative";
 import styles from "./StoryFullExperience.module.css";
 
 /**

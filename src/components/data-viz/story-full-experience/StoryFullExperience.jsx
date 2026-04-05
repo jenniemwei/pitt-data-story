@@ -1,6 +1,6 @@
 "use client";
 
-import { fullStoryNarrative } from "../../../../narrative";
+import { fullStoryNarrative } from "../../../narrative";
 import CorridorScrollMap from "../equity-map/CorridorScrollMap";
 import { PersonaDayCard } from "../persona-day-card/PersonaDayCard";
 import { TripPurposeProxy } from "../trip-purpose-proxy/TripPurposeProxy";

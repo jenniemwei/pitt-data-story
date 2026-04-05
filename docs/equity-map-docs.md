@@ -92,18 +92,18 @@ Build an interactive equity map with:
 12. Consolidated style architecture and removed redundancy:
    - `app/globals.css` now contains only global tokens + base/page-level styles
    - Moved equity-map styling into component-scoped CSS module:
-     - `src/components/interactive/data-viz/equity-map/EquityMap.module.css`
+     - `src/components/data-viz/equity-map/EquityMap.module.css`
    - Removed redundant legacy style files:
      - `src/styles/global.css`
      - `src/styles/tokens.css`
      - `src/components/EquityMap.css`
 13. Reorganized component structure for future scrollytelling:
    - Data viz components:
-     - `src/components/interactive/data-viz/equity-map/EquityMap.jsx`
-     - `src/components/interactive/data-viz/index.js`
+     - `src/components/data-viz/equity-map/EquityMap.jsx`
+     - `src/components/data-viz/index.js`
    - Motion/scroll components:
-     - `src/components/interactive/motion/scroll-scene/ScrollScene.jsx`
-     - `src/components/interactive/motion/index.js`
+     - `src/components/motion/scroll-scene/ScrollScene.jsx`
+     - `src/components/motion/index.js`
    - Scroll utility:
      - `src/lib/scrollama/useScrollama.js`
 14. Set up `scrollama` dependency and scaffold integration points for scene-based storytelling.
