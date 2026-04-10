@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const LINKS = [
   { href: "/dev", label: "Hub" },
   { href: "/dev/equity-map", label: "Equity map" },
+  { href: "/dev/equity-map-global-grid", label: "Equity dots (global grid)" },
   { href: "/dev/car-ownership", label: "Car ownership chart" },
   { href: "/dev/persona-day", label: "Persona day" },
   { href: "/dev/trip-purpose-proxy", label: "Trip purpose proxy" },

@@ -38,7 +38,7 @@ import {
 import { computeVScoreMap } from "../../../lib/equity-map/vulnerabilityScore";
 import { dataAssetUrl } from "../../../lib/dataAssetUrl";
 
-const FEATURED_HOODS = new Set(["Homewood South", "Lower Lawrenceville"]);
+const FEATURED_HOODS = new Set(["Lincoln-Lemington-Belmar", "Lower Lawrenceville"]);
 /** Filter: composite V and share of routes lost */
 const V_FILTER_THRESHOLD = 40;
 const ACCESS_LOSS_THRESHOLD = 0.25;

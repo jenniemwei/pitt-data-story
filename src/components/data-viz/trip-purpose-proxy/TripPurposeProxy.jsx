@@ -151,14 +151,14 @@ const DEFAULT_ROUTES = [
   {
     id: "routeA",
     kind: "choice",
-    corridorName: "RED Line",
-    riderFraming: "Choice",
+    corridorName: "71B Highland Park — Choice",
+    riderFraming: "",
   },
   {
     id: "routeB",
     kind: "dependent",
-    corridorName: "52L (Homewood Limited)",
-    riderFraming: "Need",
+    corridorName: "P10 Allegheny Valley — Need",
+    riderFraming: "",
   },
 ];
 

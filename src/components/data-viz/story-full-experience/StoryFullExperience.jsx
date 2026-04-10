@@ -2,6 +2,8 @@
 
 import { fullStoryNarrative } from "../../../narrative";
 import CorridorScrollMap from "../equity-map/CorridorScrollMap";
+import EquityMap2 from "../equity-map/EquityMap2";
+import EquityMap3 from "../equity-map/EquityMap3";
 import { PersonaDayCard } from "../persona-day-card/PersonaDayCard";
 import { TripPurposeProxy } from "../trip-purpose-proxy/TripPurposeProxy";
 import { FY26PlanStats, StoryOpening, StoryPullQuote } from "./StoryNarrativeBlocks";
@@ -15,6 +17,8 @@ const CHAPTERS = [
   { id: "pull-quote", label: "Beyond ridership", href: "#pull-quote" },
   { id: "persona-after", label: "After cuts", href: "#persona-after" },
   { id: "trip-purpose", label: "Trip purpose", href: "#trip-purpose" },
+  { id: "equity-map2", label: "Dot map", href: "#equity-map2" },
+  { id: "equity-map-global-grid", label: "Dot map (global grid)", href: "#equity-map-global-grid" },
 ];
 
 const story = fullStoryNarrative;
@@ -52,7 +56,7 @@ export function StoryFullExperience() {
 
       <hr className={styles.chapterDivider} aria-hidden />
 
-      <section id="corridor-map" className={styles.chapter} aria-label="RED and 52L corridor map">
+      <section id="corridor-map" className={styles.chapter} aria-label="71B and P10 corridor map">
         <CorridorScrollMap copy={story.corridorMap} />
       </section>
 
@@ -81,6 +85,22 @@ export function StoryFullExperience() {
           dek={story.tripPurpose.dek}
           routes={story.tripPurpose.routes}
         />
+      </section>
+
+      <hr className={styles.chapterDivider} aria-hidden />
+
+      <section id="equity-map2" className={styles.chapter} aria-label="Poverty and transit dependence dot map">
+        <EquityMap2 title={story.equityMap2.title} dek={story.equityMap2.dek} />
+      </section>
+
+      <hr className={styles.chapterDivider} aria-hidden />
+
+      <section
+        id="equity-map-global-grid"
+        className={styles.chapter}
+        aria-label="Poverty dot map on a global grid"
+      >
+        <EquityMap3 title={story.equityMap3.title} dek={story.equityMap3.dek} />
       </section>
     </div>
   );

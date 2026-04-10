@@ -18,6 +18,10 @@ export default function DevHubPage() {
           <h2>Equity map</h2>
           <p>PRT neighborhood map, route overlays, vulnerability controls.</p>
         </Link>
+        <Link href="/dev/equity-map-global-grid" className="dev-lab-card">
+          <h2>Equity dots (global grid)</h2>
+          <p>EquityMap3 — single lattice, poverty-colored dots (uniform size).</p>
+        </Link>
         <Link href="/dev/car-ownership" className="dev-lab-card">
           <h2>Car ownership chart</h2>
           <p>Scene 02 — choice vs dependent riders, horizontal bars.</p>
@@ -32,7 +36,7 @@ export default function DevHubPage() {
         </Link>
         <Link href="/dev/scroll-demographics" className="dev-lab-card">
           <h2>Scroll demographics</h2>
-          <p>RED vs 52L — sticky abstract map, three scroll overlays.</p>
+          <p>71B vs 74 — sticky abstract map, three scroll overlays.</p>
         </Link>
         <div className="dev-lab-card dev-lab-card--muted">
           <h2>More soon</h2>

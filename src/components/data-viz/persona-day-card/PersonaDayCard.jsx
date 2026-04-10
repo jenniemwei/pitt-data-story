@@ -33,6 +33,7 @@ import styles from "./PersonaDayCard.module.css";
  *   stats: Stat[];
  *   statsAfter?: Stat[];
  *   afterCut: AfterCut;
+ *   daySchedule?: { heading?: string; beforeRows: { time: string; label: string }[]; afterRows: { time: string; label: string }[] };
  * }} Persona
  */
 
@@ -131,6 +132,7 @@ export function PersonaDayCard({ narrative = defaultNarrative, showSectionHeadin
           persona={personas.a}
           segments={isAfter ? personas.a.journeyAfter : personas.a.journeyBefore}
           compareSegments={isAfter ? personas.a.journeyBefore : null}
+          schedulePhase={isAfter ? "after" : "before"}
           ui={ui}
           variant="a"
           ariaLabel={ui.columnAriaLabelA}
@@ -143,6 +145,7 @@ export function PersonaDayCard({ narrative = defaultNarrative, showSectionHeadin
           persona={personas.b}
           segments={isAfter ? personas.b.journeyAfter : personas.b.journeyBefore}
           compareSegments={isAfter ? personas.b.journeyBefore : null}
+          schedulePhase={isAfter ? "after" : "before"}
           ui={ui}
           variant="b"
           ariaLabel={ui.columnAriaLabelB}
@@ -182,6 +185,7 @@ export function PersonaDayCard({ narrative = defaultNarrative, showSectionHeadin
  * @param {'a' | 'b'} props.variant
  * @param {string} props.ariaLabel
  * @param {number} props.pxPerMin
+ * @param {'before' | 'after'} props.schedulePhase
  * @param {boolean} props.showConsequences
  * @param {boolean} props.scrollRevealConsequences
  * @param {boolean} props.reducedMotion
@@ -190,6 +194,7 @@ function JourneyColumn({
   persona,
   segments,
   compareSegments,
+  schedulePhase,
   ui,
   variant,
   ariaLabel,
@@ -258,6 +263,36 @@ function JourneyColumn({
         </p>
         <span className={styles.carBadge}>{persona.carStatusLabel}</span>
       </header>
+
+      {persona.daySchedule ? (
+        <div
+          className={styles.daySchedule}
+          aria-label={
+            schedulePhase === "after"
+              ? "Illustrative day anchors and clock after service changes"
+              : "Illustrative day anchors and clock before service changes"
+          }
+        >
+          {persona.daySchedule.heading ? (
+            <p className={styles.dayScheduleHeading}>{persona.daySchedule.heading}</p>
+          ) : null}
+          <ul className={styles.dayScheduleList}>
+            {(schedulePhase === "after"
+              ? persona.daySchedule.afterRows
+              : persona.daySchedule.beforeRows
+            ).map((row, i) => (
+              <li key={i} className={styles.dayScheduleItem}>
+                {row.time ? (
+                  <span className={styles.dayScheduleTime}>{row.time}</span>
+                ) : (
+                  <span className={styles.dayScheduleTimePlaceholder} aria-hidden />
+                )}
+                <span className={styles.dayScheduleLabel}>{row.label}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <div ref={trackRef} className={styles.track} role="group" aria-label={ui.timelineHeading}>
         <div

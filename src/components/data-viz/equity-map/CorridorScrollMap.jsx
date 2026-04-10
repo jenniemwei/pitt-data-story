@@ -26,11 +26,11 @@ import {
 import { hoodNamesTouchingRoutes } from "../../../lib/equity-map/corridorRouteSegments";
 import { dataAssetUrl } from "../../../lib/dataAssetUrl";
 
-const STORY_ROUTES = new Set(["RED", "52L"]);
+const STORY_ROUTES = new Set(["71B", "P10"]);
 
-/** RED Line = blue, 52L = red; opaque lines (no translucent highlight stack). */
-const ROUTE_RED_LINE_BLUE = "#1d4ed8";
-const ROUTE_52L_RED = "#b91c1c";
+/** 71B = protected/upgraded corridor (blue); P10 = eliminated corridor in story (coral); opaque lines. */
+const ROUTE_71B_BLUE = "#1d4ed8";
+const ROUTE_P10_CORAL = "#c2410c";
 const CORRIDOR_ROUTE_LINE_WIDTH = 2.5;
 const REGIONAL_ROUTE_LINE_WIDTH = 1;
 
@@ -222,7 +222,7 @@ function hoodFillOpacityExpr(regionalFull) {
 }
 
 /**
- * Scroll-synced RED / 52L Mapbox: poverty → transit fills on corridor; full step + toggle shows regional equity map (poverty % + all FY26 routes).
+ * Scroll-synced 71B / P10 Mapbox: poverty → transit fills on corridor; full step + toggle shows regional equity map (poverty % + all FY26 routes).
  *
  * @param {{ copy?: typeof defaultCorridorCopy }} props
  */
@@ -510,10 +510,10 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
             "line-color": [
               "match",
               ["get", "route_id"],
-              "RED",
-              ROUTE_RED_LINE_BLUE,
-              "52L",
-              ROUTE_52L_RED,
+              "71B",
+              ROUTE_71B_BLUE,
+              "P10",
+              ROUTE_P10_CORAL,
               "#64748b",
             ],
           },
@@ -667,6 +667,7 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
   }, [mapStyleReady, activePhase, showFullEquityMap, fullMetric]);
 
   const legendRegionalTransit = copy.legendRegionalTransit ?? copy.legendTransit;
+  const brtMethod = typeof copy.methodNoteBrt === "string" ? copy.methodNoteBrt.trim() : "";
   const legendText =
     regionalEquityOn && fullMetric === "transit"
       ? legendRegionalTransit
@@ -699,14 +700,14 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
           id="corridor-scroll-map-title"
           className={sectionTitleVis ? sdStyles.leadTitle : "visually-hidden"}
         >
-          {sectionTitleVis || "RED and 52L on the map"}
+          {sectionTitleVis || "71B and P10 on the map"}
         </h2>
         {sectionIntro?.trim() ? <p className={sdStyles.leadBody}>{sectionIntro}</p> : null}
       </header>
 
       <div className={`${sdStyles.shell} ${localStyles.corridorShell}`}>
         <div className={`${sdStyles.sticky} ${localStyles.corridorSticky}`}>
-          <figure className={sdStyles.figure} aria-label="RED and 52L corridor map">
+          <figure className={sdStyles.figure} aria-label="71B and P10 corridor map">
             <div ref={mapContainerRef} className={localStyles.mapInner} />
             {activePhase === "full" ? (
               <div className={localStyles.fullControls}>
@@ -752,7 +753,7 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
               <span className={sdStyles.sourceLabel}>Sources & methods</span>
               <DataRationaleIcon
                 label="Data sources for corridor map"
-                rationale={`${copy.legendPoverty}\n\n${copy.legendTransit}\n\n${copy.legendFull}\n\n${copy.legendRegional}\n\n${legendRegionalTransit}\n\n${scrollDemographicsNarrative.ui.sourceNote}`}
+                rationale={`${copy.legendPoverty}\n\n${copy.legendTransit}\n\n${copy.legendFull}\n\n${copy.legendRegional}\n\n${legendRegionalTransit}\n\n${scrollDemographicsNarrative.ui.sourceNote}${brtMethod ? `\n\n${brtMethod}` : ""}`}
               />
             </div>
             {hoverData ? (
@@ -764,10 +765,10 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
                   <dd>
                     {regionalEquityOn
                       ? hoverData.onCorridor
-                        ? "Touches RED / 52L"
+                        ? "Touches 71B / P10"
                         : "Other area"
                       : hoverData.onCorridor
-                        ? "On RED / 52L"
+                        ? "On 71B / P10"
                         : "Off corridor (muted)"}
                   </dd>
                   <dt>Poverty</dt>
@@ -779,7 +780,8 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
             ) : null}
             {routesFileMissing ? (
               <p className={sdStyles.motionNote}>
-                Map needs <code>route_lines_current.geojson</code> with <code>RED</code> and <code>52L</code>.
+                Map needs <code>route_lines_current.geojson</code> with <code>71B</code> and <code>P10</code>{" "}
+                route features.
               </p>
             ) : null}
           </figure>

@@ -1,9 +1,28 @@
 /**
  * Story copy and persona payloads. Single source for narrative components.
- * Income figures align with `data/demographics.csv` (Brookline, Homewood South).
- * Route labels echo `data/homewood_south_vs_lower_lawrenceville_story_data.csv`.
- * Stop distances / alternatives: confirm against `/data/gtfs/` before publish.
+ * Neighborhood context: `data/fy26_route_n_profiles_all.csv` (Stanton Heights, Lincoln-Lemington-Belmar).
+ * Stanton Heights median / no-car: confirm ACS pull — Marcus income below marked ILLUSTRATIVE in persona comment.
+ * Denise pocket: Lincoln-Lemington-Belmar row — ~32.6% below poverty, ~25.8% transit-commute proxy, pop 4,485.
+ * Denise arc: P10 (Allegheny Valley Flyer) from WASHINGTON BLVD AT HIGHLAND DR — sole route at that stop row in `route_stop_per_route.csv`; FY26 eliminates P10 (see `FY26_route_status_all`).
+ * Composite household: home/school/work/doctor strings are illustrative for storytelling — verify addresses and walk times on a map + official timetables before presenting as fact.
+ * Route labels echo FY26 schedule names (`data/FY26_route_status_all.csv`).
+ * Stop names from `data/route_stop_per_route.csv`. No bundled `stop_times.txt` — clock times illustrative.
  */
+
+/**
+ * FY26 treatment for story routes (editorial layer; BRT flag is not in CSV).
+ * @type {Record<string, { cutType: 'minor_reduction' | 'major_reduction' | 'eliminated'; brtUpgrade: boolean }>}
+ */
+export const STORY_ROUTE_FY26_LOOKUP = {
+  "71B": { cutType: "minor_reduction", brtUpgrade: true },
+  "82": { cutType: "major_reduction", brtUpgrade: false },
+  "74": { cutType: "major_reduction", brtUpgrade: false },
+  "91": { cutType: "major_reduction", brtUpgrade: false },
+  "1": { cutType: "major_reduction", brtUpgrade: false },
+  "75": { cutType: "major_reduction", brtUpgrade: false },
+  P17: { cutType: "eliminated", brtUpgrade: false },
+  P10: { cutType: "eliminated", brtUpgrade: false },
+};
 
 /**
  * @typedef {'firstMile' | 'transit' | 'uncertain'} JourneyEdgeKind
@@ -22,35 +41,39 @@
  *   arrivalPhoto?: JourneyStepImage;
  * }} JourneySegment
  * stepPhoto: thumb beside the leg (time-scaled) row. arrivalPhoto: thumb beside the destination node row.
+ *
+ * @typedef {{ time: string; label: string }} DayScheduleRow
+ * @typedef {{ heading?: string; beforeRows: DayScheduleRow[]; afterRows: DayScheduleRow[] }} DaySchedule
  */
 
 export const personaDayCardNarrative = {
   ui: {
-    sectionHeading: "Two commuters, one service cut",
+    sectionHeading: "Two commuters, one budget crisis",
     /** Full-story: opening chapter */
     sectionHeadingBefore: "Behind every ridership number is a place",
     sectionBeforeDek: "For some riders, PRT isn’t a nice-to-have. It’s how they get around.",
     /** Full-story: personas-after chapter (optional heading) */
     sectionHeadingAfter: "",
     sectionAfterDek: "",
-    columnAriaLabelA: "Marcus, choice rider, Brookline",
-    columnAriaLabelB: "Denise, dependent rider, Homewood South",
+    columnAriaLabelA: "Marcus, choice rider, Stanton Heights",
+    columnAriaLabelB: "Denise, dependent rider, Lincoln-Lemington–Belmar",
     timelineHeading: "Same morning, same system",
     statsHeading: "At a glance",
     consequencesHeading: "If the cut happens",
     manageableFooterTitle: "Alternatives available",
     criticalFooterTitle: "No viable alternative",
     journeyScaleNote:
-      "Leg heights use illustrative minutes (not GTFS-schedule exact). Confirm waits and walks with GTFS and FY26 scenarios.",
+      "Leg heights use illustrative minutes (not GTFS-schedule exact). Denise’s home, school, work, and doctor labels are a composite scene — confirm walk distances and clock times with a map and PRT FY26 timetables. This repo has no bundled `stop_times.txt`.",
     sharedRouteNote:
-      "Both use this build’s neighborhood-route join for FY26 cuts; consequences are illustrative. Validate with GTFS walksheds.",
+      "FY26 pairing in this build: 71B Highland Park (minor reduction; BRT spine in regional plan) vs. Denise on P10 (Allegheny Valley Flyer) at WASHINGTON BLVD AT HIGHLAND DR — the only route at that stop in `route_stop_per_route.csv`, so no same-stop local substitute. P10 is eliminated in scenario tables; her illustrative fallback is a longer walk to major-reduced 74 (HIGHLAND DR OPP JOB CORPS DR / WILTSIE ST AT HIGHLAND DR FS). Lincoln Ave riders still face the paired P17/82 story separately.",
   },
   personas: {
     a: {
       name: "Marcus",
       tag: "Choice rider",
-      neighborhood: "Brookline",
-      incomeLabel: "$76,549 median household income",
+      neighborhood: "Stanton Heights",
+      // ILLUSTRATIVE — confirm from ACS pull (user brief: ACS 2023 ~$77,978)
+      incomeLabel: "$77,978 median household income (ACS 2023 — confirm)",
       hasCar: true,
       carStatusLabel: "Household has a vehicle",
       startNodeLabel: "Home",
@@ -58,131 +81,202 @@ export const personaDayCardNarrative = {
       journeyBefore: [
         {
           edgeKind: "firstMile",
-          edgeLabel: "drive to park-and-ride",
-          minutes: 12,
-          nodeLabel: "South Hills Village",
+          edgeLabel: "walk to 71B on Stanton Ave",
+          minutes: 6,
+          nodeLabel: "71B stop",
           stepPhoto: { side: "right" },
         },
-        { edgeKind: "transit", edgeLabel: "RED Line", minutes: 34, nodeLabel: "Steel Plaza" },
+        {
+          edgeKind: "transit",
+          edgeLabel: "71B Highland Park → Downtown (Penn / Liberty corridor)",
+          minutes: 26,
+          nodeLabel: "Downtown",
+        },
         { edgeKind: "firstMile", edgeLabel: "walk", minutes: 6, nodeLabel: "office" },
       ],
       /** @type {JourneySegment[]} */
       journeyAfter: [
-        { edgeKind: "firstMile", edgeLabel: "drive", minutes: 12, nodeLabel: "South Hills Village" },
+        {
+          edgeKind: "firstMile",
+          edgeLabel: "walk to 71B (same stop)",
+          minutes: 6,
+          nodeLabel: "71B stop",
+          stepPhoto: { side: "right" },
+        },
         {
           edgeKind: "transit",
-          edgeLabel: "RED Line · longer waits / slower recovery",
-          minutes: 48,
-          nodeLabel: "Steel Plaza",
+          edgeLabel: "71B · slightly longer off-peak waits",
+          minutes: 32,
+          nodeLabel: "Downtown",
         },
         { edgeKind: "firstMile", edgeLabel: "walk", minutes: 6, nodeLabel: "office" },
       ],
       trips: [
-        { time: "6:50am", description: "Drives to South Hills Village park-and-ride" },
-        { time: "7:05am", description: "Boards RED Line toward downtown" },
-        { time: "7:42am", description: "Walks from Steel Plaza to office" },
+        { time: "7:10am", description: "Walks to 71B on Stanton Ave" },
+        { time: "7:18am", description: "Boards 71B toward Downtown" },
+        { time: "7:50am", description: "Walks from stop to desk" },
       ],
       stats: [
-        { value: "52 min", label: "total commute" },
-        { value: "$0", label: "park-and-ride cost" },
-        { value: "1", label: "transit leg (rail)" },
+        { value: "38 min", label: "total commute" },
+        // ILLUSTRATIVE — confirm zero-vehicle / no-car household share from ACS
+        { value: "~12%", label: "no-car households (illustrative)" },
+        { value: "1", label: "core bus leg" },
       ],
       statsAfter: [
-        { value: "66 min", label: "total commute" },
-        { value: "~$18", label: "parking if driving" },
-        { value: "1", label: "transit leg (rail)" },
+        { value: "44 min", label: "total commute" },
+        { value: "~20 min", label: "drive if he pivots" },
+        { value: "1", label: "core bus leg" },
       ],
       afterCut: {
         type: "manageable",
         items: [
-          "Can drive the rest of the way downtown: about +22 minutes and ~$18/day parking in the project scenario.",
-          "Another frequent route stops within about 0.4 mile walk (confirm with GTFS).",
-          "Employer transit benefit can cover a replacement monthly pass if rail frequency drops.",
+          "Route still operates — minor reduction in off-peak frequency",
+          "Drive alternative: ~20 min, $14–18/day parking Downtown",
+          "Employer transit benefit covers ConnectCard",
+          "71B corridor selected for BRT upgrade; new stations targeted by 2027 (University Line / PRT BRT plan — confirm dates)",
         ],
       },
     },
     b: {
       name: "Denise",
       tag: "Dependent rider",
-      neighborhood: "Homewood South",
-      incomeLabel: "$24,376 median household income",
+      neighborhood: "Lincoln-Lemington–Belmar",
+      incomeLabel:
+        "~33% below poverty; ~26% transit-commute proxy (workers) — Lincoln-Lemington-Belmar row, `fy26_route_n_profiles_all` (2022 ACS fields)",
       hasCar: false,
       carStatusLabel: "No household vehicle",
-      startNodeLabel: "Home",
+      startNodeLabel: "Home (illustrative)",
+      /**
+       * Morning timeline — home, school, work, doctor (composite). Rendered when `daySchedule` is supported.
+       * @type {DaySchedule}
+       */
+      daySchedule: {
+        heading: "Illustrative anchors & clock",
+        beforeRows: [
+          { time: "Places", label: "Home: 7426 Washington Pl., Pittsburgh 15206 (composite, unverified)" },
+          { time: "", label: "School: Pittsburgh Lincoln K-8 — 328 Lincoln Ave (kid drop-off)" },
+          { time: "", label: "Work: Liberty Ave & Smithfield St — shift job, Central Business District" },
+          {
+            time: "",
+            label:
+              "Doctor (quarterly): primary care — UPMC Shadyside Family Health Center, Centre Ave & Somerset Pl. (before cuts: P10 → busway/Fifth, illustrative)",
+          },
+          { time: "6:15a", label: "Leave home — walk with child toward Lincoln Ave" },
+          { time: "6:29a", label: "Lincoln K-8 drop-off" },
+          { time: "6:35a", label: "Walk to WASHINGTON BLVD AT HIGHLAND DR (PRT stop; P10 only at this pair in build data)" },
+          { time: "6:41a", label: "Board P10 Allegheny Valley Flyer inbound (Fifth Ave / East Busway pattern — illustrative)" },
+          { time: "7:07a", label: "Alight FIFTH AVE AT HAMILTON AVE — walk to Liberty & Smithfield" },
+          { time: "7:30a", label: "Clock-in" },
+        ],
+        afterRows: [
+          { time: "Places", label: "Same home, school, work & doctor as before — commute path changes" },
+          { time: "6:15a", label: "Leave home; Lincoln K-8 drop-off (same)" },
+          { time: "6:35a", label: "WASHINGTON BLVD AT HIGHLAND DR — no P10; replan (illustrative wait)" },
+          { time: "6:45a", label: "Walk to 74 — HIGHLAND DR OPP JOB CORPS DR (major-reduced 74 in FY26 scenario)" },
+          { time: "6:52a", label: "Board 74 Homewood–Squirrel Hill inbound (illustrative)" },
+          { time: "7:34a", label: "Downtown late — walk to Liberty & Smithfield" },
+          { time: "7:45a+", label: "After clock-in / disciplinary risk (illustrative)" },
+          {
+            time: "Quarterly",
+            label:
+              "Doctor visits: same UPMC Shadyside clinic — after cuts, midday means a longer walk to 74 + thinner headways on major-reduced locals (illustrative)",
+          },
+        ],
+      },
       /** @type {JourneySegment[]} */
       journeyBefore: [
         {
           edgeKind: "firstMile",
-          edgeLabel: "walk to stop",
-          minutes: 12,
-          nodeLabel: "P1 · East Busway",
+          edgeLabel:
+            "walk with kid to Pittsburgh Lincoln K-8, 328 Lincoln Ave (PRT stop data: LLB)",
+          minutes: 14,
+          nodeLabel: "school",
           stepPhoto: { side: "right" },
         },
         {
-          edgeKind: "transit",
-          edgeLabel: "busway + transfer",
-          minutes: 33,
-          nodeLabel: "school drop",
-          arrivalPhoto: { side: "left" },
+          edgeKind: "firstMile",
+          edgeLabel: "walk to WASHINGTON BLVD AT HIGHLAND DR (sole P10 boarding pair here)",
+          minutes: 6,
+          nodeLabel: "WASHINGTON BLVD AT HIGHLAND DR",
         },
-        { edgeKind: "transit", edgeLabel: "second leg", minutes: 15, nodeLabel: "near work" },
+        {
+          edgeKind: "transit",
+          edgeLabel:
+            "P10 Allegheny Valley Flyer inbound → FIFTH AVE AT HAMILTON AVE (via Fifth / busway — illustrative)",
+          minutes: 26,
+          nodeLabel: "FIFTH AVE AT HAMILTON AVE",
+        },
         {
           edgeKind: "firstMile",
-          edgeLabel: "walk",
-          minutes: 7,
-          nodeLabel: "work",
-          arrivalPhoto: { side: "right" },
+          edgeLabel: "walk to Liberty Ave & Smithfield St (work)",
+          minutes: 8,
+          nodeLabel: "work (7:30a shift)",
         },
       ],
       /** @type {JourneySegment[]} */
       journeyAfter: [
         {
           edgeKind: "firstMile",
-          edgeLabel: "walk · nearest stop farther",
-          minutes: 28,
-          nodeLabel: "far bus stop",
-          stepPhoto: { side: "right" },
-          arrivalPhoto: { side: "left" },
-        },
-        { edgeKind: "transit", edgeLabel: "longer wait · crowded", minutes: 30, nodeLabel: "transfer" },
-        {
-          edgeKind: "uncertain",
-          edgeLabel: "?? if corridor frequency holds",
+          edgeLabel: "walk with kid to Lincoln K-8 (same)",
           minutes: 14,
-          nodeLabel: "school route",
+          nodeLabel: "school",
+          stepPhoto: { side: "right" },
         },
-        { edgeKind: "transit", edgeLabel: "rerouted / extra transfer", minutes: 22, nodeLabel: "near work" },
         {
           edgeKind: "firstMile",
-          edgeLabel: "walk from new stop",
-          minutes: 20,
-          nodeLabel: "work",
-          arrivalPhoto: { side: "right" },
+          edgeLabel: "walk to WASHINGTON BLVD AT HIGHLAND DR — no bus",
+          minutes: 6,
+          nodeLabel: "WASHINGTON BLVD AT HIGHLAND DR",
+        },
+        {
+          edgeKind: "uncertain",
+          edgeLabel: "P10 eliminated — no other route at this stop pair in build data (illustrative)",
+          minutes: 10,
+          nodeLabel: "replanning",
+        },
+        {
+          edgeKind: "firstMile",
+          edgeLabel: "walk to 74 at HIGHLAND DR OPP JOB CORPS DR",
+          minutes: 14,
+          nodeLabel: "74 stop",
+        },
+        {
+          edgeKind: "transit",
+          edgeLabel: "74 Homewood–Squirrel Hill → Downtown (major reduction; illustrative)",
+          minutes: 42,
+          nodeLabel: "Downtown (late)",
+        },
+        {
+          edgeKind: "firstMile",
+          edgeLabel: "walk to Liberty & Smithfield",
+          minutes: 10,
+          nodeLabel: "work (after clock-in)",
         },
       ],
       trips: [
-        { time: "6:15am", description: "Boards P1 East Busway with her daughter" },
-        { time: "6:48am", description: "Transfers; drops daughter at school" },
-        { time: "7:22am", description: "Arrives at work" },
-        { time: "Thu", description: "Same corridor for a medical appointment" },
+        { time: "6:15am", description: "Leaves composite home — Washington Pl. (illustrative)" },
+        { time: "6:29am", description: "Kid at Lincoln K-8, 328 Lincoln Ave" },
+        { time: "6:41am", description: "Boards P10 at WASHINGTON BLVD AT HIGHLAND DR" },
+        { time: "7:07am", description: "FIFTH AVE AT HAMILTON AVE; walks to shift" },
       ],
       stats: [
-        { value: "67 min", label: "total commute" },
-        { value: "4", label: "transit legs / day" },
-        { value: "0", label: "replacements within easy walk" },
+        { value: "54 min", label: "home to clock-in" },
+        { value: "25.8%", label: "transit-commute proxy (workers)" },
+        { value: "0", label: "car backup" },
       ],
       statsAfter: [
-        { value: "~114 min", label: "total commute" },
-        { value: "5+", label: "legs / worst days" },
-        { value: "1.2 mi", label: "to nearest stop" },
+        { value: "96+ min", label: "or late / rideshare" },
+        { value: "~$300–400/mo", label: "rideshare if she covers gaps" },
+        { value: "P10 gone", label: "stop orphaned" },
       ],
       afterCut: {
         type: "critical",
         items: [
-          "Next stop is about 1.2 miles away. Tough with a kid before 7am (check GTFS walkshed).",
-          "Rideshare could run about $340/month, a big chunk of take-home at this income.",
-          "Her daughter’s school remains reachable only if the east corridor still runs at usable frequency.",
-          "Non-work trips (medical) depend on the same routes; there is no backup she can drive.",
+          "P10 (Allegheny Valley Flyer) eliminated — WASHINGTON BLVD AT HIGHLAND DR has no overlapping local in `route_stop_per_route`; the stop she timed her morning around disappears from the map, not just the headway.",
+          "74 remains but with a major FY26 reduction — longer walk to HIGHLAND DR OPP JOB CORPS DR plus thinner frequency and longer in-vehicle time (illustrative).",
+          "Same kid drop at Lincoln K-8; same shift at Liberty & Smithfield. Quarterly UPMC Shadyside visits get harder midday — fewer spare minutes and worse connections.",
+          "P17 / 82 on Lincoln is a different geometry for neighbors; Denise’s story is elimination without a same-stop substitute.",
+          "No household car — rideshare or informal rides fill gaps (cost, weather, child care).",
         ],
       },
     },
@@ -194,69 +288,77 @@ export const personas = personaDayCardNarrative.personas;
 
 /**
  * Scroll-driven route comparison (divergence scene).
- * Figures from `data/FY26_route_status_all.csv` (RED reduced; 52L eliminated, Homewood anchor).
- * Stop weights on abstract paths are illustrative; validate with GTFS geometry.
+ * Ridership / poverty / transit summaries: `data/FY26_route_status_all.csv` (71B reduced minor; P10 eliminated).
+ * Abstract stop weights are illustrative; validate with GTFS geometry.
  */
 export const scrollDemographicsNarrative = {
   ui: {
     sectionTitle: "",
     sectionIntro:
-      "With this plan, 52L is cut and RED is only reduced. Now let’s see who Denise and Marcus’s routes serve.",
+      "The same FY26 budget pressure lands on 71B as a minor trim (and a future BRT spine) while P10 (Allegheny Valley Flyer) — Denise’s corridor in this build — is eliminated, removing one-seat service from stops like WASHINGTON BLVD AT HIGHLAND DR with no same-stop local in `route_stop_per_route`. Here is the neighborhood context those decisions inherit.",
     stickyAriaLabel:
-      "Abstract map comparing RED Line and 52L; scroll steps show poverty, then transit commute share, then ridership",
-    legendRidership: "Line thickness ∝ recent weekday boardings along each segment (neighborhood stops).",
-    legendPoverty: "Line thickness ∝ modeled share below poverty at stop neighborhoods along each segment.",
-    legendTransit: "Line thickness ∝ transit commute share (workers) at stops along each segment.",
+      "Abstract map comparing 71B Highland Park and P10 Allegheny Valley Flyer; scroll steps show poverty, transit dependence, and ridership-weighted scale",
+    legendRidership: "Line thickness ∝ recent weekday boardings along each segment (neighborhood stops; FY26_route_status_all).",
+    legendPoverty:
+      "Poverty % along each abstract path — Stanton Heights vs Lincoln-Lemington–Belmar (~10% vs ~33% below poverty in `fy26_route_n_profiles_all`, 2022 ACS fields).",
+    legendTransit:
+      "Transit-commute proxy (workers) from the same table — higher share on the Denise / Lincoln-Lemington–Belmar path (~26% vs ~9%).",
     sourceNote:
-      "Ridership: FY26_route_status_all weekday_avg_riders_recent_2023_2024. Poverty & commute: 2022 ACS fields in same table (composite geography along each route).",
+      "Ridership: FY26_route_status_all weekday_avg_riders_recent_2023_2024. Poverty / transit proxy: fy26_route_n_profiles_all (Stanton Heights & Lincoln-Lemington-Belmar). Abstract path stops remain illustrative.",
     reducedMotionNote:
-      "Reduced motion: showing poverty overlay. Read all three steps below for poverty, transit dependence, and ridership.",
+      "Reduced motion: showing poverty overlay. Read all three steps below for poverty, transit dependence, and FY26-scale ridership.",
   },
   routes: {
     keep: {
       id: "keep",
       personaName: "Marcus",
-      routeCode: "RED",
-      scheduleName: "RED (Castle Shannon via Beechview)",
-      decisionNote: "High ridership, kept with cuts",
+      routeCode: "71B",
+      scheduleName: "71B Highland Park",
+      decisionNote: "Higher ridership; minor reduction; BRT upgrade corridor",
       lineColor: "#243a5e",
       pathD:
         "M 18 76 C 72 52, 118 96, 168 74 S 268 54, 318 70 S 362 88, 386 74",
-      summaryRidershipRecent: 4267,
-      summaryRidershipBaseline: 10533,
-      summaryPovertyPct: 7.1,
-      summaryPovertyCount: 1153,
-      summaryTransitCommutePct: 10.7,
-      summaryPopulation: 16290,
+      // Weekday avg recent from FY26_route_status_all (71B row)
+      summaryRidershipRecent: 3958,
+      summaryRidershipBaseline: 5020,
+      // Stanton Heights row — below_poverty_pct * 100 ≈ 9.8
+      summaryPovertyPct: 9.8,
+      summaryPovertyCount: 435,
+      // transit_dependent_pct_proxy * 100 ≈ 9.3
+      summaryTransitCommutePct: 9.3,
+      summaryPopulation: 4555,
       stops: [
-        { t: 0.08, ridership: 5200, povertyPct: 5.2, povertyCount: 210, transitPct: 8 },
-        { t: 0.28, ridership: 4800, povertyPct: 6.1, povertyCount: 340, transitPct: 9 },
-        { t: 0.48, ridership: 4100, povertyPct: 7.8, povertyCount: 280, transitPct: 11 },
-        { t: 0.68, ridership: 3900, povertyPct: 8.4, povertyCount: 190, transitPct: 12 },
-        { t: 0.88, ridership: 3600, povertyPct: 7.0, povertyCount: 133, transitPct: 10 },
+        { t: 0.08, ridership: 4100, povertyPct: 8, povertyCount: 120, transitPct: 8 },
+        { t: 0.28, ridership: 4000, povertyPct: 9, povertyCount: 160, transitPct: 9 },
+        { t: 0.48, ridership: 3900, povertyPct: 10, povertyCount: 200, transitPct: 10 },
+        { t: 0.68, ridership: 3850, povertyPct: 11, povertyCount: 140, transitPct: 11 },
+        { t: 0.88, ridership: 3800, povertyPct: 10, povertyCount: 100, transitPct: 10 },
       ],
     },
     cut: {
       id: "cut",
       personaName: "Denise",
-      routeCode: "52L",
-      scheduleName: "52L (Homewood Limited)",
-      decisionNote: "Lower ridership vs. cost, slated to go",
+      routeCode: "P10",
+      scheduleName: "P10 Allegheny Valley Flyer",
+      decisionNote:
+        "Eliminated in FY26 scenario (commuter-bus step); Washington Blvd stop pair has no overlapping local in build data",
       lineColor: "#141414",
       pathD:
         "M 16 220 C 88 248, 132 188, 198 212 S 292 232, 338 198 S 372 228, 388 206",
-      summaryRidershipRecent: 258,
-      summaryRidershipBaseline: 432,
-      summaryPovertyPct: 36.3,
-      summaryPovertyCount: 790,
-      summaryTransitCommutePct: 19.9,
-      summaryPopulation: 2177,
+      // Weekday avg from FY26_route_status_all (P10 row): recent 221.3, baseline 698.1
+      summaryRidershipRecent: 221,
+      summaryRidershipBaseline: 698,
+      // Lincoln-Lemington-Belmar profile row — below_poverty_pct * 100 ≈ 32.6
+      summaryPovertyPct: 32.6,
+      summaryPovertyCount: 1356,
+      summaryTransitCommutePct: 25.8,
+      summaryPopulation: 4485,
       stops: [
-        { t: 0.1, ridership: 290, povertyPct: 32, povertyCount: 180, transitPct: 17 },
-        { t: 0.3, ridership: 310, povertyPct: 38, povertyCount: 260, transitPct: 21 },
-        { t: 0.5, ridership: 240, povertyPct: 41, povertyCount: 220, transitPct: 22 },
-        { t: 0.7, ridership: 220, povertyPct: 35, povertyCount: 90, transitPct: 18 },
-        { t: 0.9, ridership: 200, povertyPct: 34, povertyCount: 40, transitPct: 19 },
+        { t: 0.1, ridership: 240, povertyPct: 30, povertyCount: 400, transitPct: 23 },
+        { t: 0.3, ridership: 232, povertyPct: 33, povertyCount: 420, transitPct: 25 },
+        { t: 0.5, ridership: 225, povertyPct: 34, povertyCount: 380, transitPct: 26 },
+        { t: 0.7, ridership: 222, povertyPct: 33, povertyCount: 300, transitPct: 27 },
+        { t: 0.9, ridership: 218, povertyPct: 32, povertyCount: 200, transitPct: 26 },
       ],
     },
   },
@@ -264,19 +366,19 @@ export const scrollDemographicsNarrative = {
     {
       id: "poverty",
       title: "Poverty",
-      body: "",
+      body: "71B touches a lower-poverty corridor profile (Stanton Heights ~10% below poverty in this build’s neighborhood table). P10 threads Larimer, Lincoln-Lemington–Belmar, and other pockets — LLB ~33% below poverty. Same budget process — different baseline vulnerability.",
       overlay: "poverty",
     },
     {
       id: "transit",
       title: "Transit dependence",
-      body: "",
+      body: "Transit commute proxy is higher in Lincoln-Lemington–Belmar than along Marcus’s side (~26% vs ~9% of workers in the profile table). That pocket loses P10 and P17 in `fy26_route_n_profiles_all` while major-reduced locals remain.",
       overlay: "transit",
     },
     {
       id: "efficiency",
-      title: "Ridership",
-      body: "RED: ~4,300 weekday riders. 52L: ~260.",
+      title: "Ridership (PRT’s efficiency input)",
+      body: "71B: ~4,000 recent weekday riders vs. P10: ~220 — efficiency framing targets smaller routes for elimination even when a stop like WASHINGTON BLVD AT HIGHLAND DR has no same-stop duplicate in `route_stop_per_route`.",
       overlay: "ridership",
     },
   ],
@@ -292,7 +394,7 @@ export const fullStoryNarrative = {
     placeLine: "Behind every ridership number there’s a place and the people who live there.",
     prtFigure: "~100,000",
     prtCaption: "typical weekday riders on Pittsburgh Regional Transit",
-    prtClosing: "Same agency, same map, not the same wiggle room when routes change.",
+    prtClosing: "When the same fiscal crisis hits two corridors, ridership scores don’t tell you who still has a usable schedule — and who doesn’t.",
     figureTotalAria: "Circle representing all weekday travelers in the region",
     figurePrtAria: "Circle with lower half filled, representing roughly half of travelers riding PRT",
   },
@@ -300,7 +402,7 @@ export const fullStoryNarrative = {
     kicker: "FY26 proposal",
     title: "",
     body:
-      "In 2025 PRT floated cutting 41 bus routes and trimming 54 more, based on 'efficiency' calculated with ridership numbers.",
+      "In 2025 PRT floated cutting 41 bus routes and trimming 54 more, ranked with ridership-based “efficiency.” That neutral-sounding metric can steer savings toward corridors that already have higher loads — and away from places where people ride because they must. Frequency cuts rarely read like eliminations in headlines, but they can erase the trips that make transit work for shift parents.",
     stats: [
       { value: "41", label: "routes proposed for elimination" },
       { value: "54", label: "routes proposed for reduction" },
@@ -311,15 +413,19 @@ export const fullStoryNarrative = {
   tripPurpose: {
     title: "Proxy Industry mix along each line (proxy data)",
     dek:
-      "Despite the weekday ridership gap (~4,300 vs. ~260), we are losing 31 healthcare workers versus 14 and 37 retail and food-service workers versus 20 along 52L and the RED Line, respectively.",
-    /** Corridor labels aligned with RED vs 52L story thread; `riderFraming` = choice vs need. */
+      "PRT doesn’t publish trip purpose data. Industry employment mix along each corridor proxies for discretionary vs. essential travel. The 71B serves a corridor with high office and professional employment. P10 / Washington–Fifth–busway connects Lincoln-Lemington–Belmar, Larimer, and Homewood West to Downtown and the East End — proxy mix tilts toward healthcare, retail, education, and food service along that spine.",
     routes: [
-      { id: "routeA", kind: "choice", corridorName: "RED Line", riderFraming: "Choice" },
+      {
+        id: "routeA",
+        kind: "choice",
+        corridorName: "71B Highland Park — Choice",
+        riderFraming: "",
+      },
       {
         id: "routeB",
         kind: "dependent",
-        corridorName: "52L (Homewood Limited)",
-        riderFraming: "Need",
+        corridorName: "P10 Allegheny Valley — Need",
+        riderFraming: "",
       },
     ],
   },
@@ -332,40 +438,53 @@ export const fullStoryNarrative = {
     showPovertyLabel: "Poverty %",
     showTransitLabel: "Transit commute %",
     legendPoverty:
-      "Poverty % — quartiles among RED/52L–touched hoods only, from lowest (warm beige) through peach, rust, and red. Hoods off the corridor stay muted grey-beige.",
+      "Poverty % — quartiles among 71B/P10–touched hoods only, from lowest (warm beige) through peach, rust, and red. Hoods off the corridor stay muted grey-beige. (71B corridor profile: lower poverty than Lincoln-Lemington–Belmar on the P10 side.)",
     legendTransit:
       "Transit commute % — same quartile scaling on touched hoods (not poverty). Off-corridor muted.",
     legendFull:
-      "Poverty vs transit toggles the same relative bins. Regional map uses quartiles across all land hoods.",
+      "FY26 lens: 71B shows minor reduction in this dataset (not eliminated); P10 (Allegheny Valley Flyer) is eliminated — including WASHINGTON BLVD AT HIGHLAND DR with no same-stop local in build data. Same budget pressure — outcomes diverge because route role and neighborhood baseline differ.",
     legendRegional:
       "All land hoods binned by poverty quartiles, from light cream through peach, rust, and red. Routes use FY26 styling.",
     legendRegionalTransit:
       "Regional transit — quartiles on all land hoods; same accent palette; not poverty.",
+    /** Shown in “Sources & methods” for the map; appended to rationale icon. */
+    methodNoteBrt:
+      "71B is named as part of the Downtown–Oakland–East End BRT spine (University Line) in PRT BRT Service Plan materials — dedicated lanes, stations, and signal priority are planned along that corridor; confirm current milestones. This build’s FY26 table codes 71B as reduced/minor (e.g. late-night span) — not eliminated.",
     steps: [
       {
         id: "cm-poverty",
         title: "Poverty",
         body:
-          "• Off corridor: muted grey-beige.\n• On corridor: quartiles of poverty among touched hoods — lowest bin is only slightly warmer beige than muted; then peach, rust, red.",
+          "• Stanton Heights ~10% below poverty vs. Lincoln-Lemington–Belmar ~33% in this build’s neighborhood profile (`fy26_route_n_profiles_all`).\n• 71B-side touches read as lower-poverty; the P10 / east-end pocket is tagged eliminated;reduced on routes in the same table.",
         phase: "poverty",
       },
       {
         id: "cm-transit",
         title: "Transit dependence",
         body:
-          "• Same relative quartiles on workers’ transit-commute share among touched hoods.\n• Muted off-corridor; lowest on-corridor bin barely warmer than muted.\n• Not poverty.",
+          "• Stanton Heights: moderate transit commute proxy (~9% of workers in profile table), most households have a car.\n• Lincoln-Lemington–Belmar: higher transit proxy (~26%) plus P10 / P17 eliminations and 82 / 74 / 91 / 1 major reductions in `FY26_route_status_all` — fewer one-seat options after cuts.",
         phase: "transit",
       },
       {
         id: "cm-full",
-        title: "Full view",
+        title: "FY26 outcomes",
         body:
-          "• Poverty vs transit toggle reuses these bins.\n• Regional map: every hood + all routes.",
+          "• 71B Highland Park: minor reduction in this scenario — plus BRT infrastructure upgrade on the regional spine.\n• P10 Allegheny Valley Flyer: eliminated — Denise’s arc boards at WASHINGTON BLVD AT HIGHLAND DR (no same-stop local in `route_stop_per_route`).\n• P17 Lincoln Park Flyer: eliminated; 82 Lincoln: major reduction — same Lincoln Ave stop family for neighbors on that spine.\n• Same budget crisis. Ridership and efficiency labels do not replace timetable reality.",
         phase: "full",
       },
     ],
   },
   pullQuote: {
-    text: "Ridership flattens human needs to numbers when the PRT is supposed to support those who need it first.",
+    text: "PRT can cut a flyer and say other routes still exist somewhere in the network. What they can't say honestly is that the rider at WASHINGTON BLVD AT HIGHLAND DR — where only P10 stopped in this data — still has the same one-seat ride from the curb they used.",
+  },
+  equityMap2: {
+    title: "Two pressures on the same map",
+    dek:
+      "Each dot is a fixed grid point clipped inside neighborhood boundaries (boundaries simplified for a clean fill). Dot color shows poverty level; dot size shows transit dependence — both scaled to how neighborhoods compare in this dataset, not national cutoffs.",
+  },
+  equityMap3: {
+    title: "Same story on one lattice",
+    dek:
+      "Here the dots share a single regional grid across the map — not a separate grid per neighborhood. Simplified boundaries still decide which hood colors each dot. Poverty tertiles match the map above; dot size scales with transit dependence quartiles, with the largest tier sized so those dots meet edge-to-edge at the grid spacing.",
   },
 };
