@@ -4,32 +4,70 @@
  */
 
 // =============================================================================
-// Neighborhood type fills (`hood-fill` layer + legend chips)
+// Map fill ramp — keep in sync with `app/globals.css` `:root` `--color-map-*`
+// (dot map land plate, poverty tertiles, corridor quartile dots / fills).
 // =============================================================================
 
-/** Low vulnerability (V < 40). */
-export const V_FILL_LOW = "#EEEAE1";
-/** Moderate vulnerability (40–59). */
-export const V_FILL_MOD = "#FFA883";
-/** High vulnerability (V ≥ 60). */
-export const V_FILL_HIGH = "#FF6B6B";
+export const MAP_FILL_INACTIVE = "#EEEAE1";
+export const MAP_FILL_L0 = "#BFD0AA";
+export const MAP_FILL_L2 = "#FFA883";
+export const MAP_FILL_L3 = "#FF6B6B";
+
+/** Low tertile / band. */
+export const POVERTY_LEVEL_FILL_LOW = MAP_FILL_L0;
+/** Medium tertile / band. */
+export const POVERTY_LEVEL_FILL_MID = MAP_FILL_L2;
+/** High tertile / band. */
+export const POVERTY_LEVEL_FILL_HIGH = MAP_FILL_L3;
+
+/** Low → mid → high (poverty tertiles on dots; same colors on `hood-fill` composite bands). */
+export const POVERTY_LEVEL_COLORS = /** @type {const} */ ([
+  POVERTY_LEVEL_FILL_LOW,
+  POVERTY_LEVEL_FILL_MID,
+  POVERTY_LEVEL_FILL_HIGH,
+]);
+
 /** Water-only block groups in source. */
 export const WATER_FILL = "#999999";
+
+// =============================================================================
+// Corridor scroll map (71B / P10) — quartile choropleth + matching dot colors
+// =============================================================================
+
+/** Hoods off the story corridor — same inactive plate as dot map region fill. */
+export const CORRIDOR_OFF_CORRIDOR_MUTED = MAP_FILL_INACTIVE;
+
+/** Quartile bins low → high on touched hoods (same for fill and full-step dots). */
+export const CORRIDOR_QUARTILE_FILLS = /** @type {const} */ ([
+  MAP_FILL_INACTIVE,
+  MAP_FILL_L0,
+  MAP_FILL_L2,
+  MAP_FILL_L3,
+]);
+
+/** Neutral grey for transit-only dots (`--g4`). */
+export const TRANSIT_DOT_NEUTRAL_GREY = "#86868a";
 
 /** Uniform alpha for neighborhood polygons over basemap. */
 export const HOOD_FILL_OPACITY = 0.92;
 
-/** Full paint spec: V bands, water exception, shared fill opacity. */
+/**
+ * Neighborhood fill uses integer `poverty_bucket` 0 / 1 / 2 (low / mid / high poverty tertile among land hoods).
+ * Computed in `EquityMap` from ACS `below_poverty_pct`; same palette as dot-map poverty colors.
+ */
+export const HOOD_POVERTY_BUCKET_HIGH = 2;
+
+/** Full paint spec: poverty tertile bands, water exception, shared fill opacity. */
 export const HOOD_FILL_PAINT = {
   "fill-color": [
     "case",
     ["==", ["get", "is_water"], 1],
     WATER_FILL,
-    [">=", ["get", "v_score"], 60],
-    V_FILL_HIGH,
-    [">=", ["get", "v_score"], 40],
-    V_FILL_MOD,
-    V_FILL_LOW,
+    ["==", ["to-number", ["get", "poverty_bucket"]], 2],
+    POVERTY_LEVEL_FILL_HIGH,
+    ["==", ["to-number", ["get", "poverty_bucket"]], 1],
+    POVERTY_LEVEL_FILL_MID,
+    POVERTY_LEVEL_FILL_LOW,
   ],
   "fill-opacity": HOOD_FILL_OPACITY,
 };
@@ -153,7 +191,10 @@ export const ROUTES_AFTER_SIMPLE_PAINT = {
 // Basemap & camera defaults
 // =============================================================================
 
-export const MAP_BASEMAP_COLOR = "#f6f6f4";
+export const MAP_BASEMAP_COLOR = "#f7f7f7";
+
+/** Landmass under the dot map — neighborhoods, excluding water-only features. */
+export const DOT_MAP_REGION_FILL = MAP_FILL_INACTIVE;
 
 /** Minimal GL style: flat background only. */
 export const FLAT_BASEMAP_STYLE = /** @type {const} */ ({

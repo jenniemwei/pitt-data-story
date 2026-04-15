@@ -1,10 +1,16 @@
-import { Albert_Sans } from "next/font/google";
+import { Albert_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 const albertSans = Albert_Sans({
   subsets: ["latin"],
   variable: "--font-albert-sans",
-  weight: ["400", "500", "600"],
+  weight: ["300", "400", "500", "600"],
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
   display: "swap",
 });
 
@@ -16,7 +22,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={albertSans.variable}>
+    <html lang="en" className={`${albertSans.variable} ${geistMono.variable}`}>
       <body>{children}</body>
     </html>
   );

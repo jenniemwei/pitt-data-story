@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { personaDayCardNarrative as defaultNarrative } from "../../../narrative";
+import { personaDayCardNarrative as defaultNarrative } from "../../../data/narrative";
 import { DataRationaleIcon } from "../../ui/DataRationaleIcon";
 import { JourneyThumb } from "./JourneyThumb";
 import styles from "./PersonaDayCard.module.css";
@@ -109,7 +109,7 @@ export function PersonaDayCard({ narrative = defaultNarrative, showSectionHeadin
 
   return (
     <section aria-labelledby={headingId}>
-      <h2 id={headingId} className={hasVisibleHeading ? styles.sectionHeadingVisible : "visually-hidden"}>
+      <h2 id={headingId} className={hasVisibleHeading ? styles.sectionHeadingVisible : "sr-only"}>
         {hasVisibleHeading ? (
           title && dekText ? (
             <>

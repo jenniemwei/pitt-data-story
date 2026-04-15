@@ -1,5 +1,6 @@
 /**
  * Story copy and persona payloads. Single source for narrative components.
+ * Human-readable summary (keep in sync when personas change): `docs/PERSONAS.md`.
  * Neighborhood context: `data/fy26_route_n_profiles_all.csv` (Stanton Heights, Lincoln-Lemington-Belmar).
  * Stanton Heights median / no-car: confirm ACS pull — Marcus income below marked ILLUSTRATIVE in persona comment.
  * Denise pocket: Lincoln-Lemington-Belmar row — ~32.6% below poverty, ~25.8% transit-commute proxy, pop 4,485.
@@ -433,20 +434,20 @@ export const fullStoryNarrative = {
     sectionTitle: "",
     sectionIntro: "",
     reducedMotionNote:
-      "Reduced motion: full step with regional map and metric controls. Switch poverty vs transit fills as needed.",
+      "Reduced motion: FY26 outcomes step with optional full-region view (all routes). Scroll steps above drive poverty → transit → bivariate dot map.",
     fullEquityToggleLabel: "Show full regional map (all routes)",
     showPovertyLabel: "Poverty %",
     showTransitLabel: "Transit commute %",
     legendPoverty:
-      "Poverty % — quartiles among 71B/P10–touched hoods only, from lowest (warm beige) through peach, rust, and red. Hoods off the corridor stay muted grey-beige. (71B corridor profile: lower poverty than Lincoln-Lemington–Belmar on the P10 side.)",
+      "Poverty % — quartiles among 71B/P10–touched hoods only: warm beige → peach → rust → red. Off-corridor hoods stay muted. Simplified neighborhood boundaries.",
     legendTransit:
-      "Transit commute % — same quartile scaling on touched hoods (not poverty). Off-corridor muted.",
+      "Transit commute (worker proxy) — dot size only; dots are neutral grey. Quartile cuts match touched hoods. Scroll to the next step to add poverty colors on dots.",
     legendFull:
-      "FY26 lens: 71B shows minor reduction in this dataset (not eliminated); P10 (Allegheny Valley Flyer) is eliminated — including WASHINGTON BLVD AT HIGHLAND DR with no same-stop local in build data. Same budget pressure — outcomes diverge because route role and neighborhood baseline differ.",
+      "FY26 lens + bivariate dots: color = poverty quartiles (same palette as step 1); size = transit commute proxy. 71B: minor reduction in this build; P10: eliminated (e.g. WASHINGTON BLVD AT HIGHLAND DR with no same-stop local in build data).",
     legendRegional:
-      "All land hoods binned by poverty quartiles, from light cream through peach, rust, and red. Routes use FY26 styling.",
+      "Full region: same dot encoding (poverty color × transit size on the lattice). All land hoods; FY26 route styling when enabled.",
     legendRegionalTransit:
-      "Regional transit — quartiles on all land hoods; same accent palette; not poverty.",
+      "Regional view — same dot map; toggle above for all routes.",
     /** Shown in “Sources & methods” for the map; appended to rationale icon. */
     methodNoteBrt:
       "71B is named as part of the Downtown–Oakland–East End BRT spine (University Line) in PRT BRT Service Plan materials — dedicated lanes, stations, and signal priority are planned along that corridor; confirm current milestones. This build’s FY26 table codes 71B as reduced/minor (e.g. late-night span) — not eliminated.",
@@ -477,14 +478,9 @@ export const fullStoryNarrative = {
   pullQuote: {
     text: "PRT can cut a flyer and say other routes still exist somewhere in the network. What they can't say honestly is that the rider at WASHINGTON BLVD AT HIGHLAND DR — where only P10 stopped in this data — still has the same one-seat ride from the curb they used.",
   },
-  equityMap2: {
+  equityDotMap: {
     title: "Two pressures on the same map",
     dek:
-      "Each dot is a fixed grid point clipped inside neighborhood boundaries (boundaries simplified for a clean fill). Dot color shows poverty level; dot size shows transit dependence — both scaled to how neighborhoods compare in this dataset, not national cutoffs.",
-  },
-  equityMap3: {
-    title: "Same story on one lattice",
-    dek:
-      "Here the dots share a single regional grid across the map — not a separate grid per neighborhood. Simplified boundaries still decide which hood colors each dot. Poverty tertiles match the map above; dot size scales with transit dependence quartiles, with the largest tier sized so those dots meet edge-to-edge at the grid spacing.",
+      "Dots sit on one regional lattice; simplified boundaries assign each dot to a neighborhood. Zooming in refines the lattice (more dots); the largest transit-dependence tier stays tangent at the active pitch. Color shows poverty; size shows transit dependence — both scaled to how neighborhoods compare in this dataset, not national cutoffs.",
   },
 };

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
+import * as turf from "@turf/turf";
 import Papa from "papaparse";
 import "mapbox-gl/dist/mapbox-gl.css";
 import styles from "./EquityMap.module.css";
@@ -10,8 +11,10 @@ import {
   HOOD_FEATURED_OUTLINE_PAINT,
   HOOD_FILL_PAINT,
   HOOD_HOVER_OUTLINE_PAINT,
+  HOOD_POVERTY_BUCKET_HIGH,
   MAP_CENTER,
   MAP_INITIAL_ZOOM,
+  POVERTY_LEVEL_COLORS,
   ROUTE_ELIMINATED_LIGHT_GREY,
   ROUTE_NO_CHANGE_BLACK,
   ROUTE_NO_IMPACT_BLUE,
@@ -24,9 +27,6 @@ import {
   ROUTES_AFTER_SIMPLE_PAINT,
   ROUTES_BEFORE_PAINT,
   ROUTES_ELIMINATED_PAINT,
-  V_FILL_HIGH,
-  V_FILL_LOW,
-  V_FILL_MOD,
   WATER_FILL,
 } from "./mapStyles";
 import { DataRationaleIcon } from "../../ui/DataRationaleIcon";
@@ -35,12 +35,14 @@ import {
   ROUTE_GEOMETRY_SIMPLIFY_TOLERANCE_DEG,
   simplifyRouteGeometry,
 } from "../../../lib/equity-map/simplifyRouteGeometry";
-import { computeVScoreMap } from "../../../lib/equity-map/vulnerabilityScore";
+import {
+  povertyColorBucket,
+  povertyTercileCuts,
+} from "../../../lib/equity-map/dot-map/buildGeojson";
 import { dataAssetUrl } from "../../../lib/dataAssetUrl";
 
-const FEATURED_HOODS = new Set(["Lincoln-Lemington-Belmar", "Lower Lawrenceville"]);
-/** Filter: composite V and share of routes lost */
-const V_FILTER_THRESHOLD = 40;
+/** Persona neighborhoods — blue outline (baseline: Stanton Heights; vulnerable: Lincoln-Lemington-Belmar). */
+const FEATURED_HOODS = new Set(["Stanton Heights", "Lincoln-Lemington-Belmar"]);
 const ACCESS_LOSS_THRESHOLD = 0.25;
 
 function fetchCsv(path) {
@@ -136,8 +138,6 @@ export default function EquityMap() {
     ]).then(([hoodGeo, hoodStats, routeStats, routeGeo]) => {
       if (cancelled) return;
 
-      const vByNeighborhood = computeVScoreMap(hoodStats, routeStats);
-
       const hoodByName = new Map();
       hoodStats.forEach((row) => {
         const name = (row.neighborhood || "").trim();
@@ -149,7 +149,6 @@ export default function EquityMap() {
         const useStreet = streetBefore > 0;
         const routesBefore = useStreet ? streetBefore : allBefore;
         const routesLosing = useStreet ? streetLosing : allLosing;
-        const vRow = vByNeighborhood.get(name);
         hoodByName.set(name, {
           pct_no_car: safeFloat(row.transit_dependent_pct_proxy),
           poverty_rate: safeFloat(row.below_poverty_pct),
@@ -157,9 +156,20 @@ export default function EquityMap() {
           routes_cut_or_reduced: useStreet ? row.routes_losing_street || "" : row.routes_losing || "",
           pct_access_lost: routesBefore > 0 ? routesLosing / routesBefore : 0,
           access_metric: useStreet ? "street" : "all_stops",
-          v_score: vRow?.vScore ?? 0,
         });
       });
+
+      const povertyForCuts = [];
+      for (const f of hoodGeo.features) {
+        const hood = f.properties?.hood || "";
+        const awater = safeFloat(f.properties?.awater10);
+        const aland = safeFloat(f.properties?.aland10);
+        const waterHeavy = awater > 0 && aland === 0;
+        if (waterHeavy) continue;
+        const m = hoodByName.get(hood);
+        if (m) povertyForCuts.push(m.poverty_rate);
+      }
+      const povertyCuts = povertyTercileCuts(povertyForCuts);
 
       hoodGeo.features = hoodGeo.features.map((f) => {
         const hood = f.properties?.hood || "";
@@ -167,18 +177,20 @@ export default function EquityMap() {
         const awater = safeFloat(f.properties?.awater10);
         const aland = safeFloat(f.properties?.aland10);
         const waterHeavy = awater > 0 && aland === 0;
+        const poverty_rate = m.poverty_rate ?? 0;
+        const poverty_bucket = waterHeavy ? 0 : povertyColorBucket(poverty_rate, povertyCuts);
         return {
           ...f,
           properties: {
             ...f.properties,
             neighborhood_name: hood,
             pct_no_car: m.pct_no_car ?? 0,
-            poverty_rate: m.poverty_rate ?? 0,
+            poverty_rate,
             pct_transit_dependent: m.pct_transit_dependent ?? 0,
             routes_cut_or_reduced: m.routes_cut_or_reduced ?? "",
             pct_access_lost: m.pct_access_lost ?? 0,
             access_metric: m.access_metric ?? "all_stops",
-            v_score: m.v_score ?? 0,
+            poverty_bucket,
             is_water: waterHeavy ? 1 : 0,
             is_featured: FEATURED_HOODS.has(hood) ? 1 : 0,
           },
@@ -231,7 +243,6 @@ export default function EquityMap() {
         style: FLAT_BASEMAP_STYLE,
         center: MAP_CENTER,
         zoom: MAP_INITIAL_ZOOM,
-        minZoom: MAP_INITIAL_ZOOM,
         dragRotate: false,
         pitchWithRotate: false,
         maxPitch: 0,
@@ -295,7 +306,6 @@ export default function EquityMap() {
           const p = feature.properties || {};
           setHoverData({
             name: p.neighborhood_name,
-            vScore: safeFloat(p.v_score, 0),
             pctWorkersTransitCommute: safeFloat(p.pct_no_car),
             povertyRate: safeFloat(p.poverty_rate),
             routesCut: p.routes_cut_or_reduced,
@@ -312,6 +322,35 @@ export default function EquityMap() {
 
         const ui = routeUiRef.current;
         syncRouteLayersAfterState(map, ui.mode, ui.simpleMode);
+
+        const syncMinZoomToHomeView = () => {
+          if (mapRef.current !== map) return;
+          map.setMinZoom(map.getZoom());
+        };
+
+        const landFeatures = hoodGeo.features.filter((f) => Number(f.properties?.is_water) !== 1);
+        try {
+          if (landFeatures.length) {
+            const b = turf.bbox({ type: "FeatureCollection", features: landFeatures });
+            if (b.every(Number.isFinite)) {
+              map.fitBounds(
+                [
+                  [b[0], b[1]],
+                  [b[2], b[3]],
+                ],
+                {
+                  padding: { top: 28, bottom: 28, left: 24, right: 24 },
+                  duration: 0,
+                  maxZoom: 11.5,
+                },
+              );
+            }
+          }
+        } catch {
+          /* no-op */
+        }
+        map.once("moveend", syncMinZoomToHomeView);
+        requestAnimationFrame(syncMinZoomToHomeView);
       });
     });
 
@@ -338,7 +377,7 @@ export default function EquityMap() {
     }
     const filter = [
       "all",
-      [">=", ["get", "v_score"], V_FILTER_THRESHOLD],
+      ["==", ["to-number", ["get", "poverty_bucket"]], HOOD_POVERTY_BUCKET_HIGH],
       [">=", ["get", "pct_access_lost"], ACCESS_LOSS_THRESHOLD],
     ];
     map.setFilter("hood-fill", filter);
@@ -390,33 +429,34 @@ export default function EquityMap() {
               checked={showHighDependencyOnly}
               onChange={(e) => setShowHighDependencyOnly(e.target.checked)}
             />
-            Show only V ≥ {V_FILTER_THRESHOLD} + ≥{(ACCESS_LOSS_THRESHOLD * 100).toFixed(0)}% route access lost
+            Show only high poverty (top tertile) and ≥
+            {(ACCESS_LOSS_THRESHOLD * 100).toFixed(0)}% route access lost
           </label>
         </div>
       </div>
 
       <div className={styles.legendStrip} aria-label="Map legend">
         <div className={styles.legendTitleRow}>
-          <div className={styles.legendTitle}>Neighborhood fill: vulnerability (V)</div>
+          <div className={styles.legendTitle}>Neighborhood fill (poverty tertiles)</div>
           <DataRationaleIcon
-            label="How vulnerability score V is defined"
+            label="How neighborhood poverty bands are defined"
             rationale={
-              "V composites neighborhood poverty rank, worker transit-commute share rank, and mean route ridership stress (weak post-COVID recovery on FY26 routes). When a neighborhood has non-busway stops, only those street-served routes are averaged. Thresholds: V ≥ 60 high, V ≥ 40 moderate, V < 40 low."
+              "Among land neighborhoods in this map, poverty rate (ACS share below poverty) is split into tertiles: low, moderate, and high. Colors match the poverty palette on the dot map. Water-only areas use a neutral grey."
             }
           />
         </div>
         <div className={styles.legendSwatches} role="list">
           <span className={styles.legendSwatch} role="listitem">
-            <span className={styles.legendSwatchColor} style={{ background: V_FILL_HIGH }} />
-            High (V ≥ 60)
+            <span className={styles.legendSwatchColor} style={{ background: POVERTY_LEVEL_COLORS[2] }} />
+            High (top tertile)
           </span>
           <span className={styles.legendSwatch} role="listitem">
-            <span className={styles.legendSwatchColor} style={{ background: V_FILL_MOD }} />
-            Moderate (40–59)
+            <span className={styles.legendSwatchColor} style={{ background: POVERTY_LEVEL_COLORS[1] }} />
+            Moderate (middle tertile)
           </span>
           <span className={styles.legendSwatch} role="listitem">
-            <span className={styles.legendSwatchColor} style={{ background: V_FILL_LOW }} />
-            Low (V &lt; 40)
+            <span className={styles.legendSwatchColor} style={{ background: POVERTY_LEVEL_COLORS[0] }} />
+            Low (bottom tertile)
           </span>
           <span className={styles.legendSwatch} role="listitem">
             <span className={styles.legendSwatchColor} style={{ background: WATER_FILL }} />
@@ -514,16 +554,6 @@ export default function EquityMap() {
             <dt>Name</dt>
             <dd>{hoverData.name}</dd>
             <dt className={styles.metricDt}>
-              Vulnerability score (V)
-              <DataRationaleIcon
-                label="About vulnerability score V"
-                rationale="Composite 0–100 from poverty rank, transit-commute share rank, and mean route ridership stress on FY26 routes. See map legend for band thresholds."
-              />
-            </dt>
-            <dd>
-              <span className={styles.metricValue}>{hoverData.vScore}</span>
-            </dd>
-            <dt className={styles.metricDt}>
               % workers relying on PRT for commute
               <DataRationaleIcon
                 label="About transit commute share"
@@ -537,7 +567,7 @@ export default function EquityMap() {
               Poverty rate
               <DataRationaleIcon
                 label="About poverty rate"
-                rationale="ACS: share of residents below the federal poverty line. One of several inputs to the vulnerability score V."
+                rationale="ACS: share of residents below the federal poverty line. Drives neighborhood fill tertiles on this map."
               />
             </dt>
             <dd>

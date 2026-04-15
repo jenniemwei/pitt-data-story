@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { scrollDemographicsNarrative as defaultNarrative } from "../../../narrative";
+import { scrollDemographicsNarrative as defaultNarrative } from "../../../data/narrative";
 import { DataRationaleIcon } from "../../ui/DataRationaleIcon";
 import styles from "./ScrollDemographics.module.css";
 
@@ -145,7 +145,7 @@ export function ScrollDemographics({ narrative = defaultNarrative }) {
       <header className={styles.head}>
         <h2
           id="scroll-demographics-title"
-          className={sectionTitleVis ? styles.leadTitle : "visually-hidden"}
+          className={sectionTitleVis ? styles.leadTitle : "sr-only"}
         >
           {sectionTitleVis || "Compare two corridors"}
         </h2>

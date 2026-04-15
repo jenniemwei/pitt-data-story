@@ -1,4 +1,4 @@
-/* EquityMap2 — bivariate dot grid (poverty color × transit size) */
+/* Dot map UI — lives next to DotMap.jsx */
 
 .shell {
   display: grid;
@@ -62,6 +62,15 @@
   background: #ece7de;
 }
 
+.recenterButton {
+  margin-left: auto;
+}
+
+.recenterButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .legendCard {
   background: var(--color-bg-surface);
   border: var(--border-minimal);
@@ -112,6 +121,21 @@
   flex-shrink: 0;
 }
 
+.transitSizeLegend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.legendSizeCaption {
+  margin: 0;
+  font: var(--font-caption-2);
+  color: var(--color-text-caption-1);
+  line-height: 1.45;
+  max-width: 36rem;
+}
+
 .sizeDemo {
   display: flex;
   align-items: flex-end;
@@ -127,7 +151,7 @@
   font: var(--font-caption-2);
   color: var(--color-text-caption-1);
   text-align: center;
-  max-width: 5.5rem;
+  max-width: 6.5rem;
 }
 
 .sizeCircle {

@@ -278,7 +278,7 @@ export function TripPurposeProxy({
             </div>
           </div>
           {dek ? (
-            <p className={`${styles.dek} narrativeLine narrativeLineWide`}>{dek}</p>
+            <p className={`${styles.dek} type-story-line type-story-line-wide text-ink-default`}>{dek}</p>
           ) : null}
         </header>
       ) : null}
@@ -314,7 +314,7 @@ export function TripPurposeProxy({
             ) : null}
           </aside>
         ) : (
-          <div id={infoPanelId} className="visually-hidden" aria-live="polite">
+          <div id={infoPanelId} className="sr-only" aria-live="polite">
             {panelFocus
               ? `${panelFocus.segmentLabel}, ${panelFocus.count} workers, ${panelFocus.pct.toFixed(1)} percent of ${panelFocus.routeLabel}`
               : INFO_PANEL_SR_EMPTY}

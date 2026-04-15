@@ -23,6 +23,11 @@
   }
 }
 
+.mapWrap {
+  position: relative;
+  width: 100%;
+}
+
 .mapInner {
   width: 100%;
   min-height: 400px;
@@ -30,6 +35,32 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   background: #e8e6e2;
+}
+
+.mapRecenter {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-default, #d7d7d9);
+  background: color-mix(in srgb, var(--color-bg-surface, #fff) 92%, transparent);
+  backdrop-filter: blur(6px);
+  font: var(--font-caption-1);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.mapRecenter:hover:not(:disabled) {
+  background: var(--color-bg-surface, #fff);
+}
+
+.mapRecenter:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .hoverReadout {

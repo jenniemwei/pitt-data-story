@@ -1,13 +1,13 @@
 # Equity Map Build Log
 
-## Map copy and neighborhood fill (V score)
+## Map copy and neighborhood fill (poverty tertiles)
 
 - **Side panel — transit metric** is labeled **% workers relying on PRT for commute** for the story. The underlying field remains ACS **workers commuting by public transportation** (all regional operators, not PRT-only).
-- **Neighborhood fill** is driven by the **vulnerability score V** (0–100), not by transit alone. **Poverty** contributes to V via ranked `below_poverty_pct` (see below); the hover panel still shows poverty explicitly.
-- **Style guide — fill by V**
-  - **V ≥ 60 (high):** `#FF6B6B`
-  - **V ≥ 40 (moderate):** `#FFA883`
-  - **V &lt; 40 (low):** `#EEEAE1`
+- **Neighborhood fill** uses **poverty tertiles** among land neighborhoods: ACS `below_poverty_pct` is split into low / moderate / high thirds (same palette as the dot map). The hover panel shows poverty explicitly as a percentage.
+- **Style guide — fill by poverty tertile** (see `POVERTY_LEVEL_*` in `mapStyles.js`)
+  - **High (top tertile):** red band
+  - **Moderate (middle tertile):** orange band
+  - **Low (bottom tertile):** green-grey band
   - **Water:** `#999999` when a polygon is water-only (`aland10 === 0`, `awater10 > 0`) in `neighborhoods.geojson` (currently rare / unused).
 - **Style guide — neighborhood outline:** `#C8C8C8`, **2px**, drawn **above** route lines so boundaries stay legible.
 - **Style guide — routes (after cuts),** all at **50% line opacity** so overlaps stack:
@@ -18,27 +18,17 @@
   - **Elimination:** **4px** solid white
 - **Before/after toggle:** **Before** shows all lines as **4px** solid teal `#1D7B96` at the same opacity (pre-cut context).
 
-## Vulnerability score V (implemented)
+## Neighborhood poverty bands (implemented)
 
-**Module:** `src/lib/equity-map/vulnerabilityScore.js` (with `src/lib/equity-map/constants.js` for route ID normalization).
+**Logic:** `povertyTercileCuts` + `povertyColorBucket` in `src/lib/equity-map/dot-map/buildGeojson.js` (reused by `EquityMap.jsx`). Each land neighborhood with a profile row gets integer `poverty_bucket` 0 / 1 / 2 from its `below_poverty_pct` relative to other land hoods on the map.
 
-Composite **neighborhood-level** score from three ranked pillars, **midrank** `((index + 0.5) / N)` after sorting ascending within the profile universe (`fy26_route_n_profiles_all.csv`).
+**Filter toggle:** “Show only …” uses **top poverty tertile** (`poverty_bucket === 2`) and **route access lost ≥ 25%** (`routes_losing_count / routes_before_count` or street-served variant when applicable).
 
-1. **Economic stress (E)** — rank of `below_poverty_pct` (higher poverty → higher rank).
-2. **Transit reliance (T)** — rank of `transit_dependent_pct_proxy`.
-3. **Post-COVID ridership stress (R)** — `g_r = pct_change_weekday_riders_recent_vs_baseline` from `FY26_route_status_all.csv` for each route in `routes_before`;  
-   `stress_r = clamp(0, max(0, −g_r) / 100, 1)`; **`R_raw` = mean** of `stress_r` over matched routes; **R** = rank of `R_raw` (weak recovery → higher rank).
-
-**Composite:**  
-`V = 0.35·E + 0.35·T + 0.30·R`, reported as **`round(100 × V)`** on **0–100**.
-
-**Filter toggle:** “Show only …” uses **V ≥ 40** and **route access lost ≥ 25%** (`routes_losing_count / routes_before_count`).
-
-**Note:** Polygons whose `hood` has no profile row get **V = 0** until joined.
+**Note:** Polygons whose `hood` has no profile row get **poverty_bucket = 0** and default metrics until joined.
 
 ## Project goal
 Build an interactive equity map with:
-- Neighborhood choropleth by **vulnerability score V**
+- Neighborhood choropleth by **poverty tertile** (aligned with dot-map palette)
 - Route overlays for no-change / reduced / eliminated
 - Reduced-route subencoding (frequency vs reduced-hours vs shortened alignment)
 - Hover panel metrics and featured neighborhood highlighting
@@ -107,10 +97,7 @@ Build an interactive equity map with:
    - Scroll utility:
      - `src/lib/scrollama/useScrollama.js`
 14. Set up `scrollama` dependency and scaffold integration points for scene-based storytelling.
-15. Implemented **Vulnerability score** end-to-end and **style-guide** symbology:
-    - `computeVScoreMap` + shared `normalizeRouteId` / `ROUTE_ALIAS_MAP`
-    - Fill by V thresholds; route `route_visual` mapping; outlines **after** routes
-    - Legend and hover show **V**; filter uses V + access loss
+15. **Neighborhood fill** uses poverty tertiles (shared helpers with dot map); route `route_visual` mapping; outlines **after** routes. Filter uses top poverty tertile + access loss.
 
 ## Join-key alignment requirements
 
@@ -192,7 +179,7 @@ Build an interactive equity map with:
   - `000` and `0` -> `MI`
 
 ## Next steps (prioritized)
-1. Materialize a pre-joined map payload file (`route_status_enriched.json` or enriched route GeoJSON) to reduce runtime join logic (include precomputed `v_score`).
+1. Materialize a pre-joined map payload file (`route_status_enriched.json` or enriched route GeoJSON) to reduce runtime join logic (include precomputed `poverty_bucket` or raw profile fields).
 2. Add QA note snapshots in this document after each data-refresh run.
 3. Optional perf pass: split map bundle/lazy-load map component to reduce initial JS payload.
 4. Optional: dedupe `ROUTE_ALIAS_MAP` between Python script and `constants.js` via generated JSON.

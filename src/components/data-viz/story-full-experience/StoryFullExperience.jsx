@@ -1,8 +1,7 @@
 "use client";
 
-import { fullStoryNarrative } from "../../../narrative";
+import { fullStoryNarrative } from "../../../data/narrative";
 import CorridorScrollMap from "../equity-map/CorridorScrollMap";
-import EquityMap2 from "../equity-map/EquityMap2";
 import EquityMap3 from "../equity-map/EquityMap3";
 import { PersonaDayCard } from "../persona-day-card/PersonaDayCard";
 import { TripPurposeProxy } from "../trip-purpose-proxy/TripPurposeProxy";
@@ -17,8 +16,7 @@ const CHAPTERS = [
   { id: "pull-quote", label: "Beyond ridership", href: "#pull-quote" },
   { id: "persona-after", label: "After cuts", href: "#persona-after" },
   { id: "trip-purpose", label: "Trip purpose", href: "#trip-purpose" },
-  { id: "equity-map2", label: "Dot map", href: "#equity-map2" },
-  { id: "equity-map-global-grid", label: "Dot map (global grid)", href: "#equity-map-global-grid" },
+  { id: "equity-dot-map", label: "Dot map", href: "#equity-dot-map" },
 ];
 
 const story = fullStoryNarrative;
@@ -89,18 +87,8 @@ export function StoryFullExperience() {
 
       <hr className={styles.chapterDivider} aria-hidden />
 
-      <section id="equity-map2" className={styles.chapter} aria-label="Poverty and transit dependence dot map">
-        <EquityMap2 title={story.equityMap2.title} dek={story.equityMap2.dek} />
-      </section>
-
-      <hr className={styles.chapterDivider} aria-hidden />
-
-      <section
-        id="equity-map-global-grid"
-        className={styles.chapter}
-        aria-label="Poverty dot map on a global grid"
-      >
-        <EquityMap3 title={story.equityMap3.title} dek={story.equityMap3.dek} />
+      <section id="equity-dot-map" className={styles.chapter} aria-label="Poverty and transit dependence dot map">
+        <EquityMap3 title={story.equityDotMap.title} dek={story.equityDotMap.dek} />
       </section>
     </div>
   );

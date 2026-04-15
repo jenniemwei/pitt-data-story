@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import { fullStoryNarrative as defaultCopy } from "../../../narrative";
+import { fullStoryNarrative as defaultCopy } from "../../../data/narrative";
 import styles from "./StoryFullExperience.module.css";
 
 /**
@@ -12,10 +12,10 @@ export function StoryOpening({ copy = defaultCopy }) {
   const halfClipId = useId().replace(/:/g, "");
   return (
     <section className={styles.storyOpening} aria-labelledby="story-opening-heading">
-      <h2 id="story-opening-heading" className="visually-hidden">
+      <h2 id="story-opening-heading" className="sr-only">
         Weekday travel at regional scale
       </h2>
-      <p className={`${styles.storyLead} narrativeLine narrativeLineWide`}>{opening.lead}</p>
+      <p className={`${styles.storyLead} type-story-line type-story-line-wide text-ink-default`}>{opening.lead}</p>
 
       <figure className={styles.storyFigure} aria-label={opening.figureTotalAria}>
         <svg className={styles.storySvg} viewBox="0 0 360 270" role="img">
@@ -31,8 +31,8 @@ export function StoryOpening({ copy = defaultCopy }) {
         </svg>
       </figure>
 
-      <p className={`${styles.storyProse} narrativeLine narrativeLineWide`}>{opening.lifeline}</p>
-      <p className={`${styles.storyEmphasis} narrativeLine narrativeLineWide`}>{opening.placeLine}</p>
+      <p className={`${styles.storyProse} type-story-line type-story-line-wide text-ink-default`}>{opening.lifeline}</p>
+      <p className={`${styles.storyEmphasis} type-story-line type-story-line-wide text-ink-default`}>{opening.placeLine}</p>
 
       <figure className={styles.storyFigure} aria-label={opening.figurePrtAria}>
         <svg className={styles.storySvg} viewBox="0 0 360 270" role="img">
@@ -55,7 +55,7 @@ export function StoryOpening({ copy = defaultCopy }) {
       </figure>
 
       {opening.prtClosing?.trim() ? (
-        <p className={`${styles.storyProse} narrativeLine narrativeLineWide`}>{opening.prtClosing}</p>
+        <p className={`${styles.storyProse} type-story-line type-story-line-wide text-ink-default`}>{opening.prtClosing}</p>
       ) : null}
     </section>
   );
@@ -71,17 +71,17 @@ export function FY26PlanStats({ copy = defaultCopy }) {
     <section className={styles.fy26Block} aria-labelledby="fy26-heading">
       {titleVis ? (
         <>
-          <span className={`${styles.chapterKicker} narrativeKicker`}>{fy26.kicker}</span>
-          <h2 id="fy26-heading" className={`${styles.fy26Title} narrativeSectionTitle narrativeLineWide`}>
+          <span className={`${styles.chapterKicker} type-story-kicker text-ink-label`}>{fy26.kicker}</span>
+          <h2 id="fy26-heading" className={`${styles.fy26Title} type-story-heading text-ink-default`}>
             {fy26.title}
           </h2>
         </>
       ) : (
-        <h2 id="fy26-heading" className={`${styles.chapterKicker} narrativeKicker`}>
+        <h2 id="fy26-heading" className={`${styles.chapterKicker} type-story-kicker text-ink-label`}>
           {fy26.kicker}
         </h2>
       )}
-      <p className={`${styles.storyProse} narrativeLine narrativeLineWide`}>{fy26.body}</p>
+      <p className={`${styles.storyProse} type-story-line type-story-line-wide text-ink-default`}>{fy26.body}</p>
       <ul className={styles.fy26Stats} role="list">
         {fy26.stats.map((s) => (
           <li key={s.label} className={styles.fy26Stat}>
@@ -92,7 +92,7 @@ export function FY26PlanStats({ copy = defaultCopy }) {
           </li>
         ))}
       </ul>
-      <p className={`${styles.fy26Footnote} narrativeFootnote`}>{fy26.footnote}</p>
+      <p className={`${styles.fy26Footnote} type-story-footnote text-ink-disclaimer`}>{fy26.footnote}</p>
     </section>
   );
 }
@@ -104,7 +104,7 @@ export function StoryPullQuote({ copy = defaultCopy }) {
   const { pullQuote } = copy;
   return (
     <blockquote className={styles.storyPullQuote}>
-      <p className="narrativeLine narrativeLineWide">{pullQuote.text}</p>
+      <p className="type-story-narrative text-left text-ink-default">{pullQuote.text}</p>
     </blockquote>
   );
 }

@@ -1,23 +1,29 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
+import clone from "@turf/clone";
 import Papa from "papaparse";
+import simplify from "@turf/simplify";
 import * as turf from "@turf/turf";
 import "mapbox-gl/dist/mapbox-gl.css";
 import sdStyles from "../scroll-demographics/ScrollDemographics.module.css";
 import localStyles from "./CorridorScrollMap.module.css";
 import {
+  CORRIDOR_OFF_CORRIDOR_MUTED,
+  CORRIDOR_QUARTILE_FILLS,
+  DOT_MAP_REGION_FILL,
   FLAT_BASEMAP_STYLE,
   MAP_CENTER,
   MAP_INITIAL_ZOOM,
   ROUTES_AFTER_DETAILED_PAINT,
   ROUTES_ELIMINATED_PAINT,
   ROUTE_VISUAL,
+  TRANSIT_DOT_NEUTRAL_GREY,
   WATER_FILL,
 } from "./mapStyles";
 import { DataRationaleIcon } from "../../ui/DataRationaleIcon";
-import { fullStoryNarrative, scrollDemographicsNarrative } from "../../../narrative";
+import { fullStoryNarrative, scrollDemographicsNarrative } from "../../../data/narrative";
 import { normalizeRouteId } from "../../../lib/equity-map/constants";
 import {
   ROUTE_GEOMETRY_SIMPLIFY_TOLERANCE_DEG,
@@ -25,27 +31,32 @@ import {
 } from "../../../lib/equity-map/simplifyRouteGeometry";
 import { hoodNamesTouchingRoutes } from "../../../lib/equity-map/corridorRouteSegments";
 import { dataAssetUrl } from "../../../lib/dataAssetUrl";
+import {
+  binFromCuts,
+  quartileUpperEdges,
+  safeFloat,
+  sortedProp,
+} from "../../../lib/equity-map/quartileBins";
+import {
+  buildCorridorScrollDotsGeojson,
+  transitSizeLegendFromCuts,
+} from "../../../lib/equity-map/dot-map/buildGeojson";
+import {
+  circleRadiusGroundMatchExpression,
+  DOT_MAP_RESOLUTION_STEPS,
+} from "./dot-map/mapboxPaint";
 
 const STORY_ROUTES = new Set(["71B", "P10"]);
+const HOOD_SIMPLIFY_TOL = 0.00055;
 
-/** 71B = protected/upgraded corridor (blue); P10 = eliminated corridor in story (coral); opaque lines. */
+/** Opening zoom; `minZoom` is set after each `fitBounds` to this view so users cannot zoom out past the framed corridor/regional extent. */
+const CORRIDOR_MAP_INITIAL_ZOOM = MAP_INITIAL_ZOOM + 0.55;
+
+/** 71B = protected/upgraded corridor (blue); P10 = eliminated corridor in story (coral). */
 const ROUTE_71B_BLUE = "#1d4ed8";
 const ROUTE_P10_CORAL = "#c2410c";
 const CORRIDOR_ROUTE_LINE_WIDTH = 2.5;
 const REGIONAL_ROUTE_LINE_WIDTH = 1;
-
-/**
- * Style-guide palette + corridor “low” beige that reads off the muted grey.
- * Bins are driven by quartiles on touched hoods (corridor) or all land hoods (regional).
- */
-const DEMO_MUTED_OUT = "#e4e2de";
-/** Lowest on-corridor bin: slightly warmer than muted so story areas read as “in the data”. */
-const DEMO_BIN_LOW_TOUCHED = "#EFE8DC";
-/** Lowest bin for regional view (all land): aligns with guide cream. */
-const DEMO_BIN_LOW_REGIONAL = "#EEEAE1";
-const DEMO_BIN_PEACH = "#FFA883";
-const DEMO_BIN_TERRA = "#BC7C5C";
-const DEMO_BIN_RED = "#FF6B6B";
 
 /** @type {typeof fullStoryNarrative.corridorMap} */
 const defaultCorridorCopy = fullStoryNarrative.corridorMap;
@@ -57,97 +68,6 @@ function fetchCsv(path) {
       return res.text();
     })
     .then((text) => Papa.parse(text, { header: true, skipEmptyLines: true }).data);
-}
-
-function safeFloat(v, fallback = 0) {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-/**
- * @param {number[]} sortedVals ascending, length ≥ 1
- * @returns {[number, number, number]} upper edges for bins 0/1/2 (bin 3 is above last cut)
- */
-function quartileUpperEdges(sortedVals) {
-  const n = sortedVals.length;
-  if (n === 0) return [0.15, 0.35, 0.55];
-  if (n === 1) {
-    const v = sortedVals[0];
-    return [v, v, v];
-  }
-  const at = (idx) => sortedVals[Math.max(0, Math.min(n - 1, Math.round(idx)))];
-  const q1 = at(0.25 * (n - 1));
-  const q2 = at(0.5 * (n - 1));
-  const q3 = at(0.75 * (n - 1));
-  return [q1, q2, q3];
-}
-
-/**
- * @param {number} v
- * @param {[number, number, number]} cuts
- */
-function binFromCuts(v, cuts) {
-  const [c0, c1, c2] = cuts;
-  if (c0 === c1 && c1 === c2) return 1;
-  if (v <= c0) return 0;
-  if (v <= c1) return 1;
-  if (v <= c2) return 2;
-  return 3;
-}
-
-/** @param {GeoJSON.Feature[]} features */
-function sortedProp(features, prop) {
-  return features
-    .map((f) => safeFloat(f.properties?.[prop]))
-    .filter((x) => Number.isFinite(x))
-    .sort((a, b) => a - b);
-}
-
-/** Mapbox `match` on integer bin 0–3. Regional low = guide cream; on-corridor low = warm beige vs muted grey. */
-function fillExprCorridor(metric) {
-  const binKey = metric === "transit" ? "transit_bin_c" : "poverty_bin_c";
-  return /** @type {const} */ ([
-    "case",
-    ["==", ["get", "on_corridor"], 0],
-    DEMO_MUTED_OUT,
-    ["==", ["get", "is_water"], 1],
-    WATER_FILL,
-    [
-      "match",
-      ["get", binKey],
-      0,
-      DEMO_BIN_LOW_TOUCHED,
-      1,
-      DEMO_BIN_PEACH,
-      2,
-      DEMO_BIN_TERRA,
-      3,
-      DEMO_BIN_RED,
-      DEMO_BIN_LOW_TOUCHED,
-    ],
-  ]);
-}
-
-function fillExprRegional(metric) {
-  const binKey = metric === "transit" ? "transit_bin_r" : "poverty_bin_r";
-  return /** @type {const} */ ([
-    "case",
-    ["==", ["get", "is_water"], 1],
-    WATER_FILL,
-    [
-      "match",
-      ["get", binKey],
-      0,
-      DEMO_BIN_LOW_REGIONAL,
-      1,
-      DEMO_BIN_PEACH,
-      2,
-      DEMO_BIN_TERRA,
-      3,
-      DEMO_BIN_RED,
-      DEMO_BIN_LOW_REGIONAL,
-    ],
-  ]);
 }
 
 function statusFromRow(row) {
@@ -188,6 +108,39 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
+/** Choropleth on corridor — quartiles among touched hoods. */
+function fillExprCorridorPoverty() {
+  return /** @type {const} */ ([
+    "case",
+    ["==", ["get", "on_corridor"], 0],
+    CORRIDOR_OFF_CORRIDOR_MUTED,
+    ["==", ["get", "is_water"], 1],
+    WATER_FILL,
+    [
+      "match",
+      ["get", "poverty_bin_c"],
+      0,
+      CORRIDOR_QUARTILE_FILLS[0],
+      1,
+      CORRIDOR_QUARTILE_FILLS[1],
+      2,
+      CORRIDOR_QUARTILE_FILLS[2],
+      3,
+      CORRIDOR_QUARTILE_FILLS[3],
+      CORRIDOR_QUARTILE_FILLS[0],
+    ],
+  ]);
+}
+
+function hoodFillNeutralLand() {
+  return /** @type {const} */ ([
+    "case",
+    ["==", ["get", "is_water"], 1],
+    WATER_FILL,
+    DOT_MAP_REGION_FILL,
+  ]);
+}
+
 const fillOpacityCorridor = /** @type {const} */ ([
   "case",
   ["==", ["get", "on_corridor"], 0],
@@ -197,32 +150,32 @@ const fillOpacityCorridor = /** @type {const} */ ([
   1,
 ]);
 
-const fillOpacityAll = /** @type {const} */ ([
+const fillOpacityNeutral = /** @type {const} */ ([
   "case",
   ["==", ["get", "is_water"], 1],
   0.88,
   1,
 ]);
 
-/**
- * @param {'poverty' | 'transit' | 'full'} phase
- * @param {boolean} regionalFull
- * @param {'poverty' | 'transit'} fullMetric — fill metric when `phase === 'full'` (corridor or regional).
- */
-function hoodFillColorExpr(phase, regionalFull, fullMetric) {
-  let metric = "poverty";
-  if (regionalFull) metric = fullMetric;
-  else if (phase === "transit") metric = "transit";
-  else if (phase === "full") metric = fullMetric;
-  return regionalFull ? fillExprRegional(metric) : fillExprCorridor(metric);
+/** Mapbox expression — dot fill for “both” step (poverty quartiles on touched hoods). */
+function povertyQuartileDotColorExpr() {
+  return [
+    "match",
+    ["to-number", ["get", "poverty_bin_c"]],
+    0,
+    CORRIDOR_QUARTILE_FILLS[0],
+    1,
+    CORRIDOR_QUARTILE_FILLS[1],
+    2,
+    CORRIDOR_QUARTILE_FILLS[2],
+    3,
+    CORRIDOR_QUARTILE_FILLS[3],
+    CORRIDOR_QUARTILE_FILLS[0],
+  ];
 }
 
-function hoodFillOpacityExpr(regionalFull) {
-  return regionalFull ? fillOpacityAll : fillOpacityCorridor;
-}
-
 /**
- * Scroll-synced 71B / P10 Mapbox: poverty → transit fills on corridor; full step + toggle shows regional equity map (poverty % + all FY26 routes).
+ * Scroll-synced 71B / P10 Mapbox: poverty choropleth → grey transit dots (size) → both (poverty-colored dots + size).
  *
  * @param {{ copy?: typeof defaultCorridorCopy }} props
  */
@@ -231,29 +184,22 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const scrollStepRef = useRef(0);
-  const storyFcRef = useRef(/** @type {GeoJSON.FeatureCollection | null} */ (null));
   const hoodGeoRef = useRef(/** @type {GeoJSON.FeatureCollection | null} */ (null));
-  const corridorHoodsFcRef = useRef(/** @type {GeoJSON.FeatureCollection | null} */ (null));
-  const routeGeoFullRef = useRef(/** @type {GeoJSON.FeatureCollection | null} */ (null));
-  const mapUiRef = useRef(/** @type {{ showRegional: boolean; fullMetric: 'poverty' | 'transit' }} */ ({
-    showRegional: true,
-    fullMetric: "poverty",
-  }));
   const [hoverData, setHoverData] = useState(null);
   const [routesFileMissing, setRoutesFileMissing] = useState(false);
   const [scrollStep, setScrollStep] = useState(() => Math.max(0, copy.steps.length - 1));
   const [showFullEquityMap, setShowFullEquityMap] = useState(true);
-  const [fullMetric, setFullMetric] = useState(/** @type {'poverty' | 'transit'} */ ("poverty"));
   const [mapStyleReady, setMapStyleReady] = useState(false);
+  const [transitDotLegend, setTransitDotLegend] = useState(/** @type {ReturnType<typeof transitSizeLegendFromCuts> | null} */ (null));
   const reduceMotion = usePrefersReducedMotion();
+  /** Invalidate pending `moveend` when a new fit starts (phase, toggle, or manual recenter). */
+  const corridorFitGenerationRef = useRef(0);
 
   const effectiveStep = reduceMotion ? steps.length - 1 : scrollStep;
   const activePhase = steps[effectiveStep]?.phase ?? "full";
   scrollStepRef.current = effectiveStep;
 
   const regionalEquityOn = activePhase === "full" && showFullEquityMap;
-
-  mapUiRef.current = { showRegional: showFullEquityMap, fullMetric };
 
   const token = useMemo(() => process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "", []);
 
@@ -400,12 +346,20 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
         };
       });
 
+      hoodGeo.features = hoodGeo.features.map((f) => {
+        if (safeFloat(f.properties?.is_water) === 1) return f;
+        try {
+          const sf = simplify(clone(f), { tolerance: HOOD_SIMPLIFY_TOL, highQuality: true });
+          return { ...sf, properties: f.properties };
+        } catch {
+          return f;
+        }
+      });
+
       const landFeat = hoodGeo.features.filter((f) => safeFloat(f.properties?.is_water) !== 1);
       const touchedFeat = landFeat.filter((f) => f.properties?.on_corridor === 1);
       const pCutsC = quartileUpperEdges(sortedProp(touchedFeat, "poverty_rate"));
-      const pCutsR = quartileUpperEdges(sortedProp(landFeat, "poverty_rate"));
       const tCutsC = quartileUpperEdges(sortedProp(touchedFeat, "pct_transit_dependent"));
-      const tCutsR = quartileUpperEdges(sortedProp(landFeat, "pct_transit_dependent"));
 
       hoodGeo.features = hoodGeo.features.map((f) => {
         const p = safeFloat(f.properties?.poverty_rate);
@@ -415,9 +369,15 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
           properties: {
             ...f.properties,
             poverty_bin_c: binFromCuts(p, pCutsC),
-            poverty_bin_r: binFromCuts(p, pCutsR),
+            poverty_bin_r: binFromCuts(
+              p,
+              quartileUpperEdges(sortedProp(landFeat, "poverty_rate")),
+            ),
             transit_bin_c: binFromCuts(t, tCutsC),
-            transit_bin_r: binFromCuts(t, tCutsR),
+            transit_bin_r: binFromCuts(
+              t,
+              quartileUpperEdges(sortedProp(landFeat, "pct_transit_dependent")),
+            ),
           },
         };
       });
@@ -442,20 +402,21 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
         };
       });
 
-      storyFcRef.current = { type: "FeatureCollection", features: storyFeatures };
       hoodGeoRef.current = hoodGeo;
-      corridorHoodsFcRef.current = {
-        type: "FeatureCollection",
-        features: hoodGeo.features.filter((f) => f.properties?.on_corridor === 1),
-      };
-      routeGeoFullRef.current = routeGeo;
+
+      const dotStacks = DOT_MAP_RESOLUTION_STEPS.map((step) =>
+        buildCorridorScrollDotsGeojson(hoodGeo, { cellKm: step.cellKm }),
+      );
+      const lastCuts = dotStacks[dotStacks.length - 1];
+      if (lastCuts?.tCutsC) {
+        setTransitDotLegend(transitSizeLegendFromCuts(lastCuts.tCutsC));
+      }
 
       const map = new mapboxgl.Map({
         container: mapContainerRef.current,
         style: FLAT_BASEMAP_STYLE,
         center: MAP_CENTER,
-        zoom: MAP_INITIAL_ZOOM + 0.55,
-        minZoom: 9,
+        zoom: CORRIDOR_MAP_INITIAL_ZOOM,
         dragRotate: false,
         pitchWithRotate: false,
         maxPitch: 0,
@@ -481,18 +442,65 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
         if (cancelled) return;
         map.addSource("hoods", { type: "geojson", data: hoodGeo });
 
-        const ui = mapUiRef.current;
         const phaseAtLoad = steps[scrollStepRef.current]?.phase ?? "full";
-        const regionalAtLoad = phaseAtLoad === "full" && ui.showRegional;
+
+        const initialFillColor =
+          phaseAtLoad === "poverty" ? fillExprCorridorPoverty() : hoodFillNeutralLand();
+        const initialFillOpacity = phaseAtLoad === "poverty" ? fillOpacityCorridor : fillOpacityNeutral;
 
         map.addLayer({
           id: "hood-fill-corridor",
           type: "fill",
           source: "hoods",
           paint: {
-            "fill-color": hoodFillColorExpr(phaseAtLoad, regionalAtLoad, ui.fullMetric),
-            "fill-opacity": hoodFillOpacityExpr(regionalAtLoad),
+            "fill-color": initialFillColor,
+            "fill-opacity": initialFillOpacity,
           },
+        });
+
+        map.addLayer({
+          id: "hood-outline-corridor",
+          type: "line",
+          source: "hoods",
+          filter: ["!=", ["to-number", ["get", "is_water"]], 1],
+          paint: {
+            "line-color": "#c4c2be",
+            "line-width": 0.7,
+            "line-opacity": 0.9,
+          },
+        });
+
+        const dotsShownAtLoad = phaseAtLoad === "transit" || phaseAtLoad === "full";
+        const dotColorAtLoad =
+          phaseAtLoad === "transit" ? TRANSIT_DOT_NEUTRAL_GREY : povertyQuartileDotColorExpr();
+
+        dotStacks.forEach((stack, i) => {
+          const step = DOT_MAP_RESOLUTION_STEPS[i];
+          map.addSource(`corridor-scroll-dots-${i}`, { type: "geojson", data: stack.dots });
+          /** @type {import('mapbox-gl').AnyLayer} */
+          const layer = {
+            id: `corridor-scroll-dots-circle-${i}`,
+            type: "circle",
+            source: `corridor-scroll-dots-${i}`,
+            paint: {
+              "circle-color": dotColorAtLoad,
+              "circle-radius": circleRadiusGroundMatchExpression(step.cellKm),
+              "circle-opacity": 1,
+              "circle-stroke-width": 0,
+            },
+            layout: { visibility: dotsShownAtLoad ? "visible" : "none" },
+          };
+          if (step.minZoom != null) layer.minzoom = step.minZoom;
+          if (step.maxZoom != null) layer.maxzoom = step.maxZoom;
+          map.addLayer(layer);
+        });
+
+        map.addLayer({
+          id: "hood-hit-corridor",
+          type: "fill",
+          source: "hoods",
+          filter: ["!=", ["to-number", ["get", "is_water"]], 1],
+          paint: { "fill-opacity": 0 },
         });
 
         map.addSource("corridor-routes", {
@@ -519,17 +527,6 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
           },
         });
 
-        map.addLayer({
-          id: "hood-hover-outline",
-          type: "line",
-          source: "hoods",
-          filter: ["==", ["get", "neighborhood_name"], ""],
-          paint: {
-            "line-color": "#111",
-            "line-width": 1.4,
-          },
-        });
-
         map.addSource("routes", { type: "geojson", data: routeGeo });
         map.addLayer({
           id: "routes-after-eliminated",
@@ -551,9 +548,20 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
         map.setPaintProperty("routes-after", "line-width", REGIONAL_ROUTE_LINE_WIDTH);
         map.setPaintProperty("routes-after-eliminated", "line-width", REGIONAL_ROUTE_LINE_WIDTH);
 
+        map.addLayer({
+          id: "hood-hover-outline",
+          type: "line",
+          source: "hoods",
+          filter: ["==", ["get", "neighborhood_name"], ""],
+          paint: {
+            "line-color": "#111",
+            "line-width": 1.4,
+          },
+        });
+
         applyInteractionForPhase(phaseAtLoad);
 
-        map.on("mousemove", "hood-fill-corridor", (e) => {
+        map.on("mousemove", "hood-hit-corridor", (e) => {
           const feature = e.features?.[0];
           if (!feature) return;
           const p = feature.properties || {};
@@ -569,7 +577,7 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
           map.setFilter("hood-hover-outline", ["==", ["get", "neighborhood_name"], p.neighborhood_name]);
         });
 
-        map.on("mouseleave", "hood-fill-corridor", () => {
+        map.on("mouseleave", "hood-hit-corridor", () => {
           setHoverData(null);
           map.setFilter("hood-hover-outline", ["==", ["get", "neighborhood_name"], ""]);
         });
@@ -590,12 +598,25 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
     if (!mapStyleReady || !map?.isStyleLoaded() || !map.getLayer("hood-fill-corridor")) return;
 
     const regional = activePhase === "full" && showFullEquityMap;
-    map.setPaintProperty(
-      "hood-fill-corridor",
-      "fill-color",
-      hoodFillColorExpr(activePhase, regional, fullMetric),
-    );
-    map.setPaintProperty("hood-fill-corridor", "fill-opacity", hoodFillOpacityExpr(regional));
+
+    if (activePhase === "poverty") {
+      map.setPaintProperty("hood-fill-corridor", "fill-color", fillExprCorridorPoverty());
+      map.setPaintProperty("hood-fill-corridor", "fill-opacity", fillOpacityCorridor);
+    } else {
+      map.setPaintProperty("hood-fill-corridor", "fill-color", hoodFillNeutralLand());
+      map.setPaintProperty("hood-fill-corridor", "fill-opacity", fillOpacityNeutral);
+    }
+
+    const dotsVisible = activePhase === "transit" || activePhase === "full";
+    const colorExpr = activePhase === "transit" ? TRANSIT_DOT_NEUTRAL_GREY : povertyQuartileDotColorExpr();
+
+    for (let i = 0; i < DOT_MAP_RESOLUTION_STEPS.length; i++) {
+      const id = `corridor-scroll-dots-circle-${i}`;
+      if (map.getLayer(id)) {
+        map.setLayoutProperty(id, "visibility", dotsVisible ? "visible" : "none");
+        map.setPaintProperty(id, "circle-color", colorExpr);
+      }
+    }
 
     const routeVis = regional ? "visible" : "none";
     const corridorRouteVis = regional ? "none" : "visible";
@@ -623,30 +644,35 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
       map.boxZoom.disable();
       map.keyboard.disable();
     }
-  }, [mapStyleReady, activePhase, showFullEquityMap, fullMetric]);
+  }, [mapStyleReady, activePhase, showFullEquityMap]);
 
-  useEffect(() => {
+  const applyCorridorHomeCamera = useCallback(() => {
     const map = mapRef.current;
-    const storyFc = storyFcRef.current;
-    const corridorFc = corridorHoodsFcRef.current;
-    const routeFull = routeGeoFullRef.current;
+    const hoodGeo = hoodGeoRef.current;
     if (!mapStyleReady || !map?.isStyleLoaded()) return;
 
+    const gen = ++corridorFitGenerationRef.current;
     const regional = activePhase === "full" && showFullEquityMap;
+
+    const syncIfCurrent = () => {
+      if (corridorFitGenerationRef.current !== gen || mapRef.current !== map || !map.isStyleLoaded()) return;
+      map.setMinZoom(map.getZoom());
+    };
+
     /** @type {number[] | null} */
     let b = null;
     try {
-      if (regional) {
-        if (routeFull?.features?.length) b = turf.bbox(routeFull);
-      } else if (storyFc?.features?.length && corridorFc?.features?.length) {
-        b = turf.bbox({
-          type: "FeatureCollection",
-          features: [...corridorFc.features, ...storyFc.features],
-        });
-      } else if (storyFc?.features?.length) {
-        b = turf.bbox(storyFc);
+      /*
+       * Frame to land neighborhood polygons only (same extent as the grey plate: off-corridor muted +
+       * neutral `DOT_MAP_REGION_FILL` land), not route lines or a corridor-only subset.
+       */
+      const landHoods =
+        hoodGeo?.features?.filter((f) => Number(f.properties?.is_water) !== 1) ?? [];
+      if (landHoods.length) {
+        b = turf.bbox({ type: "FeatureCollection", features: landHoods });
       }
       if (b?.every(Number.isFinite)) {
+        const duration = reduceMotion ? 0 : 480;
         map.fitBounds(
           [
             [b[0], b[1]],
@@ -656,30 +682,40 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
             padding: regional
               ? { top: 40, bottom: 44, left: 40, right: 40 }
               : { top: 24, bottom: 28, left: 20, right: 20 },
-            duration: 480,
+            duration,
             maxZoom: regional ? 10.9 : 12.65,
           },
         );
+        map.once("moveend", syncIfCurrent);
+        if (duration === 0) {
+          requestAnimationFrame(syncIfCurrent);
+        }
+      } else {
+        syncIfCurrent();
       }
     } catch {
       /* no-op */
     }
-  }, [mapStyleReady, activePhase, showFullEquityMap, fullMetric]);
+  }, [mapStyleReady, activePhase, showFullEquityMap, reduceMotion]);
+
+  useEffect(() => {
+    applyCorridorHomeCamera();
+  }, [applyCorridorHomeCamera]);
 
   const legendRegionalTransit = copy.legendRegionalTransit ?? copy.legendTransit;
-  const brtMethod = typeof copy.methodNoteBrt === "string" ? copy.methodNoteBrt.trim() : "";
-  const legendText =
-    regionalEquityOn && fullMetric === "transit"
-      ? legendRegionalTransit
-      : regionalEquityOn
-        ? copy.legendRegional
-        : activePhase === "full" && fullMetric === "transit"
-          ? copy.legendTransit
-          : activePhase === "poverty"
-            ? copy.legendPoverty
-            : activePhase === "transit"
-              ? copy.legendTransit
-              : copy.legendFull;
+
+  let legendText = copy.legendFull;
+  if (regionalEquityOn) {
+    legendText = copy.legendRegional;
+  } else if (activePhase === "poverty") {
+    legendText = copy.legendPoverty;
+  } else if (activePhase === "transit") {
+    legendText = transitDotLegend
+      ? `${copy.legendTransit}\n\n${transitDotLegend.caption}`
+      : copy.legendTransit;
+  } else if (activePhase === "full") {
+    legendText = copy.legendFull;
+  }
 
   const sectionTitleVis = String(sectionTitle ?? "").trim();
 
@@ -698,7 +734,7 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
       <header className={sdStyles.head}>
         <h2
           id="corridor-scroll-map-title"
-          className={sectionTitleVis ? sdStyles.leadTitle : "visually-hidden"}
+          className={sectionTitleVis ? sdStyles.leadTitle : "sr-only"}
         >
           {sectionTitleVis || "71B and P10 on the map"}
         </h2>
@@ -708,27 +744,20 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
       <div className={`${sdStyles.shell} ${localStyles.corridorShell}`}>
         <div className={`${sdStyles.sticky} ${localStyles.corridorSticky}`}>
           <figure className={sdStyles.figure} aria-label="71B and P10 corridor map">
-            <div ref={mapContainerRef} className={localStyles.mapInner} />
+            <div className={localStyles.mapWrap}>
+              <div ref={mapContainerRef} className={localStyles.mapInner} />
+              <button
+                type="button"
+                className={localStyles.mapRecenter}
+                onClick={applyCorridorHomeCamera}
+                disabled={!mapStyleReady}
+                aria-label="Recenter map on the current corridor or regional extent"
+              >
+                Recenter map
+              </button>
+            </div>
             {activePhase === "full" ? (
               <div className={localStyles.fullControls}>
-                <div className={localStyles.metricToggle} role="group" aria-label="Neighborhood fill metric">
-                  <button
-                    type="button"
-                    className={`${localStyles.metricBtn} ${fullMetric === "poverty" ? localStyles.metricBtnActive : ""}`}
-                    aria-pressed={fullMetric === "poverty"}
-                    onClick={() => setFullMetric("poverty")}
-                  >
-                    {copy.showPovertyLabel}
-                  </button>
-                  <button
-                    type="button"
-                    className={`${localStyles.metricBtn} ${fullMetric === "transit" ? localStyles.metricBtnActive : ""}`}
-                    aria-pressed={fullMetric === "transit"}
-                    onClick={() => setFullMetric("transit")}
-                  >
-                    {copy.showTransitLabel}
-                  </button>
-                </div>
                 <div className={localStyles.fullToggleRow}>
                   <label className={localStyles.toggle}>
                     <input
@@ -753,7 +782,7 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
               <span className={sdStyles.sourceLabel}>Sources & methods</span>
               <DataRationaleIcon
                 label="Data sources for corridor map"
-                rationale={`${copy.legendPoverty}\n\n${copy.legendTransit}\n\n${copy.legendFull}\n\n${copy.legendRegional}\n\n${legendRegionalTransit}\n\n${scrollDemographicsNarrative.ui.sourceNote}${brtMethod ? `\n\n${brtMethod}` : ""}`}
+                rationale={`${copy.legendPoverty}\n\n${copy.legendTransit}\n\n${copy.legendFull}\n\n${copy.legendRegional}\n\n${legendRegionalTransit}\n\n${scrollDemographicsNarrative.ui.sourceNote}${copy.methodNoteBrt?.trim() ? `\n\n${copy.methodNoteBrt.trim()}` : ""}`}
               />
             </div>
             {hoverData ? (

@@ -1,30 +1,76 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
+import * as turf from "@turf/turf";
 import Papa from "papaparse";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { normalizeRouteId } from "../../../lib/equity-map/constants";
-import { rowServesP10Or71B } from "../../../lib/equity-map/equityMap2RouteHoods";
-import { buildEquityMap2Data, EQUITY_MAP2_POVERTY_COLORS } from "../../../lib/equity-map/buildEquityMap2Dots";
+import { normalizeRouteId } from "../../../../lib/equity-map/constants";
+import { buildDotMapGeojson, transitSizeLegendFromCuts } from "../../../../lib/equity-map/dot-map/buildGeojson";
+import { rowServesP10Or71B } from "../../../../lib/equity-map/dot-map/routeFilter";
 import {
   ROUTE_GEOMETRY_SIMPLIFY_TOLERANCE_DEG,
   simplifyRouteGeometry,
-} from "../../../lib/equity-map/simplifyRouteGeometry";
-import { computeVScoreMap } from "../../../lib/equity-map/vulnerabilityScore";
-import { dataAssetUrl } from "../../../lib/dataAssetUrl";
+} from "../../../../lib/equity-map/simplifyRouteGeometry";
+import { dataAssetUrl } from "../../../../lib/dataAssetUrl";
 import {
+  DOT_MAP_REGION_FILL,
   FLAT_BASEMAP_STYLE,
   HOOD_FEATURED_OUTLINE_PAINT,
   HOOD_HOVER_OUTLINE_PAINT,
   MAP_CENTER,
   MAP_INITIAL_ZOOM,
+  POVERTY_LEVEL_COLORS,
   ROUTE_ELIMINATED_LIGHT_GREY,
   ROUTE_REDUCED_DARK_GREY,
-} from "./mapStyles";
-import styles from "./EquityMap2.module.css";
+} from "../mapStyles";
+import {
+  circleRadiusGroundMatchExpression,
+  DOT_MAP_RESOLUTION_STEPS,
+  TRANSIT_LEGEND_RADIUS,
+} from "./mapboxPaint";
+import styles from "./DotMap.module.css";
 
-const FEATURED_HOODS = new Set(["Lincoln-Lemington-Belmar", "Lower Lawrenceville"]);
+/** Persona neighborhoods — blue outline on the map (Marcus / Stanton Heights; Denise / Lincoln-Lemington-Belmar). */
+const FEATURED_HOODS = new Set(["Stanton Heights", "Lincoln-Lemington-Belmar"]);
+
+/** Match corridor scroll map: frame data, then lock zoom-out to that “home” view (recomputed when view toggles). */
+const DOT_MAP_FIT_PADDING = { top: 28, bottom: 28, left: 24, right: 24 };
+const DOT_MAP_FIT_MAX_ZOOM = 12.2;
+
+function syncMinZoomToHomeView(map) {
+  if (!map?.isStyleLoaded()) return;
+  map.setMinZoom(map.getZoom());
+}
+
+/**
+ * @param {import('mapbox-gl').Map} map
+ * @param {GeoJSON.FeatureCollection} hoodFc
+ * @param {boolean} routeOnlyHoods P10+71B corridor hoods only
+ * @returns {boolean} whether fitBounds ran
+ */
+function fitDotMapToHoods(map, hoodFc, routeOnlyHoods) {
+  const features = hoodFc.features.filter((f) => {
+    if (Number(f.properties?.is_water) === 1) return false;
+    if (routeOnlyHoods && Number(f.properties?.serves_p10_71b) !== 1) return false;
+    return true;
+  });
+  if (!features.length) return false;
+  const b = turf.bbox({ type: "FeatureCollection", features });
+  if (!b.every(Number.isFinite)) return false;
+  map.fitBounds(
+    [
+      [b[0], b[1]],
+      [b[2], b[3]],
+    ],
+    {
+      padding: DOT_MAP_FIT_PADDING,
+      duration: 0,
+      maxZoom: DOT_MAP_FIT_MAX_ZOOM,
+    },
+  );
+  return true;
+}
 
 function fetchCsv(path) {
   return fetch(path)
@@ -40,70 +86,27 @@ function safeFloat(v, fallback = 0) {
   return Number.isFinite(n) ? n : fallback;
 }
 
-/** Base circle radius in px per transit bucket (before zoom scaling). Tune multipliers inside `circleRadiusWithZoom`. */
-const TRANSIT_BUCKET_RADIUS = {
-  0: 1,
-  1: 1,
-  2: 2,
-  3: 4,
-};
-
 /**
- * `circle-radius` scales with zoom. Mapbox requires `["zoom"]` only as the input to a **top-level**
- * `interpolate` or `step` — so we interpolate on zoom first, and each stop outputs a `match` on transit bucket.
- * @param {number} anchorZoom — usually `MAP_INITIAL_ZOOM`
- */
-function circleRadiusWithZoom(anchorZoom) {
-  const z = anchorZoom;
-  const r0 = TRANSIT_BUCKET_RADIUS[0];
-  const r1 = TRANSIT_BUCKET_RADIUS[1];
-  const r2 = TRANSIT_BUCKET_RADIUS[2];
-  const r3 = TRANSIT_BUCKET_RADIUS[3];
-  /** Per-zoom multipliers; increase so dots grow more as you zoom in. */
-  const m0 = 0.85;
-  const m1 = 1;
-  const m2 = 1.35;
-  const m3 = 1.75;
-  const bucketAt = (m) => [
-    "match",
-    ["to-number", ["get", "transit_bucket"]],
-    0,
-    r0 * m,
-    1,
-    r1 * m,
-    2,
-    r2 * m,
-    3,
-    r3 * m,
-    r1 * m,
-  ];
-  return [
-    "interpolate",
-    ["linear"],
-    ["zoom"],
-    z,
-    bucketAt(m0),
-    z + 2,
-    bucketAt(m1),
-    z + 4,
-    bucketAt(m2),
-    z + 6.5,
-    bucketAt(m3),
-  ];
-}
-
-/**
- * Bivariate dot grid: simplified neighborhood masks, color = poverty tertile, size = transit quartile.
+ * Bivariate dot map: regional lattice, poverty color × transit-dependent size; radii in ground meters.
  * @param {{ title?: string; dek?: string }} props
  */
-export default function EquityMap2({ title, dek }) {
+export default function DotMap({ title, dek }) {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
+  /** Enriched hood GeoJSON for camera bbox (full region vs P10+71B filter). */
+  const hoodGeoCameraRef = useRef(/** @type {GeoJSON.FeatureCollection | null} */ (null));
+  const dotMapFitGenerationRef = useRef(0);
   const [hoverData, setHoverData] = useState(null);
   const [routeView, setRouteView] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const [routesMissing, setRoutesMissing] = useState(false);
+  const [transitQuartileCuts, setTransitQuartileCuts] = useState(null);
   const token = useMemo(() => process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "", []);
+
+  const transitSizeLegend = useMemo(
+    () => (transitQuartileCuts ? transitSizeLegendFromCuts(transitQuartileCuts) : null),
+    [transitQuartileCuts],
+  );
 
   useEffect(() => {
     if (!token || !mapContainerRef.current) return;
@@ -121,7 +124,6 @@ export default function EquityMap2({ title, dek }) {
     ]).then(([hoodGeo, hoodStats, routeStats, routeGeo]) => {
       if (cancelled) return;
 
-      const vByNeighborhood = computeVScoreMap(hoodStats, routeStats);
       const hoodByName = new Map();
       hoodStats.forEach((row) => {
         const name = (row.neighborhood || "").trim();
@@ -133,14 +135,12 @@ export default function EquityMap2({ title, dek }) {
         const useStreet = streetBefore > 0;
         const routesBefore = useStreet ? streetBefore : allBefore;
         const routesLosing = useStreet ? streetLosing : allLosing;
-        const vRow = vByNeighborhood.get(name);
         hoodByName.set(name, {
           poverty_rate: safeFloat(row.below_poverty_pct),
           pct_transit_dependent: safeFloat(row.transit_dependent_pct_proxy),
           routes_cut_or_reduced: useStreet ? row.routes_losing_street || "" : row.routes_losing || "",
           pct_access_lost: routesBefore > 0 ? routesLosing / routesBefore : 0,
           access_metric: useStreet ? "street" : "all_stops",
-          v_score: vRow?.vScore ?? 0,
           serves_p10_71b: rowServesP10Or71B(row),
         });
       });
@@ -162,7 +162,6 @@ export default function EquityMap2({ title, dek }) {
             routes_cut_or_reduced: m.routes_cut_or_reduced ?? "",
             pct_access_lost: m.pct_access_lost ?? 0,
             access_metric: m.access_metric ?? "all_stops",
-            v_score: m.v_score ?? 0,
             is_water: waterHeavy ? 1 : 0,
             is_featured: FEATURED_HOODS.has(hood) ? 1 : 0,
             serves_p10_71b: m.serves_p10_71b ?? 0,
@@ -170,7 +169,14 @@ export default function EquityMap2({ title, dek }) {
         };
       });
 
-      const { dots, hoodsSimplified } = buildEquityMap2Data(hoodGeo);
+      hoodGeoCameraRef.current = hoodGeo;
+
+      const builtPerStep = DOT_MAP_RESOLUTION_STEPS.map((step) =>
+        buildDotMapGeojson(hoodGeo, { cellKm: step.cellKm }),
+      );
+      const dotsLayers = builtPerStep.map((b) => b.dots);
+      const { hoodsSimplified, transitCuts } = builtPerStep[builtPerStep.length - 1];
+      setTransitQuartileCuts(transitCuts);
 
       let routeP1071bGeo = null;
       if (routeGeo?.features?.length) {
@@ -206,7 +212,6 @@ export default function EquityMap2({ title, dek }) {
         style: FLAT_BASEMAP_STYLE,
         center: MAP_CENTER,
         zoom: MAP_INITIAL_ZOOM,
-        minZoom: MAP_INITIAL_ZOOM,
         dragRotate: false,
         pitchWithRotate: false,
         maxPitch: 0,
@@ -216,25 +221,43 @@ export default function EquityMap2({ title, dek }) {
       map.on("load", () => {
         if (cancelled) return;
 
-        map.addSource("equity-dots", { type: "geojson", data: dots });
+        map.addSource("dot-map-hood-hit", { type: "geojson", data: hoodsSimplified });
         map.addLayer({
-          id: "equity-dots-circle",
-          type: "circle",
-          source: "equity-dots",
+          id: "dot-map-pgh-land-fill",
+          type: "fill",
+          source: "dot-map-hood-hit",
+          filter: ["!=", ["to-number", ["get", "is_water"]], 1],
           paint: {
-            "circle-color": ["get", "dot_color"],
-            "circle-radius": circleRadiusWithZoom(MAP_INITIAL_ZOOM),
-            "circle-opacity": 0.9,
-            "circle-stroke-width": 0,
+            "fill-color": DOT_MAP_REGION_FILL,
+            "fill-opacity": 1,
           },
         });
 
+        DOT_MAP_RESOLUTION_STEPS.forEach((step, i) => {
+          map.addSource(`dot-map-equity-dots-${i}`, { type: "geojson", data: dotsLayers[i] });
+          /** @type {import('mapbox-gl').AnyLayer} */
+          const layer = {
+            id: `dot-map-equity-dots-circle-${i}`,
+            type: "circle",
+            source: `dot-map-equity-dots-${i}`,
+            paint: {
+              "circle-color": ["get", "dot_color"],
+              "circle-radius": circleRadiusGroundMatchExpression(step.cellKm),
+              "circle-opacity": 1,
+              "circle-stroke-width": 0,
+            },
+          };
+          if (step.minZoom != null) layer.minzoom = step.minZoom;
+          if (step.maxZoom != null) layer.maxzoom = step.maxZoom;
+          map.addLayer(layer);
+        });
+
         if (routeP1071bGeo?.features?.length) {
-          map.addSource("routes-p10-71b", { type: "geojson", data: routeP1071bGeo });
+          map.addSource("dot-map-routes-p10-71b", { type: "geojson", data: routeP1071bGeo });
           map.addLayer({
-            id: "equity-routes-p10-71b",
+            id: "dot-map-equity-routes-p10-71b",
             type: "line",
-            source: "routes-p10-71b",
+            source: "dot-map-routes-p10-71b",
             paint: {
               "line-color": [
                 "match",
@@ -252,47 +275,45 @@ export default function EquityMap2({ title, dek }) {
           });
         }
 
-        map.addSource("hood-hit", { type: "geojson", data: hoodsSimplified });
         map.addLayer({
-          id: "hood-hit-fill",
+          id: "dot-map-hood-hit-fill",
           type: "fill",
-          source: "hood-hit",
+          source: "dot-map-hood-hit",
           paint: { "fill-opacity": 0 },
         });
         map.addLayer({
-          id: "hood-featured-outline",
+          id: "dot-map-hood-featured-outline",
           type: "line",
-          source: "hood-hit",
+          source: "dot-map-hood-hit",
           filter: ["==", ["get", "is_featured"], 1],
           paint: HOOD_FEATURED_OUTLINE_PAINT,
         });
         map.addLayer({
-          id: "hood-hover-outline",
+          id: "dot-map-hood-hover-outline",
           type: "line",
-          source: "hood-hit",
+          source: "dot-map-hood-hit",
           filter: ["==", ["get", "neighborhood_name"], ""],
           paint: HOOD_HOVER_OUTLINE_PAINT,
         });
 
-        map.on("mousemove", "hood-hit-fill", (e) => {
+        map.on("mousemove", "dot-map-hood-hit-fill", (e) => {
           const feature = e.features?.[0];
           if (!feature) return;
           const p = feature.properties || {};
           setHoverData({
             name: p.neighborhood_name,
-            vScore: safeFloat(p.v_score, 0),
             pctTransit: safeFloat(p.pct_transit_dependent),
             povertyRate: safeFloat(p.poverty_rate),
             routesCut: p.routes_cut_or_reduced,
             pctAccessLost: safeFloat(p.pct_access_lost),
             accessMetric: p.access_metric === "street" ? "street" : "all_stops",
           });
-          map.setFilter("hood-hover-outline", ["==", ["get", "neighborhood_name"], p.neighborhood_name]);
+          map.setFilter("dot-map-hood-hover-outline", ["==", ["get", "neighborhood_name"], p.neighborhood_name]);
         });
 
-        map.on("mouseleave", "hood-hit-fill", () => {
+        map.on("mouseleave", "dot-map-hood-hit-fill", () => {
           setHoverData(null);
-          map.setFilter("hood-hover-outline", ["==", ["get", "neighborhood_name"], ""]);
+          map.setFilter("dot-map-hood-hover-outline", ["==", ["get", "neighborhood_name"], ""]);
         });
 
         if (!cancelled) {
@@ -305,6 +326,8 @@ export default function EquityMap2({ title, dek }) {
       cancelled = true;
       setMapReady(false);
       setRoutesMissing(false);
+      setTransitQuartileCuts(null);
+      hoodGeoCameraRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
     };
@@ -312,19 +335,49 @@ export default function EquityMap2({ title, dek }) {
 
   useEffect(() => {
     const map = mapRef.current;
+    const hoodFc = hoodGeoCameraRef.current;
+    if (!mapReady || !map?.isStyleLoaded() || !hoodFc?.features?.length) return;
+
+    const generation = ++dotMapFitGenerationRef.current;
+    const syncIfCurrent = () => {
+      if (dotMapFitGenerationRef.current !== generation || mapRef.current !== map) return;
+      syncMinZoomToHomeView(map);
+    };
+
+    const didFit = fitDotMapToHoods(map, hoodFc, routeView);
+    if (!didFit) {
+      syncIfCurrent();
+      return;
+    }
+    map.once("moveend", syncIfCurrent);
+    requestAnimationFrame(syncIfCurrent);
+  }, [mapReady, routeView]);
+
+  useEffect(() => {
+    const map = mapRef.current;
     if (!mapReady || !map?.isStyleLoaded()) return;
 
     const routeOnly = routeView ? ["==", ["to-number", ["get", "serves_p10_71b"]], 1] : null;
 
-    if (map.getLayer("equity-dots-circle")) {
-      map.setFilter("equity-dots-circle", routeOnly);
-    }
-    if (map.getLayer("hood-hit-fill")) {
-      map.setFilter("hood-hit-fill", routeOnly);
-    }
-    if (map.getLayer("hood-featured-outline")) {
+    DOT_MAP_RESOLUTION_STEPS.forEach((_, i) => {
+      const id = `dot-map-equity-dots-circle-${i}`;
+      if (map.getLayer(id)) {
+        map.setFilter(id, routeOnly);
+      }
+    });
+    const landOnly = ["!=", ["to-number", ["get", "is_water"]], 1];
+    if (map.getLayer("dot-map-pgh-land-fill")) {
       map.setFilter(
-        "hood-featured-outline",
+        "dot-map-pgh-land-fill",
+        routeView ? ["all", landOnly, ["==", ["to-number", ["get", "serves_p10_71b"]], 1]] : landOnly,
+      );
+    }
+    if (map.getLayer("dot-map-hood-hit-fill")) {
+      map.setFilter("dot-map-hood-hit-fill", routeOnly);
+    }
+    if (map.getLayer("dot-map-hood-featured-outline")) {
+      map.setFilter(
+        "dot-map-hood-featured-outline",
         routeView
           ? [
               "all",
@@ -335,14 +388,33 @@ export default function EquityMap2({ title, dek }) {
       );
     }
     setHoverData(null);
-    if (map.getLayer("hood-hover-outline")) {
-      map.setFilter("hood-hover-outline", ["==", ["get", "neighborhood_name"], ""]);
+    if (map.getLayer("dot-map-hood-hover-outline")) {
+      map.setFilter("dot-map-hood-hover-outline", ["==", ["get", "neighborhood_name"], ""]);
     }
   }, [routeView, mapReady]);
 
+  const recenterMap = useCallback(() => {
+    const map = mapRef.current;
+    const hoodFc = hoodGeoCameraRef.current;
+    if (!map?.isStyleLoaded() || !hoodFc?.features?.length) return;
+    dotMapFitGenerationRef.current += 1;
+    const didFit = fitDotMapToHoods(map, hoodFc, routeView);
+    if (!didFit) {
+      syncMinZoomToHomeView(map);
+      return;
+    }
+    map.once("moveend", () => {
+      if (mapRef.current !== map) return;
+      syncMinZoomToHomeView(map);
+    });
+    requestAnimationFrame(() => {
+      if (mapRef.current === map) syncMinZoomToHomeView(map);
+    });
+  }, [routeView]);
+
   if (!token) {
     return (
-      <section className={styles.shell} aria-label="Equity dot map">
+      <section className={styles.shell} aria-label="Poverty and transit dependence dot map">
         <p className={styles.warn}>
           Set <code>NEXT_PUBLIC_MAPBOX_TOKEN</code> in your environment to render the map.
         </p>
@@ -351,7 +423,7 @@ export default function EquityMap2({ title, dek }) {
   }
 
   return (
-    <section className={styles.shell} aria-label="Equity pattern map">
+    <section className={styles.shell} aria-label="Poverty and transit dependence dot map">
       {(title || dek) && (
         <header className={styles.intro}>
           {title ? <h2>{title}</h2> : null}
@@ -377,6 +449,15 @@ export default function EquityMap2({ title, dek }) {
             P10 + 71B corridors
           </button>
         </div>
+        <button
+          type="button"
+          className={`${styles.controlButton} ${styles.recenterButton}`}
+          onClick={recenterMap}
+          disabled={!mapReady}
+          aria-label="Recenter map on the current view extent"
+        >
+          Recenter map
+        </button>
       </div>
 
       <div className={styles.legendCard}>
@@ -387,47 +468,52 @@ export default function EquityMap2({ title, dek }) {
             <span className={styles.swatch} role="listitem">
               <span
                 className={styles.swatchDot}
-                style={{ background: EQUITY_MAP2_POVERTY_COLORS[0] }}
+                style={{ background: POVERTY_LEVEL_COLORS[0] }}
               />
               Low (tertile)
             </span>
             <span className={styles.swatch} role="listitem">
               <span
                 className={styles.swatchDot}
-                style={{ background: EQUITY_MAP2_POVERTY_COLORS[1] }}
+                style={{ background: POVERTY_LEVEL_COLORS[1] }}
               />
               Medium
             </span>
             <span className={styles.swatch} role="listitem">
               <span
                 className={styles.swatchDot}
-                style={{ background: EQUITY_MAP2_POVERTY_COLORS[2] }}
+                style={{ background: POVERTY_LEVEL_COLORS[2] }}
               />
               High
             </span>
           </div>
           <span className={styles.legendRowLabel}>Transit dependence</span>
-          <div className={styles.sizeDemo} role="list">
-            {[
-              { b: 3, label: "High — largest dots" },
-              { b: 2, label: "Medium-high" },
-              { b: 1, label: "Medium-low" },
-              { b: 0, label: "Low — smallest" },
-            ].map(({ b, label }) => {
-              const d = Math.round(TRANSIT_BUCKET_RADIUS[b] * 7);
-              return (
-                <span key={b} className={styles.sizeStep} role="listitem">
-                  <span className={styles.sizeCircle} style={{ width: d, height: d }} />
-                  {label}
-                </span>
-              );
-            })}
+          <div className={styles.transitSizeLegend}>
+            {transitSizeLegend ? (
+              <p className={styles.legendSizeCaption}>{transitSizeLegend.caption}</p>
+            ) : null}
+            <div className={styles.sizeDemo} role="list">
+              {(transitSizeLegend?.entries ?? [
+                { b: 2, label: "High — largest (touches at grid pitch)" },
+                { b: 1, label: "Medium" },
+                { b: 0, label: "Low / medium-low — smallest" },
+              ]).map(({ b, label }) => {
+                const d = Math.round(TRANSIT_LEGEND_RADIUS[b] * 10);
+                return (
+                  <span key={b} className={styles.sizeStep} role="listitem">
+                    <span className={styles.sizeCircle} style={{ width: d, height: d }} />
+                    {label}
+                  </span>
+                );
+              })}
+            </div>
           </div>
         </div>
         <p className={styles.legendNote}>
-          Boundaries are simplified so a regular dot grid can clip cleanly inside each neighborhood. Color and size
-          bins use tertiles / quartiles of the values on this map (worker transit-commute proxy and share below
-          poverty from the neighborhood profile table).{" "}
+          One regional lattice per zoom band; simplified boundaries assign each dot to a neighborhood. Zooming in
+          switches to a finer grid (more dots); radii stay tied to that pitch so the largest transit tier stays tangent.
+          Poverty tertiles on color; transit dependence uses three dot sizes (bottom two quartiles share the smallest).
+          Worker commute proxy from the profile table.{" "}
           <strong>P10 + 71B corridors</strong> limits dots to neighborhoods whose pre-FY26 route list includes P10 or
           71B in <code>fy26_route_n_profiles_all.csv</code> (street-served list when available). Lines: P10 (lighter),
           71B (darker) — FY26 styling hint.
@@ -455,10 +541,6 @@ export default function EquityMap2({ title, dek }) {
               <dt>Transit dependence (commute proxy)</dt>
               <dd>
                 <span className={styles.metric}>{(hoverData.pctTransit * 100).toFixed(1)}%</span>
-              </dd>
-              <dt>Vulnerability (V)</dt>
-              <dd>
-                <span className={styles.metric}>{hoverData.vScore}</span>
               </dd>
               <dt>Routes cut / reduced</dt>
               <dd>{hoverData.routesCut || "None listed"}</dd>
