@@ -23,7 +23,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${albertSans.variable} ${geistMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        <div className="page-shell">{children}</div>
+      </body>
     </html>
   );
 }

@@ -149,7 +149,31 @@ export function ScrollDemographics({ narrative = defaultNarrative }) {
         >
           {sectionTitleVis || "Compare two corridors"}
         </h2>
-        <p className={styles.leadBody}>{ui.sectionIntro}</p>
+        <p className={styles.leadBody}>
+          <span className={styles.routeCorridorKeys} aria-label="Illustrated route line colors">
+            <span className={styles.routeKeyWithSwatch}>
+              <span
+                className={styles.routeLineSwatch}
+                style={{ backgroundColor: routes.keep.lineColor }}
+                aria-hidden
+              />
+              {routes.keep.routeCode}
+            </span>
+            <span className={styles.routeKeySep} aria-hidden>
+              ·
+            </span>
+            <span className={styles.routeKeyWithSwatch}>
+              <span
+                className={styles.routeLineSwatch}
+                style={{ backgroundColor: routes.cut.lineColor }}
+                aria-hidden
+              />
+              {routes.cut.routeCode}
+            </span>
+          </span>
+          {" — "}
+          {ui.sectionIntro}
+        </p>
       </header>
 
       <div className={styles.shell}>

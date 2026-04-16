@@ -296,14 +296,14 @@ export const scrollDemographicsNarrative = {
   ui: {
     sectionTitle: "",
     sectionIntro:
-      "The same FY26 budget pressure lands on 71B as a minor trim (and a future BRT spine) while P10 (Allegheny Valley Flyer) — Denise’s corridor in this build — is eliminated, removing one-seat service from stops like WASHINGTON BLVD AT HIGHLAND DR with no same-stop local in `route_stop_per_route`. Here is the neighborhood context those decisions inherit.",
+      "The same FY26 budget pressure lands as a minor trim (and a future BRT spine) on one alignment while the other — Denise’s Allegheny Valley Flyer — is eliminated, removing one-seat service from stops like WASHINGTON BLVD AT HIGHLAND DR with no same-stop local in `route_stop_per_route`. The illustration samples neighborhood context those decisions inherit.",
     stickyAriaLabel:
       "Abstract map comparing 71B Highland Park and P10 Allegheny Valley Flyer; scroll steps show poverty, transit dependence, and ridership-weighted scale",
     legendRidership: "Line thickness ∝ recent weekday boardings along each segment (neighborhood stops; FY26_route_status_all).",
     legendPoverty:
-      "Poverty % along each abstract path — Stanton Heights vs Lincoln-Lemington–Belmar (~10% vs ~33% below poverty in `fy26_route_n_profiles_all`, 2022 ACS fields).",
+      "Poverty % at each stop along the paths; segment thickness scales with local poverty intensity (Stanton Heights vs Lincoln-Lemington–Belmar ~10% vs ~33% below poverty in `fy26_route_n_profiles_all`, 2022 ACS fields).",
     legendTransit:
-      "Transit-commute proxy (workers) from the same table — higher share on the Denise / Lincoln-Lemington–Belmar path (~26% vs ~9%).",
+      "Transit-commute proxy (workers) from the same table — segment thickness scales with dependence (~26% vs ~9% of workers on the two corridor profiles).",
     sourceNote:
       "Ridership: FY26_route_status_all weekday_avg_riders_recent_2023_2024. Poverty / transit proxy: fy26_route_n_profiles_all (Stanton Heights & Lincoln-Lemington-Belmar). Abstract path stops remain illustrative.",
     reducedMotionNote:
@@ -316,7 +316,7 @@ export const scrollDemographicsNarrative = {
       routeCode: "71B",
       scheduleName: "71B Highland Park",
       decisionNote: "Higher ridership; minor reduction; BRT upgrade corridor",
-      lineColor: "#243a5e",
+      lineColor: "#1d4ed8",
       pathD:
         "M 18 76 C 72 52, 118 96, 168 74 S 268 54, 318 70 S 362 88, 386 74",
       // Weekday avg recent from FY26_route_status_all (71B row)
@@ -343,7 +343,7 @@ export const scrollDemographicsNarrative = {
       scheduleName: "P10 Allegheny Valley Flyer",
       decisionNote:
         "Eliminated in FY26 scenario (commuter-bus step); Washington Blvd stop pair has no overlapping local in build data",
-      lineColor: "#141414",
+      lineColor: "#c2410c",
       pathD:
         "M 16 220 C 88 248, 132 188, 198 212 S 292 232, 338 198 S 372 228, 388 206",
       // Weekday avg from FY26_route_status_all (P10 row): recent 221.3, baseline 698.1
@@ -432,22 +432,18 @@ export const fullStoryNarrative = {
   },
   corridorMap: {
     sectionTitle: "",
-    sectionIntro: "",
+    sectionIntro:
+      "Neighborhood demographics (2022 ACS) and the transit-commute proxy read differently along each alignment. The same FY26 process applies a minor reduction (and future BRT spine) to 71B while eliminating P10 — including stops like WASHINGTON BLVD AT HIGHLAND DR with no overlapping local in this build’s `route_stop_per_route` table. Scroll the steps for poverty on the land plate, grey dots sized by transit dependence, then both with FY26 route styling.",
     reducedMotionNote:
       "Reduced motion: FY26 outcomes step with optional full-region view (all routes). Scroll steps above drive poverty → transit → bivariate dot map.",
     fullEquityToggleLabel: "Show full regional map (all routes)",
     showPovertyLabel: "Poverty %",
     showTransitLabel: "Transit commute %",
-    legendPoverty:
-      "Poverty % — quartiles among 71B/P10–touched hoods only: warm beige → peach → rust → red. Off-corridor hoods stay muted. Simplified neighborhood boundaries.",
-    legendTransit:
-      "Transit commute (worker proxy) — dot size only; dots are neutral grey. Quartile cuts match touched hoods. Scroll to the next step to add poverty colors on dots.",
-    legendFull:
-      "FY26 lens + bivariate dots: color = poverty quartiles (same palette as step 1); size = transit commute proxy. 71B: minor reduction in this build; P10: eliminated (e.g. WASHINGTON BLVD AT HIGHLAND DR with no same-stop local in build data).",
-    legendRegional:
-      "Full region: same dot encoding (poverty color × transit size on the lattice). All land hoods; FY26 route styling when enabled.",
-    legendRegionalTransit:
-      "Regional view — same dot map; toggle above for all routes.",
+    legendPoverty: "Poverty % (71B/P10 hoods). Bands fill in once data loads.",
+    legendTransit: "Larger dots = higher transit commute % (all dots).",
+    legendFull: "Transit and poverty together (size + color).",
+    legendRegional: "Same legend, full region.",
+    legendRegionalTransit: "Regional map + routes toggle.",
     /** Shown in “Sources & methods” for the map; appended to rationale icon. */
     methodNoteBrt:
       "71B is named as part of the Downtown–Oakland–East End BRT spine (University Line) in PRT BRT Service Plan materials — dedicated lanes, stations, and signal priority are planned along that corridor; confirm current milestones. This build’s FY26 table codes 71B as reduced/minor (e.g. late-night span) — not eliminated.",
@@ -482,5 +478,6 @@ export const fullStoryNarrative = {
     title: "Two pressures on the same map",
     dek:
       "Dots sit on one regional lattice; simplified boundaries assign each dot to a neighborhood. Zooming in refines the lattice (more dots); the largest transit-dependence tier stays tangent at the active pitch. Color shows poverty; size shows transit dependence — both scaled to how neighborhoods compare in this dataset, not national cutoffs.",
+    showAllRoutesLabel: "Show all routes",
   },
 };

@@ -22,7 +22,18 @@
   --n10: #000000;
 
   --g1:#BFD0AA;
-  --g2:#86868a;
+  --g2:#5e9f74;
+  /* Grey ramp (semantic ink/border tokens reference g0, g3–g8) */
+  --g0: var(--n0);
+  --g3: var(--n2);
+  --g4: var(--n3);
+  --g5: var(--n4);
+  --g6: var(--n5);
+  --g8: var(--n8);
+
+  --y1:#FFE869;
+
+  --b1:#6996FF;
 
   --r1:#FFA883;
   --r2:#D85C4D;
@@ -30,7 +41,10 @@
   --r4:#9E241B;
 
 
-  
+  --accent1:var(--r2);
+  --accent2:var(--y1);
+  --accent3:var(--b1);
+  --accent4:var(--g2);
 /*MAP  COLORS
   ---------------------------------------------
   */
@@ -430,6 +444,14 @@ body {
   font: var(--font-body-sm);
   color: var(--color-text-primary);
   background: var(--color-bg-page);
+}
+
+/* Full-app content width: 80vw, capped 1200px, floored 800px, centered */
+.page-shell {
+  width: 80vw;
+  max-width: 1200px;
+  min-width: 800px;
+  margin-inline: auto;
 }
 
 body a,

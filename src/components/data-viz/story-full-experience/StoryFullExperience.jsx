@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { fullStoryNarrative } from "../../../data/narrative";
 import CorridorScrollMap from "../equity-map/CorridorScrollMap";
 import EquityMap3 from "../equity-map/EquityMap3";
@@ -13,6 +14,7 @@ const CHAPTERS = [
   { id: "persona-before", label: "Two riders", href: "#persona-before" },
   { id: "fy26-plan", label: "FY26 plan", href: "#fy26-plan" },
   { id: "corridor-map", label: "Corridor map", href: "#corridor-map" },
+  { id: "demographics-section", label: "Demographics", href: "/demographics-section" },
   { id: "pull-quote", label: "Beyond ridership", href: "#pull-quote" },
   { id: "persona-after", label: "After cuts", href: "#persona-after" },
   { id: "trip-purpose", label: "Trip purpose", href: "#trip-purpose" },
@@ -29,11 +31,17 @@ export function StoryFullExperience() {
     <div className={styles.wrap}>
       <nav className={styles.nav} aria-label="Story chapters">
         <span className={styles.navLabel}>Jump to</span>
-        {CHAPTERS.map((c) => (
-          <a key={c.id} href={c.href}>
-            {c.label}
-          </a>
-        ))}
+        {CHAPTERS.map((c) =>
+          c.href.startsWith("/") ? (
+            <Link key={c.id} href={c.href}>
+              {c.label}
+            </Link>
+          ) : (
+            <a key={c.id} href={c.href}>
+              {c.label}
+            </a>
+          ),
+        )}
       </nav>
 
       <section id="story-opening" className={styles.chapter} aria-label="Regional scale of weekday travel">
@@ -88,7 +96,11 @@ export function StoryFullExperience() {
       <hr className={styles.chapterDivider} aria-hidden />
 
       <section id="equity-dot-map" className={styles.chapter} aria-label="Poverty and transit dependence dot map">
-        <EquityMap3 title={story.equityDotMap.title} dek={story.equityDotMap.dek} />
+        <EquityMap3
+          title={story.equityDotMap.title}
+          dek={story.equityDotMap.dek}
+          showAllRoutesLabel={story.equityDotMap.showAllRoutesLabel}
+        />
       </section>
     </div>
   );

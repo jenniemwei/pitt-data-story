@@ -23,6 +23,9 @@ import {
   POVERTY_LEVEL_COLORS,
   ROUTE_ELIMINATED_LIGHT_GREY,
   ROUTE_REDUCED_DARK_GREY,
+  ROUTE_VISUAL,
+  ROUTES_AFTER_DETAILED_PAINT,
+  ROUTES_ELIMINATED_PAINT,
 } from "../mapStyles";
 import {
   circleRadiusGroundMatchExpression,
@@ -86,11 +89,37 @@ function safeFloat(v, fallback = 0) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function statusFromRow(row) {
+  if (row.route_status === "eliminated") return "eliminated";
+  if (row.route_status === "reduced") return "reduced";
+  return "no_change";
+}
+
+function reductionSubtype(row) {
+  const detail = (row.primary_reduction_detail || "").toLowerCase();
+  if (detail.includes("major frequency")) return "major_frequency_reduction";
+  if (detail.includes("11:00 p.m")) return "reduced_hours_11pm";
+  if (detail.includes("only")) return "shortened_alignment";
+  return "";
+}
+
+function routeVisualKey(status, subtype) {
+  if (status === "eliminated") return ROUTE_VISUAL.elimination;
+  if (status === "no_change") return ROUTE_VISUAL.existing;
+  if (status === "reduced") {
+    if (subtype === "major_frequency_reduction") return ROUTE_VISUAL.stop_reduction;
+    if (subtype === "reduced_hours_11pm") return ROUTE_VISUAL.hours_reduction;
+    if (subtype === "shortened_alignment") return ROUTE_VISUAL.hours_stop_reduction;
+    return ROUTE_VISUAL.stop_reduction;
+  }
+  return ROUTE_VISUAL.existing;
+}
+
 /**
  * Bivariate dot map: regional lattice, poverty color × transit-dependent size; radii in ground meters.
- * @param {{ title?: string; dek?: string }} props
+ * @param {{ title?: string; dek?: string; showAllRoutesLabel?: string }} props
  */
-export default function DotMap({ title, dek }) {
+export default function DotMap({ title, dek, showAllRoutesLabel = "Show all routes" }) {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   /** Enriched hood GeoJSON for camera bbox (full region vs P10+71B filter). */
@@ -98,8 +127,10 @@ export default function DotMap({ title, dek }) {
   const dotMapFitGenerationRef = useRef(0);
   const [hoverData, setHoverData] = useState(null);
   const [routeView, setRouteView] = useState(false);
+  const [showAllRoutes, setShowAllRoutes] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const [routesMissing, setRoutesMissing] = useState(false);
+  const [allRoutesAvailable, setAllRoutesAvailable] = useState(false);
   const [transitQuartileCuts, setTransitQuartileCuts] = useState(null);
   const token = useMemo(() => process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "", []);
 
@@ -178,6 +209,51 @@ export default function DotMap({ title, dek }) {
       const { hoodsSimplified, transitCuts } = builtPerStep[builtPerStep.length - 1];
       setTransitQuartileCuts(transitCuts);
 
+      const routeById = new Map();
+      routeStats.forEach((row) => {
+        const raw = (row.route_code || "").trim().toUpperCase();
+        const id = normalizeRouteId(raw);
+        if (!id) return;
+        const st = statusFromRow(row);
+        const sub = reductionSubtype(row);
+        const payload = {
+          route_status: st,
+          reduction_subtype: sub,
+          route_visual: routeVisualKey(st, sub),
+          route_name: row.schedule_name || row.route_label || id,
+        };
+        routeById.set(id, payload);
+        if (raw && raw !== id) routeById.set(raw, payload);
+      });
+
+      /** @type {GeoJSON.FeatureCollection | null} */
+      let routeAllGeo = null;
+      if (routeGeo?.features?.length) {
+        routeAllGeo = {
+          type: "FeatureCollection",
+          features: routeGeo.features.map((f) => {
+            const rawId = String(f.properties?.route_id || f.properties?.route_code || "")
+              .trim()
+              .toUpperCase();
+            const rid = normalizeRouteId(rawId);
+            const found = routeById.get(rid);
+            return {
+              ...f,
+              geometry: simplifyRouteGeometry(f.geometry, ROUTE_GEOMETRY_SIMPLIFY_TOLERANCE_DEG),
+              properties: {
+                ...f.properties,
+                route_id: rid,
+                route_name: found?.route_name || f.properties?.route_name || rid,
+                route_status: found?.route_status || "no_change",
+                reduction_subtype: found?.reduction_subtype || "",
+                route_visual: found?.route_visual || ROUTE_VISUAL.existing,
+              },
+            };
+          }),
+        };
+      }
+      setAllRoutesAvailable(!!routeAllGeo?.features?.length);
+
       let routeP1071bGeo = null;
       if (routeGeo?.features?.length) {
         routeP1071bGeo = {
@@ -251,6 +327,26 @@ export default function DotMap({ title, dek }) {
           if (step.maxZoom != null) layer.maxzoom = step.maxZoom;
           map.addLayer(layer);
         });
+
+        if (routeAllGeo?.features?.length) {
+          map.addSource("dot-map-routes-all", { type: "geojson", data: routeAllGeo });
+          map.addLayer({
+            id: "dot-map-routes-all-eliminated",
+            type: "line",
+            source: "dot-map-routes-all",
+            filter: ["==", ["get", "route_visual"], ROUTE_VISUAL.elimination],
+            paint: ROUTES_ELIMINATED_PAINT,
+            layout: { visibility: "none" },
+          });
+          map.addLayer({
+            id: "dot-map-routes-all-after",
+            type: "line",
+            source: "dot-map-routes-all",
+            filter: ["!=", ["get", "route_visual"], ROUTE_VISUAL.elimination],
+            paint: ROUTES_AFTER_DETAILED_PAINT,
+            layout: { visibility: "none" },
+          });
+        }
 
         if (routeP1071bGeo?.features?.length) {
           map.addSource("dot-map-routes-p10-71b", { type: "geojson", data: routeP1071bGeo });
@@ -326,6 +422,8 @@ export default function DotMap({ title, dek }) {
       cancelled = true;
       setMapReady(false);
       setRoutesMissing(false);
+      setAllRoutesAvailable(false);
+      setShowAllRoutes(false);
       setTransitQuartileCuts(null);
       hoodGeoCameraRef.current = null;
       mapRef.current?.remove();
@@ -393,6 +491,24 @@ export default function DotMap({ title, dek }) {
     }
   }, [routeView, mapReady]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map?.isStyleLoaded()) return;
+
+    const visAll = showAllRoutes ? "visible" : "none";
+    const visStory = showAllRoutes ? "none" : "visible";
+
+    if (map.getLayer("dot-map-routes-all-eliminated")) {
+      map.setLayoutProperty("dot-map-routes-all-eliminated", "visibility", visAll);
+    }
+    if (map.getLayer("dot-map-routes-all-after")) {
+      map.setLayoutProperty("dot-map-routes-all-after", "visibility", visAll);
+    }
+    if (map.getLayer("dot-map-equity-routes-p10-71b")) {
+      map.setLayoutProperty("dot-map-equity-routes-p10-71b", "visibility", visStory);
+    }
+  }, [showAllRoutes, mapReady]);
+
   const recenterMap = useCallback(() => {
     const map = mapRef.current;
     const hoodFc = hoodGeoCameraRef.current;
@@ -449,6 +565,20 @@ export default function DotMap({ title, dek }) {
             P10 + 71B corridors
           </button>
         </div>
+        <label
+          className={`${styles.toggleAllRoutes} ${!allRoutesAvailable ? styles.toggleAllRoutesDisabled : ""}`}
+          htmlFor="equity-dot-map-show-all-routes"
+        >
+          <input
+            id="equity-dot-map-show-all-routes"
+            type="checkbox"
+            className={styles.toggleAllRoutesInput}
+            checked={showAllRoutes}
+            disabled={!allRoutesAvailable}
+            onChange={(e) => setShowAllRoutes(e.target.checked)}
+          />
+          <span>{showAllRoutesLabel}</span>
+        </label>
         <button
           type="button"
           className={`${styles.controlButton} ${styles.recenterButton}`}
@@ -515,8 +645,9 @@ export default function DotMap({ title, dek }) {
           Poverty tertiles on color; transit dependence uses three dot sizes (bottom two quartiles share the smallest).
           Worker commute proxy from the profile table.{" "}
           <strong>P10 + 71B corridors</strong> limits dots to neighborhoods whose pre-FY26 route list includes P10 or
-          71B in <code>fy26_route_n_profiles_all.csv</code> (street-served list when available). Lines: P10 (lighter),
-          71B (darker) — FY26 styling hint.
+          71B in <code>fy26_route_n_profiles_all.csv</code> (street-served list when available). Default lines: P10
+          (lighter), 71B (darker). Turn on <strong>Show all routes</strong> for the full network with the same
+          eliminated / reduced / unchanged styling as the main equity map (<code>FY26_route_status_all.csv</code>).
         </p>
       </div>
 

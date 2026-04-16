@@ -77,11 +77,11 @@ export function transitSizeLegendFromCuts(cuts) {
   const [q1, q2, q3] = cuts;
   const p = (x) => `${(x * 100).toFixed(1)}%`;
   return {
-    caption: `Three size bands (worker transit-commute proxy): smallest up to ${p(q2)} (combines lowest and second quartiles); medium ${p(q2)}–${p(q3)}; largest above ${p(q3)} (tangent at grid). Reference quartiles: 25th ${p(q1)}, 50th ${p(q2)}, 75th ${p(q3)}.`,
+    caption: `Smallest ≤ ${p(q2)}; medium ${p(q2)}–${p(q3)}; largest > ${p(q3)} (ref. Q1 ${p(q1)}).`,
     entries: [
-      { b: 2, label: `High — largest: above ${p(q3)}` },
-      { b: 1, label: `Medium: above ${p(q2)} through ${p(q3)}` },
-      { b: 0, label: `Low / medium-low — smallest: up to ${p(q2)}` },
+      { b: 2, label: `largest dots — > ${p(q3)}` },
+      { b: 1, label: `medium — ${p(q2)}–${p(q3)}` },
+      { b: 0, label: `smallest dots — ≤ ${p(q2)}` },
     ],
   };
 }

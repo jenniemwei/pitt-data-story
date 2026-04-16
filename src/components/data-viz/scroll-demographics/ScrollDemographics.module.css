@@ -42,6 +42,35 @@
   color: var(--color-text-primary);
 }
 
+.routeCorridorKeys {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.35rem;
+  vertical-align: baseline;
+  margin-right: 0.15rem;
+}
+
+.routeKeyWithSwatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.routeLineSwatch {
+  width: 1.25rem;
+  height: 0.22rem;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.routeKeySep {
+  color: var(--color-text-caption-1);
+  font-weight: 400;
+}
+
 .stepBody {
   margin: 0 auto;
   max-width: 28rem;
@@ -118,18 +147,20 @@
 }
 
 .routeSegKeep {
-  stroke: #243a5e;
+  /* Match CorridorScrollMap 71B line */
+  stroke: #1d4ed8;
 }
 
 .routeSegCut {
-  stroke: #141414;
+  /* Match CorridorScrollMap P10 line */
+  stroke: #c2410c;
 }
 
 /* Route id only (e.g. 71B, 74) — no long caption */
 .routeCodeKeep {
   font-size: 10.5px;
   font-weight: 700;
-  fill: #243a5e;
+  fill: #1d4ed8;
   letter-spacing: 0.03em;
   paint-order: stroke fill;
   stroke: #faf9f6;
@@ -139,7 +170,7 @@
 .routeCodeCut {
   font-size: 10.5px;
   font-weight: 700;
-  fill: #141414;
+  fill: #c2410c;
   letter-spacing: 0.03em;
   paint-order: stroke fill;
   stroke: #faf9f6;
@@ -209,6 +240,7 @@
   line-height: 1.4;
   color: var(--color-text-caption-1);
   padding: 0 0.35rem;
+  white-space: pre-line;
 }
 
 .source {

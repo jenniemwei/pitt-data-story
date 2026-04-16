@@ -8,7 +8,7 @@
   top: max(1.5rem, env(safe-area-inset-top, 0px));
   padding-top: var(--space-5);
   width: 100%;
-  max-width: min(42rem, 100%);
+  max-width: min(52rem, 100%);
   margin-left: auto;
   margin-right: auto;
   justify-self: center;
@@ -20,6 +20,57 @@
     top: auto;
     padding-top: var(--space-3);
     max-width: 100%;
+  }
+}
+
+.mapLegendRow {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.75rem 1rem;
+  width: 100%;
+}
+
+.mapLegendMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mapLegendRow .corridorLegendAside {
+  flex: 0 0 11.5rem;
+  max-width: 13.5rem;
+  margin-top: 0;
+  padding: 0.15rem 0 0 0.25rem;
+  align-self: stretch;
+}
+
+.corridorLegendTitle {
+  margin: 0 0 0.45rem;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--color-text-body, #2a2a2a);
+}
+
+.corridorLegendBody {
+  margin: 0;
+  white-space: pre-line;
+  line-height: 1.45;
+}
+
+@media (max-width: 700px) {
+  .mapLegendRow {
+    flex-direction: column;
+  }
+
+  .mapLegendRow .corridorLegendAside {
+    flex: none;
+    max-width: none;
+    width: 100%;
+    padding: 0 0.35rem;
+    margin-top: 0.5rem;
   }
 }
 
@@ -157,5 +208,38 @@
 
 /* Step copy with • lines from narrative */
 .stepBodyBullets {
+  white-space: pre-line;
+}
+
+.routeCorridorKeys {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.35rem;
+  vertical-align: baseline;
+  margin-right: 0.15rem;
+}
+
+.routeKeyWithSwatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.routeLineSwatch {
+  width: 1.25rem;
+  height: 0.22rem;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.routeKeySep {
+  color: var(--color-text-caption-1);
+  font-weight: 400;
+}
+
+.corridorLegend {
   white-space: pre-line;
 }

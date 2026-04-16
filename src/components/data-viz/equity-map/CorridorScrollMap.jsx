@@ -58,6 +58,27 @@ const ROUTE_P10_CORAL = "#c2410c";
 const CORRIDOR_ROUTE_LINE_WIDTH = 2.5;
 const REGIONAL_ROUTE_LINE_WIDTH = 1;
 
+/**
+ * Human-readable poverty legend for the corridor choropleth (quartiles among touched hoods).
+ * @param {[number, number, number] | null | undefined} cuts Q1/Q2/Q3 upper edges on 0–1 poverty rate scale
+ * @param {string} fallback when cuts are unavailable
+ */
+function corridorPovertyLegendText(cuts, fallback) {
+  if (!cuts || cuts.length !== 3) return fallback;
+  const [q1, q2, q3] = cuts;
+  const pct = (x) => `${(x * 100).toFixed(1)}%`;
+  if (q1 === q2 && q2 === q3) {
+    return [`beige — ≈ ${pct(q1)} (collapsed quartiles)`, "off-corridor — muted"].join("\n");
+  }
+  return [
+    `beige — ≤ ${pct(q1)}`,
+    `green — ${pct(q1)}–${pct(q2)}`,
+    `orange — ${pct(q2)}–${pct(q3)}`,
+    `red — > ${pct(q3)}`,
+    "off-corridor — muted",
+  ].join("\n");
+}
+
 /** @type {typeof fullStoryNarrative.corridorMap} */
 const defaultCorridorCopy = fullStoryNarrative.corridorMap;
 
@@ -191,6 +212,7 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
   const [showFullEquityMap, setShowFullEquityMap] = useState(true);
   const [mapStyleReady, setMapStyleReady] = useState(false);
   const [transitDotLegend, setTransitDotLegend] = useState(/** @type {ReturnType<typeof transitSizeLegendFromCuts> | null} */ (null));
+  const [corridorPovertyCuts, setCorridorPovertyCuts] = useState(/** @type {[number, number, number] | null} */ (null));
   const reduceMotion = usePrefersReducedMotion();
   /** Invalidate pending `moveend` when a new fit starts (phase, toggle, or manual recenter). */
   const corridorFitGenerationRef = useRef(0);
@@ -240,6 +262,7 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
   useEffect(() => {
     if (!token || !mapContainerRef.current) return;
     setMapStyleReady(false);
+    setCorridorPovertyCuts(null);
     mapboxgl.accessToken = token;
 
     let cancelled = false;
@@ -360,6 +383,7 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
       const touchedFeat = landFeat.filter((f) => f.properties?.on_corridor === 1);
       const pCutsC = quartileUpperEdges(sortedProp(touchedFeat, "poverty_rate"));
       const tCutsC = quartileUpperEdges(sortedProp(touchedFeat, "pct_transit_dependent"));
+      if (!cancelled) setCorridorPovertyCuts(pCutsC);
 
       hoodGeo.features = hoodGeo.features.map((f) => {
         const p = safeFloat(f.properties?.poverty_rate);
@@ -704,18 +728,28 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
 
   const legendRegionalTransit = copy.legendRegionalTransit ?? copy.legendTransit;
 
+  const povertyLegendBlock = corridorPovertyLegendText(corridorPovertyCuts, copy.legendPoverty);
+
   let legendText = copy.legendFull;
   if (regionalEquityOn) {
     legendText = copy.legendRegional;
   } else if (activePhase === "poverty") {
-    legendText = copy.legendPoverty;
+    legendText = povertyLegendBlock;
   } else if (activePhase === "transit") {
     legendText = transitDotLegend
-      ? `${copy.legendTransit}\n\n${transitDotLegend.caption}`
+      ? `${copy.legendTransit}\n\n${transitDotLegend.entries.map((e) => e.label).join("\n")}`
       : copy.legendTransit;
   } else if (activePhase === "full") {
     legendText = copy.legendFull;
   }
+
+  const [legendTitle, legendDetail] = useMemo(() => {
+    if (typeof legendText !== "string" || !legendText.includes("\n\n")) {
+      return [null, legendText];
+    }
+    const idx = legendText.indexOf("\n\n");
+    return [legendText.slice(0, idx), legendText.slice(idx + 2)];
+  }, [legendText]);
 
   const sectionTitleVis = String(sectionTitle ?? "").trim();
 
@@ -738,40 +772,80 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
         >
           {sectionTitleVis || "71B and P10 on the map"}
         </h2>
-        {sectionIntro?.trim() ? <p className={sdStyles.leadBody}>{sectionIntro}</p> : null}
+        {sectionIntro?.trim() ? (
+          <p className={sdStyles.leadBody}>
+            <span className={localStyles.routeCorridorKeys} aria-label="Corridor line colors on the map">
+              <span className={localStyles.routeKeyWithSwatch}>
+                <span
+                  className={localStyles.routeLineSwatch}
+                  style={{ backgroundColor: ROUTE_71B_BLUE }}
+                  aria-hidden="true"
+                />
+                71B
+              </span>
+              <span className={localStyles.routeKeySep} aria-hidden="true">
+                ·
+              </span>
+              <span className={localStyles.routeKeyWithSwatch}>
+                <span
+                  className={localStyles.routeLineSwatch}
+                  style={{ backgroundColor: ROUTE_P10_CORAL }}
+                  aria-hidden="true"
+                />
+                P10
+              </span>
+            </span>
+            {" — "}
+            {sectionIntro}
+          </p>
+        ) : null}
       </header>
 
       <div className={`${sdStyles.shell} ${localStyles.corridorShell}`}>
         <div className={`${sdStyles.sticky} ${localStyles.corridorSticky}`}>
           <figure className={sdStyles.figure} aria-label="71B and P10 corridor map">
-            <div className={localStyles.mapWrap}>
-              <div ref={mapContainerRef} className={localStyles.mapInner} />
-              <button
-                type="button"
-                className={localStyles.mapRecenter}
-                onClick={applyCorridorHomeCamera}
-                disabled={!mapStyleReady}
-                aria-label="Recenter map on the current corridor or regional extent"
-              >
-                Recenter map
-              </button>
-            </div>
-            {activePhase === "full" ? (
-              <div className={localStyles.fullControls}>
-                <div className={localStyles.fullToggleRow}>
-                  <label className={localStyles.toggle}>
-                    <input
-                      type="checkbox"
-                      checked={showFullEquityMap}
-                      onChange={(e) => setShowFullEquityMap(e.target.checked)}
-                    />
-                    <span>{copy.fullEquityToggleLabel}</span>
-                  </label>
+            <div className={localStyles.mapLegendRow}>
+              <div className={localStyles.mapLegendMain}>
+                <div className={localStyles.mapWrap}>
+                  <div ref={mapContainerRef} className={localStyles.mapInner} />
+                  <button
+                    type="button"
+                    className={localStyles.mapRecenter}
+                    onClick={applyCorridorHomeCamera}
+                    disabled={!mapStyleReady}
+                    aria-label="Recenter map on the current corridor or regional extent"
+                  >
+                    Recenter map
+                  </button>
                 </div>
+                {activePhase === "full" ? (
+                  <div className={localStyles.fullControls}>
+                    <div className={localStyles.fullToggleRow}>
+                      <label className={localStyles.toggle}>
+                        <input
+                          type="checkbox"
+                          checked={showFullEquityMap}
+                          onChange={(e) => setShowFullEquityMap(e.target.checked)}
+                        />
+                        <span>{copy.fullEquityToggleLabel}</span>
+                      </label>
+                    </div>
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-            <div className={sdStyles.legend} role="note">
-              {legendText}
+              <div
+                className={`${sdStyles.legend} ${localStyles.corridorLegend} ${localStyles.corridorLegendAside}`}
+                role="note"
+              >
+                {legendTitle ? (
+                  <>
+                    <p className={localStyles.corridorLegendTitle}>{legendTitle}</p>
+                    <p className={localStyles.corridorLegendBody}>{legendDetail}</p>
+                  </>
+                ) : (
+                  <p className={localStyles.corridorLegendBody}>{legendText}</p>
+                )}
+              </div>
             </div>
             {reduceMotion ? (
               <p className={sdStyles.motionNote}>
@@ -782,7 +856,7 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
               <span className={sdStyles.sourceLabel}>Sources & methods</span>
               <DataRationaleIcon
                 label="Data sources for corridor map"
-                rationale={`${copy.legendPoverty}\n\n${copy.legendTransit}\n\n${copy.legendFull}\n\n${copy.legendRegional}\n\n${legendRegionalTransit}\n\n${scrollDemographicsNarrative.ui.sourceNote}${copy.methodNoteBrt?.trim() ? `\n\n${copy.methodNoteBrt.trim()}` : ""}`}
+                rationale={`${povertyLegendBlock}\n\n${copy.legendTransit}\n\n${copy.legendFull}\n\n${copy.legendRegional}\n\n${legendRegionalTransit}\n\n${scrollDemographicsNarrative.ui.sourceNote}${copy.methodNoteBrt?.trim() ? `\n\n${copy.methodNoteBrt.trim()}` : ""}`}
               />
             </div>
             {hoverData ? (
