@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { GalleryRow } from "../../layout/GalleryRow";
 import { fullStoryNarrative } from "../../../data/narrative";
+import { storyExperienceStructure } from "../../../data/structure";
 import CorridorScrollMap from "../equity-map/CorridorScrollMap";
 import EquityMap3 from "../equity-map/EquityMap3";
 import { PersonaDayCard } from "../persona-day-card/PersonaDayCard";
@@ -45,7 +47,14 @@ export function StoryFullExperience() {
       </nav>
 
       <section id="story-opening" className={styles.chapter} aria-label="Regional scale of weekday travel">
-        <StoryOpening copy={story} />
+        <GalleryRow
+          variant={storyExperienceStructure.storyOpening.variant}
+          measure={storyExperienceStructure.storyOpening.measure}
+          layoutId={storyExperienceStructure.storyOpening.id}
+          className={styles.narrativeGalleryRow}
+        >
+          <StoryOpening copy={story} />
+        </GalleryRow>
       </section>
 
       <hr className={styles.chapterDivider} aria-hidden />
@@ -57,7 +66,14 @@ export function StoryFullExperience() {
       <hr className={styles.chapterDivider} aria-hidden />
 
       <section id="fy26-plan" className={styles.chapter} aria-label="FY26 service proposal at a glance">
-        <FY26PlanStats copy={story} />
+        <GalleryRow
+          variant={storyExperienceStructure.fy26Plan.variant}
+          measure={storyExperienceStructure.fy26Plan.measure}
+          layoutId={storyExperienceStructure.fy26Plan.id}
+          className={styles.narrativeGalleryRow}
+        >
+          <FY26PlanStats copy={story} />
+        </GalleryRow>
       </section>
 
       <hr className={styles.chapterDivider} aria-hidden />
@@ -69,7 +85,14 @@ export function StoryFullExperience() {
       <hr className={styles.chapterDivider} aria-hidden />
 
       <section id="pull-quote" className={styles.chapter} aria-label="Limits of ridership data">
-        <StoryPullQuote copy={story} />
+        <GalleryRow
+          variant={storyExperienceStructure.pullQuote.variant}
+          measure={storyExperienceStructure.pullQuote.measure}
+          layoutId={storyExperienceStructure.pullQuote.id}
+          className={styles.narrativeGalleryRow}
+        >
+          <StoryPullQuote copy={story} />
+        </GalleryRow>
       </section>
 
       <hr className={styles.chapterDivider} aria-hidden />
@@ -85,22 +108,36 @@ export function StoryFullExperience() {
         className={`${styles.chapter} ${styles.tripPurposeShelf}`}
         aria-label="Trip purpose proxy"
       >
-        <TripPurposeProxy
-          instanceId="trip-purpose-full-story"
-          title={story.tripPurpose.title}
-          dek={story.tripPurpose.dek}
-          routes={story.tripPurpose.routes}
-        />
+        <GalleryRow
+          variant={storyExperienceStructure.tripPurposeChapter.variant}
+          measure={storyExperienceStructure.tripPurposeChapter.measure}
+          layoutId={storyExperienceStructure.tripPurposeChapter.id}
+          className={styles.visualGalleryRow}
+        >
+          <TripPurposeProxy
+            instanceId="trip-purpose-full-story"
+            title={story.tripPurpose.title}
+            dek={story.tripPurpose.dek}
+            routes={story.tripPurpose.routes}
+          />
+        </GalleryRow>
       </section>
 
       <hr className={styles.chapterDivider} aria-hidden />
 
       <section id="equity-dot-map" className={styles.chapter} aria-label="Poverty and transit dependence dot map">
-        <EquityMap3
-          title={story.equityDotMap.title}
-          dek={story.equityDotMap.dek}
-          showAllRoutesLabel={story.equityDotMap.showAllRoutesLabel}
-        />
+        <GalleryRow
+          variant={storyExperienceStructure.equityDotMap.variant}
+          measure={storyExperienceStructure.equityDotMap.measure}
+          layoutId={storyExperienceStructure.equityDotMap.id}
+          className={styles.visualGalleryRow}
+        >
+          <EquityMap3
+            title={story.equityDotMap.title}
+            dek={story.equityDotMap.dek}
+            showAllRoutesLabel={story.equityDotMap.showAllRoutesLabel}
+          />
+        </GalleryRow>
       </section>
     </div>
   );

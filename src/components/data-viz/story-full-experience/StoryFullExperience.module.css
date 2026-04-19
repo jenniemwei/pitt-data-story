@@ -81,6 +81,19 @@
   overflow: visible;
 }
 
+/* GalleryRow (portfoliov2-style) — narrative single column */
+.narrativeGalleryRow {
+  width: 100%;
+  max-width: min(48rem, 100%);
+  margin-inline: auto;
+}
+
+.visualGalleryRow {
+  width: 100%;
+  max-width: min(90rem, 100%);
+  margin-inline: auto;
+}
+
 .chapterKicker {
   display: block;
   margin-bottom: var(--space-2);

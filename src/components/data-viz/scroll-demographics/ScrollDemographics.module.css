@@ -81,8 +81,8 @@
 
 .shell {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(220px, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+  gap: var(--space-m, 1.25rem);
   align-items: start;
 }
 

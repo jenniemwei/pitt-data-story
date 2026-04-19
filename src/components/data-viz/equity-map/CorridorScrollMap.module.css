@@ -1,6 +1,15 @@
-/* Sticky map column is self-centered via .corridorSticky */
+/* Wider map column + fixed legend column (legend lives in right stack, not beside map). */
 .corridorShell {
   align-items: start;
+  /* Override shared `.shell` grid from ScrollDemographics — wider map, dedicated legend column. */
+  grid-template-columns: minmax(0, 1fr) minmax(13.5rem, 18rem) !important;
+  gap: 1.25rem 1.75rem;
+}
+
+@media (max-width: 900px) {
+  .corridorShell {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 .corridorSticky {
@@ -8,10 +17,10 @@
   top: max(1.5rem, env(safe-area-inset-top, 0px));
   padding-top: var(--space-5);
   width: 100%;
-  max-width: min(52rem, 100%);
-  margin-left: auto;
-  margin-right: auto;
-  justify-self: center;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  justify-self: stretch;
 }
 
 @media (max-width: 900px) {
@@ -19,31 +28,49 @@
     position: relative;
     top: auto;
     padding-top: var(--space-3);
-    max-width: 100%;
   }
 }
 
-.mapLegendRow {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 0.75rem 1rem;
+.mapColumnOnly {
   width: 100%;
+  min-width: 0;
 }
 
-.mapLegendMain {
-  flex: 1;
-  min-width: 0;
+.corridorRightColumn {
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
 }
 
-.mapLegendRow .corridorLegendAside {
-  flex: 0 0 11.5rem;
-  max-width: 13.5rem;
+.corridorLegendPanel {
   margin-top: 0;
-  padding: 0.15rem 0 0 0.25rem;
-  align-self: stretch;
+  padding: 0.25rem 0.35rem 0.5rem;
+  position: sticky;
+  top: max(5.75rem, calc(env(safe-area-inset-top, 0px) + 4.5rem));
+  z-index: 3;
+  align-self: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .corridorLegendPanel {
+    position: relative;
+    top: auto;
+    z-index: auto;
+  }
+}
+
+.corridorSteps {
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.corridorSteps .corridorStepSentinel {
+  min-height: 82vh;
+  padding: 0.35rem 0;
+  margin: 0;
 }
 
 .corridorLegendTitle {
@@ -60,20 +87,6 @@
   line-height: 1.45;
 }
 
-@media (max-width: 700px) {
-  .mapLegendRow {
-    flex-direction: column;
-  }
-
-  .mapLegendRow .corridorLegendAside {
-    flex: none;
-    max-width: none;
-    width: 100%;
-    padding: 0 0.35rem;
-    margin-top: 0.5rem;
-  }
-}
-
 .mapWrap {
   position: relative;
   width: 100%;
@@ -81,8 +94,8 @@
 
 .mapInner {
   width: 100%;
-  min-height: 400px;
-  height: min(52vh, 560px);
+  min-height: 420px;
+  height: min(58vh, 620px);
   border-radius: var(--radius-md);
   overflow: hidden;
   background: #e8e6e2;
@@ -120,7 +133,7 @@
   font: var(--font-caption-2);
   line-height: 1.45;
   color: var(--color-text-caption-1);
-  max-width: 28rem;
+  max-width: 100%;
 }
 
 .hoverReadout dl {
@@ -204,11 +217,6 @@
 .toggle input {
   margin-top: 0.2rem;
   flex-shrink: 0;
-}
-
-/* Step copy with • lines from narrative */
-.stepBodyBullets {
-  white-space: pre-line;
 }
 
 .routeCorridorKeys {

@@ -10,10 +10,10 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import sdStyles from "../scroll-demographics/ScrollDemographics.module.css";
 import localStyles from "./CorridorScrollMap.module.css";
 import {
-  CORRIDOR_OFF_CORRIDOR_MUTED,
   CORRIDOR_QUARTILE_FILLS,
   DOT_MAP_REGION_FILL,
   FLAT_BASEMAP_STYLE,
+  MAP_BASEMAP_COLOR,
   MAP_CENTER,
   MAP_INITIAL_ZOOM,
   ROUTES_AFTER_DETAILED_PAINT,
@@ -24,12 +24,14 @@ import {
 } from "./mapStyles";
 import { DataRationaleIcon } from "../../ui/DataRationaleIcon";
 import { fullStoryNarrative, scrollDemographicsNarrative } from "../../../data/narrative";
+import { storyExperienceStructure } from "../../../data/structure";
 import { normalizeRouteId } from "../../../lib/equity-map/constants";
 import {
   ROUTE_GEOMETRY_SIMPLIFY_TOLERANCE_DEG,
   simplifyRouteGeometry,
 } from "../../../lib/equity-map/simplifyRouteGeometry";
 import { hoodNamesTouchingRoutes } from "../../../lib/equity-map/corridorRouteSegments";
+import { clipCorridorPersonaRoute } from "../../../lib/equity-map/clipCorridorPersonaRoute";
 import { dataAssetUrl } from "../../../lib/dataAssetUrl";
 import {
   binFromCuts,
@@ -68,14 +70,14 @@ function corridorPovertyLegendText(cuts, fallback) {
   const [q1, q2, q3] = cuts;
   const pct = (x) => `${(x * 100).toFixed(1)}%`;
   if (q1 === q2 && q2 === q3) {
-    return [`beige — ≈ ${pct(q1)} (collapsed quartiles)`, "off-corridor — muted"].join("\n");
+    return [`beige — ≈ ${pct(q1)} (collapsed quartiles)`, "outside 71B/P10 — map background"].join("\n");
   }
   return [
     `beige — ≤ ${pct(q1)}`,
     `green — ${pct(q1)}–${pct(q2)}`,
     `orange — ${pct(q2)}–${pct(q3)}`,
     `red — > ${pct(q3)}`,
-    "off-corridor — muted",
+    "outside 71B/P10 — map background",
   ].join("\n");
 }
 
@@ -133,10 +135,10 @@ function usePrefersReducedMotion() {
 function fillExprCorridorPoverty() {
   return /** @type {const} */ ([
     "case",
-    ["==", ["get", "on_corridor"], 0],
-    CORRIDOR_OFF_CORRIDOR_MUTED,
     ["==", ["get", "is_water"], 1],
     WATER_FILL,
+    ["==", ["get", "on_corridor"], 0],
+    MAP_BASEMAP_COLOR,
     [
       "match",
       ["get", "poverty_bin_c"],
@@ -158,16 +160,18 @@ function hoodFillNeutralLand() {
     "case",
     ["==", ["get", "is_water"], 1],
     WATER_FILL,
+    ["==", ["get", "on_corridor"], 0],
+    MAP_BASEMAP_COLOR,
     DOT_MAP_REGION_FILL,
   ]);
 }
 
 const fillOpacityCorridor = /** @type {const} */ ([
   "case",
-  ["==", ["get", "on_corridor"], 0],
-  0.22,
   ["==", ["get", "is_water"], 1],
   0.88,
+  ["==", ["get", "on_corridor"], 0],
+  1,
   1,
 ]);
 
@@ -206,6 +210,7 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
   const mapRef = useRef(null);
   const scrollStepRef = useRef(0);
   const hoodGeoRef = useRef(/** @type {GeoJSON.FeatureCollection | null} */ (null));
+  const corridorStoryRoutesRef = useRef(/** @type {GeoJSON.FeatureCollection | null} */ (null));
   const [hoverData, setHoverData] = useState(null);
   const [routesFileMissing, setRoutesFileMissing] = useState(false);
   const [scrollStep, setScrollStep] = useState(() => Math.max(0, copy.steps.length - 1));
@@ -319,7 +324,8 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
         return;
       }
 
-      const storyFeatures = routeGeo.features
+      /** Full simplified 71B/P10 geometry for corridor intersection (`on_corridor`). */
+      const storyFeaturesFull = routeGeo.features
         .map((f) => {
           const rawId = String(f.properties?.route_id || f.properties?.route_code || "")
             .trim()
@@ -339,12 +345,18 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
         })
         .filter(Boolean);
 
-      if (!storyFeatures.length) {
+      if (!storyFeaturesFull.length) {
         setRoutesFileMissing(true);
         return;
       }
 
-      const touchedHoods = hoodNamesTouchingRoutes(storyFeatures, hoodGeo);
+      const touchedHoods = hoodNamesTouchingRoutes(storyFeaturesFull, hoodGeo);
+
+      /** Persona boarding → alight segment only (map + fitBounds); choropleth uses full lines above. */
+      const storyFeaturesDisplay = storyFeaturesFull.map((f) => ({
+        ...f,
+        geometry: clipCorridorPersonaRoute(f.geometry, f.properties.route_id, hoodGeo),
+      }));
 
       hoodGeo.features = hoodGeo.features.map((f) => {
         const hood = f.properties?.hood || "";
@@ -427,6 +439,7 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
       });
 
       hoodGeoRef.current = hoodGeo;
+      corridorStoryRoutesRef.current = { type: "FeatureCollection", features: storyFeaturesDisplay };
 
       const dotStacks = DOT_MAP_RESOLUTION_STEPS.map((step) =>
         buildCorridorScrollDotsGeojson(hoodGeo, { cellKm: step.cellKm }),
@@ -489,8 +502,8 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
           filter: ["!=", ["to-number", ["get", "is_water"]], 1],
           paint: {
             "line-color": "#c4c2be",
-            "line-width": 0.7,
-            "line-opacity": 0.9,
+            "line-width": ["case", ["==", ["get", "on_corridor"], 1], 0.7, 0],
+            "line-opacity": ["case", ["==", ["get", "on_corridor"], 1], 0.9, 0],
           },
         });
 
@@ -529,7 +542,7 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
 
         map.addSource("corridor-routes", {
           type: "geojson",
-          data: { type: "FeatureCollection", features: storyFeatures },
+          data: { type: "FeatureCollection", features: storyFeaturesDisplay },
         });
         map.addLayer({
           id: "corridor-routes",
@@ -612,6 +625,7 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
 
     return () => {
       cancelled = true;
+      corridorStoryRoutesRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
     };
@@ -686,14 +700,23 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
     /** @type {number[] | null} */
     let b = null;
     try {
-      /*
-       * Frame to land neighborhood polygons only (same extent as the grey plate: off-corridor muted +
-       * neutral `DOT_MAP_REGION_FILL` land), not route lines or a corridor-only subset.
-       */
       const landHoods =
         hoodGeo?.features?.filter((f) => Number(f.properties?.is_water) !== 1) ?? [];
-      if (landHoods.length) {
-        b = turf.bbox({ type: "FeatureCollection", features: landHoods });
+      if (regional) {
+        /* Regional: all land hoods (grey plate extent). */
+        if (landHoods.length) {
+          b = turf.bbox({ type: "FeatureCollection", features: landHoods });
+        }
+      } else {
+        /* Corridor default: 71B/P10 lines + neighborhoods that intersect those routes. */
+        const touched = landHoods.filter((f) => Number(f.properties?.on_corridor) === 1);
+        const routeFeats = corridorStoryRoutesRef.current?.features ?? [];
+        const forBounds = [...touched, ...routeFeats];
+        if (forBounds.length) {
+          b = turf.bbox({ type: "FeatureCollection", features: forBounds });
+        } else if (landHoods.length) {
+          b = turf.bbox({ type: "FeatureCollection", features: landHoods });
+        }
       }
       if (b?.every(Number.isFinite)) {
         const duration = reduceMotion ? 0 : 480;
@@ -705,9 +728,9 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
           {
             padding: regional
               ? { top: 40, bottom: 44, left: 40, right: 40 }
-              : { top: 24, bottom: 28, left: 20, right: 20 },
+              : { top: 28, bottom: 32, left: 24, right: 24 },
             duration,
-            maxZoom: regional ? 10.9 : 12.65,
+            maxZoom: regional ? 10.9 : 13.1,
           },
         );
         map.once("moveend", syncIfCurrent);
@@ -801,51 +824,42 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
         ) : null}
       </header>
 
-      <div className={`${sdStyles.shell} ${localStyles.corridorShell}`}>
-        <div className={`${sdStyles.sticky} ${localStyles.corridorSticky}`}>
+      <div
+        className={`${sdStyles.shell} ${localStyles.corridorShell}`}
+        data-layout-id={storyExperienceStructure.corridorMapShell.id}
+      >
+        <div
+          className={`${sdStyles.sticky} ${localStyles.corridorSticky}`}
+          data-layout-id={storyExperienceStructure.corridorMapVis1.id}
+        >
           <figure className={sdStyles.figure} aria-label="71B and P10 corridor map">
-            <div className={localStyles.mapLegendRow}>
-              <div className={localStyles.mapLegendMain}>
-                <div className={localStyles.mapWrap}>
-                  <div ref={mapContainerRef} className={localStyles.mapInner} />
-                  <button
-                    type="button"
-                    className={localStyles.mapRecenter}
-                    onClick={applyCorridorHomeCamera}
-                    disabled={!mapStyleReady}
-                    aria-label="Recenter map on the current corridor or regional extent"
-                  >
-                    Recenter map
-                  </button>
-                </div>
-                {activePhase === "full" ? (
-                  <div className={localStyles.fullControls}>
-                    <div className={localStyles.fullToggleRow}>
-                      <label className={localStyles.toggle}>
-                        <input
-                          type="checkbox"
-                          checked={showFullEquityMap}
-                          onChange={(e) => setShowFullEquityMap(e.target.checked)}
-                        />
-                        <span>{copy.fullEquityToggleLabel}</span>
-                      </label>
-                    </div>
+            <div className={localStyles.mapColumnOnly}>
+              <div className={localStyles.mapWrap}>
+                <div ref={mapContainerRef} className={localStyles.mapInner} />
+                <button
+                  type="button"
+                  className={localStyles.mapRecenter}
+                  onClick={applyCorridorHomeCamera}
+                  disabled={!mapStyleReady}
+                  aria-label="Recenter map on the current corridor or regional extent"
+                >
+                  Recenter map
+                </button>
+              </div>
+              {activePhase === "full" ? (
+                <div className={localStyles.fullControls}>
+                  <div className={localStyles.fullToggleRow}>
+                    <label className={localStyles.toggle}>
+                      <input
+                        type="checkbox"
+                        checked={showFullEquityMap}
+                        onChange={(e) => setShowFullEquityMap(e.target.checked)}
+                      />
+                      <span>{copy.fullEquityToggleLabel}</span>
+                    </label>
                   </div>
-                ) : null}
-              </div>
-              <div
-                className={`${sdStyles.legend} ${localStyles.corridorLegend} ${localStyles.corridorLegendAside}`}
-                role="note"
-              >
-                {legendTitle ? (
-                  <>
-                    <p className={localStyles.corridorLegendTitle}>{legendTitle}</p>
-                    <p className={localStyles.corridorLegendBody}>{legendDetail}</p>
-                  </>
-                ) : (
-                  <p className={localStyles.corridorLegendBody}>{legendText}</p>
-                )}
-              </div>
+                </div>
+              ) : null}
             </div>
             {reduceMotion ? (
               <p className={sdStyles.motionNote}>
@@ -872,7 +886,7 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
                         : "Other area"
                       : hoverData.onCorridor
                         ? "On 71B / P10"
-                        : "Off corridor (muted)"}
+                        : "Outside 71B/P10 (map background)"}
                   </dd>
                   <dt>Poverty</dt>
                   <dd>{(hoverData.povertyRate * 100).toFixed(1)}%</dd>
@@ -890,25 +904,41 @@ export default function CorridorScrollMap({ copy = defaultCorridorCopy }) {
           </figure>
         </div>
 
-        <div className={sdStyles.steps}>
-          {steps.map((s, i) => (
-            <article
-              key={s.id}
-              ref={(el) => {
-                stepRefs.current[i] = el;
-              }}
-              data-step-index={i}
-              className={`${sdStyles.step} ${!reduceMotion && effectiveStep === i ? sdStyles.stepActive : ""}`}
-            >
-              <div className={sdStyles.stepIndex}>
-                {i + 1} / {steps.length}
-              </div>
-              <h3 className={sdStyles.stepTitle}>{s.title}</h3>
-              {s.body?.trim() ? (
-                <p className={`${sdStyles.stepBody} ${localStyles.stepBodyBullets}`}>{s.body}</p>
-              ) : null}
-            </article>
-          ))}
+        <div
+          className={localStyles.corridorRightColumn}
+          data-layout-id={storyExperienceStructure.corridorMapRight1.id}
+        >
+          <div
+            className={`${sdStyles.legend} ${localStyles.corridorLegend} ${localStyles.corridorLegendPanel}`}
+            role="note"
+            aria-live="polite"
+          >
+            {legendTitle ? (
+              <>
+                <p className={localStyles.corridorLegendTitle}>{legendTitle}</p>
+                <p className={localStyles.corridorLegendBody}>{legendDetail}</p>
+              </>
+            ) : (
+              <p className={localStyles.corridorLegendBody}>{legendText}</p>
+            )}
+          </div>
+          <div className={`${sdStyles.steps} ${localStyles.corridorSteps}`}>
+            {steps.map((s, i) => (
+              <article
+                key={s.id}
+                ref={(el) => {
+                  stepRefs.current[i] = el;
+                }}
+                data-step-index={i}
+                className={`${sdStyles.step} ${localStyles.corridorStepSentinel} ${!reduceMotion && effectiveStep === i ? sdStyles.stepActive : ""}`}
+                aria-label={`${s.title}: scroll zone ${i + 1} of ${steps.length}`}
+              >
+                <span className="sr-only">
+                  {i + 1} / {steps.length} — {s.title}
+                </span>
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>

@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { scrollDemographicsNarrative as defaultNarrative } from "../../../data/narrative";
+import { scrollDemographicsStructure } from "../../../data/structure";
 import { DataRationaleIcon } from "../../ui/DataRationaleIcon";
 import styles from "./ScrollDemographics.module.css";
 
@@ -176,7 +177,7 @@ export function ScrollDemographics({ narrative = defaultNarrative }) {
         </p>
       </header>
 
-      <div className={styles.shell}>
+      <div className={styles.shell} data-layout-id={scrollDemographicsStructure.shell.id}>
         <div className={styles.sticky}>
           <figure className={styles.figure} aria-label={ui.stickyAriaLabel}>
             <svg className={styles.svg} viewBox="0 0 400 360" role="img">

@@ -1,0 +1,118 @@
+/*
+ * GalleryRow — shared grid (portfoliov2 GalleryRow pattern).
+ * `measure="gallery"` adds a strip aspect-ratio; `measure="content"` is height from children.
+ */
+
+.row {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  column-gap: var(--space-m);
+  row-gap: var(--space-m);
+  aspect-ratio: 10 / 3.5;
+}
+
+.rowContent {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  column-gap: var(--space-m);
+  row-gap: var(--space-m);
+}
+
+.row6040 {
+  grid-template-columns: 6fr 4fr;
+}
+
+.row4060 {
+  grid-template-columns: 4fr 6fr;
+}
+
+.row5050 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.row100 {
+  grid-template-columns: 1fr;
+}
+
+.row7030 {
+  grid-template-columns: 7fr 3fr;
+}
+
+.row3070 {
+  grid-template-columns: 3fr 7fr;
+}
+
+.row7525 {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+}
+
+.row2575 {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+}
+
+.rowFitFill,
+.rowFillFit {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.rowFitFill {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.rowFillFit {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.cell {
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+}
+
+.cellFit {
+  height: 100%;
+  aspect-ratio: 16 / 9;
+  align-self: start;
+  width: auto;
+  justify-self: start;
+}
+
+.cellFill {
+  height: 100%;
+  width: 100%;
+}
+
+@media (max-width: 64rem) {
+  .row {
+    aspect-ratio: 12 / 6;
+  }
+}
+
+@media (max-width: 48rem) {
+  .row,
+  .rowContent {
+    grid-template-columns: 1fr;
+  }
+
+  .row {
+    aspect-ratio: unset;
+  }
+
+  .cellAspectMobile {
+    aspect-ratio: 12 / 8;
+    height: auto;
+  }
+
+  .cellFit,
+  .cellFill {
+    aspect-ratio: 16 / 9;
+    height: auto;
+  }
+
+  .cellFit {
+    width: 100%;
+    justify-self: stretch;
+  }
+}

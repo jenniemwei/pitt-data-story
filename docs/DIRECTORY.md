@@ -29,7 +29,7 @@ Future **API** handlers belong at **`app/api/.../route.js`** (not under `src/`).
 |------|------|
 | **`src/components/`** | React components. Feature areas are grouped (e.g. `data-viz/`, `motion/`, `ui/`). |
 | **`src/lib/`** | Pure helpers, hooks, and domain logic (equity-map builders, scroll helpers, URLs). |
-| **`src/data/`** | Story copy and narrative payloads (e.g. `narrative.js`) consumed by visualizations. |
+| **`src/data/`** | Story assembly (`narrative.js`) and viz copy modules under **`src/data/copy/`** (corridor map, trip purpose, persona journeys). |
 | **`src/styles/`** | Optional **non-module** CSS shared across routes (add files here if you outgrow `app/globals.css`). Component styles stay as `*.module.css` next to their components unless they are truly global. |
 
 ## Vite (optional)
@@ -38,5 +38,5 @@ Future **API** handlers belong at **`app/api/.../route.js`** (not under `src/`).
 
 ## Related docs
 
-- Personas and copy source: [PERSONAS.md](./PERSONAS.md) (`src/data/narrative.js`).
+- Personas and copy source: [PERSONAS.md](./PERSONAS.md) (`narrative.js` + `src/data/copy/*.js`).
 - Dataset caveats: [DATASET_LIMITATIONS.md](./DATASET_LIMITATIONS.md).

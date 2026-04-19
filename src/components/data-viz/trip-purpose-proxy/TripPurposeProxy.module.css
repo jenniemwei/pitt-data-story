@@ -257,6 +257,10 @@
   overflow: visible;
 }
 
+.chartLegendGallery {
+  width: 100%;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Category legend — horizontal row above routes                              */
 /* -------------------------------------------------------------------------- */
@@ -332,22 +336,22 @@
   width: 100%;
 }
 
-.routeRow {
-  display: grid;
-  grid-template-columns: minmax(11.5rem, min(32%, 22rem)) minmax(0, 1fr);
-  gap: 0.65rem 1.5rem;
-  align-items: end;
+.routeRowOuter {
   width: 100%;
   margin: 0;
   padding: 0;
   border: none;
 }
 
+.routeRowGallery {
+  width: 100%;
+  align-items: end;
+}
+
 .routeLabelCol {
   margin: 0;
   padding: 0 0 0.15rem;
   text-align: left;
-  justify-self: start;
   align-self: end;
   min-width: 0;
 }
@@ -472,11 +476,6 @@
 }
 
 @media (max-width: 640px) {
-  .routeRow {
-    grid-template-columns: 1fr;
-    gap: 0.45rem;
-  }
-
   .routeLabelCol {
     align-self: start;
   }

@@ -191,6 +191,7 @@ export const ROUTES_AFTER_SIMPLE_PAINT = {
 // Basemap & camera defaults
 // =============================================================================
 
+/** Flat map + “invisible” off-story hood fill — keep aligned with `app/globals.css` `--color-bg-page` / `--bg-default`. */
 export const MAP_BASEMAP_COLOR = "#f7f7f7";
 
 /** Landmass under the dot map — neighborhoods, excluding water-only features. */

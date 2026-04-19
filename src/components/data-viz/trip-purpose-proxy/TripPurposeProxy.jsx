@@ -7,6 +7,8 @@
  * - Interaction: hover/focus on a category column updates aside + optional floating tooltip.
  */
 import { useCallback, useState } from "react";
+import { GalleryRow } from "../../layout/GalleryRow";
+import { tripPurposeStructure } from "../../../data/structure";
 import styles from "./TripPurposeProxy.module.css";
 
 /** @typedef {'office_professional' | 'healthcare' | 'education' | 'retail_food' | 'other'} TripPurposeDisplayKey */
@@ -336,17 +338,24 @@ export function TripPurposeProxy({
         ) : null}
 
         <div className={styles.chartWell}>
-          <ul className={styles.legend} aria-label="Industry categories">
-            {DOT_DEFS.map((def) => (
-              <li key={def.key} className={styles.legendItem}>
-                <span className={`${styles.swatch} ${def.swatchClass}`} aria-hidden />
-                <span className={styles.legendCopy}>
-                  <span className={styles.legendName}>{def.label.toLowerCase()}</span>{" "}
-                  <span className={`type-data-mono text-ink-disclaimer`}>({def.tokenLabel})</span>
-                </span>
-              </li>
-            ))}
-          </ul>
+          <GalleryRow
+            variant={tripPurposeStructure.legendRow.variant}
+            measure={tripPurposeStructure.legendRow.measure}
+            layoutId={tripPurposeStructure.legendRow.id}
+            className={styles.chartLegendGallery}
+          >
+            <ul className={styles.legend} aria-label="Industry categories">
+              {DOT_DEFS.map((def) => (
+                <li key={def.key} className={styles.legendItem}>
+                  <span className={`${styles.swatch} ${def.swatchClass}`} aria-hidden />
+                  <span className={styles.legendCopy}>
+                    <span className={styles.legendName}>{def.label.toLowerCase()}</span>{" "}
+                    <span className={`type-data-mono text-ink-disclaimer`}>({def.tokenLabel})</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </GalleryRow>
 
           <div className={styles.routeRows}>
             {routes.map((route) => {
@@ -359,27 +368,34 @@ export function TripPurposeProxy({
               const framing = riderCaption(route);
 
               return (
-                <figure key={route.id} className={styles.routeRow}>
-                  <figcaption className={styles.routeLabelCol}>
-                    <span className={styles.routeLineName}>
-                      <span
-                        className={`${styles.columnBadge} ${
-                          route.kind === "dependent" ? styles.badgeDependent : styles.badgeChoice
-                        }`}
-                        aria-hidden
-                      >
-                        {route.kind === "dependent" ? "N" : "C"}
-                      </span>
-                      <span className={styles.routeLineTitle}>{routeTitle}</span>
-                    </span>
-                    {framing ? <span className={styles.routeLineSubtitle}>{framing}</span> : null}
-                  </figcaption>
-
-                  <div
-                    className={styles.dotRow}
-                    role="group"
-                    aria-label={`${routeTitle}: employment mix, ${total} workers in model data`}
+                <div
+                  key={route.id}
+                  className={styles.routeRowOuter}
+                  role="group"
+                  aria-label={`${routeTitle}: employment mix, ${total} workers in model data`}
+                >
+                  <GalleryRow
+                    variant={tripPurposeStructure.routeVisRow.variant}
+                    measure={tripPurposeStructure.routeVisRow.measure}
+                    layoutId={tripPurposeStructure.routeVisRow.id}
+                    className={styles.routeRowGallery}
                   >
+                    <div className={styles.routeLabelCol}>
+                      <span className={styles.routeLineName}>
+                        <span
+                          className={`${styles.columnBadge} ${
+                            route.kind === "dependent" ? styles.badgeDependent : styles.badgeChoice
+                          }`}
+                          aria-hidden
+                        >
+                          {route.kind === "dependent" ? "N" : "C"}
+                        </span>
+                        <span className={styles.routeLineTitle}>{routeTitle}</span>
+                      </span>
+                      {framing ? <span className={styles.routeLineSubtitle}>{framing}</span> : null}
+                    </div>
+
+                    <div className={styles.dotRow}>
                     {DOT_DEFS.map((def) => {
                       const countActual = Number(displayMix[def.key]) || 0;
                       const pct = total > 0 ? (100 * countActual) / total : 0;
@@ -433,8 +449,9 @@ export function TripPurposeProxy({
                         </div>
                       );
                     })}
-                  </div>
-                </figure>
+                    </div>
+                  </GalleryRow>
+                </div>
               );
             })}
           </div>

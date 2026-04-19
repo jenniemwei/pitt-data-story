@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { ScrollDemographics } from "../../src/components/data-viz";
+import { GalleryRow } from "../../src/components/layout/GalleryRow";
+import { demographicsPageStructure } from "../../src/data/structure";
 
 export const metadata = {
   title: "Demographics scroll · PRT FY26 cuts",
@@ -9,12 +11,26 @@ export const metadata = {
 export default function DemographicsSectionPage() {
   return (
     <main className="pt-6 px-4 pb-20">
-      <div className="max-w-3xl mx-auto mb-8">
-        <Link href="/" className="type-link-back text-ink-default underline-offset-4 hover:underline">
-          ← Back to full story
-        </Link>
-      </div>
-      <ScrollDemographics />
+      <GalleryRow
+        variant={demographicsPageStructure.navRow.variant}
+        measure={demographicsPageStructure.navRow.measure}
+        layoutId={demographicsPageStructure.navRow.id}
+        className="max-w-3xl mx-auto w-full mb-8"
+      >
+        <div>
+          <Link href="/" className="type-link-back text-ink-default underline-offset-4 hover:underline">
+            ← Back to full story
+          </Link>
+        </div>
+      </GalleryRow>
+      <GalleryRow
+        variant={demographicsPageStructure.bodyRow.variant}
+        measure={demographicsPageStructure.bodyRow.measure}
+        layoutId={demographicsPageStructure.bodyRow.id}
+        className="w-full max-w-[72rem] mx-auto"
+      >
+        <ScrollDemographics />
+      </GalleryRow>
     </main>
   );
 }
