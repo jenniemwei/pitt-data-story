@@ -1,0 +1,96 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100dvh;
+  background: var(--color-bg-light, #fff);
+  z-index: 2;
+}
+
+.sidebarInner {
+  box-sizing: border-box;
+  flex: 1;
+  min-height: 0;
+  padding: var(--spacing-p-lg, 48px);
+  margin-top: auto;
+  margin-bottom: auto;
+  max-height: 100dvh;
+  overflow-y: auto;
+}
+
+.sidebarTop {
+  margin-bottom: 1rem;
+}
+
+.hoodTitle,
+.hoodTitleMuted {
+  margin: 0;
+  line-height: 1.2;
+}
+
+.populationMeta {
+  margin: 0.35rem 0 0;
+  line-height: 1.35;
+}
+
+.demoBlock {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--color-border-medium, #aeaaa5);
+}
+
+.missingProfile {
+  margin: 0 0 1rem;
+  line-height: 1.45;
+}
+
+.routesBlock {
+  margin-top: 0.25rem;
+}
+
+.routesLead {
+  margin: 0 0 0.65rem;
+}
+
+.coveragePill {
+  display: inline-block;
+  margin-left: 0.25rem;
+}
+
+.routeCols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1rem;
+}
+
+.routeHeading {
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.routeList {
+  margin: 0;
+  word-break: break-word;
+}
+
+.routeNameReduced {
+  color: var(--color-subtle, #86868a);
+}
+
+.sidebarEmpty {
+  margin: 0;
+  line-height: 1.5;
+}
+
+@media (max-width: 880px) {
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-medium, #aeaaa5);
+    max-height: 42dvh;
+  }
+
+  .sidebarInner {
+    max-height: 42dvh;
+  }
+}

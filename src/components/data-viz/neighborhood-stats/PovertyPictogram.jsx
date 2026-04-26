@@ -2,8 +2,9 @@
 
 import styles from "./PovertyPictogram.module.css";
 
-const DOTS = 50;
-const COLS = 10;
+const DOTS = 100;
+const COLS = 20;
+const ROWS = DOTS / COLS;
 
 function clamp01(x) {
   const n = Number(x);
@@ -32,8 +33,35 @@ function allocateCounts(total, weights) {
 }
 
 /**
- * 50-dot grid: $100k+ households (green), other not in poverty (gray),
- * below poverty line / not deep (orange), deep poverty &lt;50% threshold (red).
+ * Rightmost `count` cells in column-major order: each column top→bottom, columns right→left.
+ * Index is row-major linear index (row * COLS + col).
+ */
+function rightColumnMajorIndices(cols, rows, count) {
+  const out = [];
+  for (let c = cols - 1; c >= 0 && out.length < count; c -= 1) {
+    for (let r = 0; r < rows && out.length < count; r += 1) {
+      out.push(r * cols + c);
+    }
+  }
+  return out;
+}
+
+/** Sort linear indices column-major from the left: col 0 top→bottom, then col 1, … */
+function leftColumnMajorSort(indices, cols) {
+  return [...indices].sort((a, b) => {
+    const ca = a % cols;
+    const cb = b % cols;
+    if (ca !== cb) return ca - cb;
+    const ra = Math.floor(a / cols);
+    const rb = Math.floor(b / cols);
+    return ra - rb;
+  });
+}
+
+/**
+ * 50-dot grid: $100k+ (green) and other not-in-poverty bands use column-major from the left
+ * (same fill pattern: columns, then rows). Poverty / deep poverty use column-major from the right.
+ * Add future income bands to `leftBands` in paint order (left CM among non-poverty cells).
  */
 export default function PovertyPictogram({
   belowPovertyLineShare = 0,
@@ -50,26 +78,39 @@ export default function PovertyPictogram({
 
   const [nGreen, nGray, nOrange, nRed] = allocateCounts(DOTS, [high, middle, povertyOnly, deep]);
 
-  const dots = [];
-  let i = 0;
-  for (let k = 0; k < nGreen; k += 1) {
-    dots.push({ i: i + 1, tone: "high" });
-    i += 1;
+  const povertyBlock = nOrange + nRed;
+  const rightOrder = rightColumnMajorIndices(COLS, ROWS, povertyBlock);
+  const deepIdx = rightOrder.slice(0, nRed);
+  const povertyIdx = rightOrder.slice(nRed, nRed + nOrange);
+  const povertySet = new Set([...deepIdx, ...povertyIdx]);
+
+  const remaining = [];
+  for (let idx = 0; idx < DOTS; idx += 1) {
+    if (!povertySet.has(idx)) remaining.push(idx);
   }
-  for (let k = 0; k < nGray; k += 1) {
-    dots.push({ i: i + 1, tone: "mid" });
-    i += 1;
+
+  /** Order for all “left block” income tones (extend when new shares are added). */
+  const leftBands = [
+    { count: nGreen, tone: "high" },
+    { count: nGray, tone: "mid" },
+  ];
+
+  const remainingLeftCm = leftColumnMajorSort(remaining, COLS);
+
+  /** @type {("high"|"mid"|"poverty"|"deep"|string)[]} */
+  const tones = Array(DOTS).fill("mid");
+  let leftOffset = 0;
+  for (const band of leftBands) {
+    for (let k = 0; k < band.count; k += 1) {
+      tones[remainingLeftCm[leftOffset + k]] = band.tone;
+    }
+    leftOffset += band.count;
   }
-  for (let k = 0; k < nOrange; k += 1) {
-    dots.push({ i: i + 1, tone: "poverty" });
-    i += 1;
+  for (const idx of povertyIdx) {
+    tones[idx] = "poverty";
   }
-  for (let k = 0; k < nRed; k += 1) {
-    dots.push({ i: i + 1, tone: "deep" });
-    i += 1;
-  }
-  while (dots.length < DOTS) {
-    dots.push({ i: dots.length + 1, tone: "mid" });
+  for (const idx of deepIdx) {
+    tones[idx] = "deep";
   }
 
   const pct = Math.round(below * 100);
@@ -89,12 +130,13 @@ export default function PovertyPictogram({
         role="img"
         aria-label={`Pictogram of about ${DOTS} times ${peoplePerDot} people by income and poverty status`}
       >
-        {dots.map((d) => (
-          <span key={d.i} className={styles.cell} data-tone={d.tone} />
+        {tones.map((tone, idx) => (
+          <span key={idx} className={styles.cell} data-tone={tone} />
         ))}
       </div>
       <div className={styles.axisRow}>
         <span className={styles.axisHigh}>$100k+</span>
+        <span className={styles.axisMid}>other incomes</span>
         <span className={styles.axisPov}>poverty</span>
         <span className={styles.axisDeep}>deep poverty</span>
       </div>

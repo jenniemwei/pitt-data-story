@@ -29,7 +29,7 @@ Future **API** handlers belong at **`app/api/.../route.js`** (not under `src/`).
 |------|------|
 | **`src/components/`** | React components. Feature areas are grouped (e.g. `data-viz/`, `layout/`, `ui/`). |
 | **`src/lib/`** | Pure helpers, hooks, and domain logic (equity-map builders, scroll helpers, URLs). |
-| **`src/data/`** | Shared layout metadata (e.g. `structure.js` for `GalleryRow` ids). Scroll demographics default copy lives next to **`ScrollDemographics`** (`scrollDemographicsNarrative.js`). |
+| **`src/data/`** | Shared layout metadata (e.g. `structure.js` for `data-layout-id` on demographics pages). Scroll demographics default copy lives next to **`ScrollDemographics`** (`scrollDemographicsNarrative.js`). |
 | **`src/styles/`** | Optional **non-module** CSS shared across routes (add files here if you outgrow `app/globals.css`). Component styles stay as `*.module.css` next to their components unless they are truly global. |
 
 ## Related docs

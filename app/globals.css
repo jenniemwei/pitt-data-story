@@ -1,13 +1,4 @@
 @import "tailwindcss";
-
-@font-face {
-  font-family: Literata;
-  src: url("/Literata_18pt-Regular.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* =============================================================================
    Design system primitives — tokens only; compose with @utility / Tailwind.
    Spacing scale uses --p-* (px) to avoid clashing with legacy --space-* module vars.
@@ -20,9 +11,6 @@
   --n1: #F2EEE9;
   --n2: #D1CDC8;
   --n3: #AEAAA5;
-  --placeholder: #ffacac;
-
-
   --n4: #86868a;
   --n5: #363636;
   --n6: #1c1c1c;
@@ -30,166 +18,37 @@
   --n10: #000000;
 
   --g1: #BFD0AA;
-  --g2: var(--n2);
-  /* Grey ramp (semantic ink/border tokens reference g0, g3–g8) */
-  --g0: var(--n0);
-  --g3: var(--n2);
-  --g4: var(--n3);
-  --g5: var(--n4);
-  --g6: var(--n5);
-  --g8: var(--n8);
+  /* Text / surface grays (used by @theme semantic text + legacy map helpers) */
+  --g0: #f7f7f7;
+  --g4: #86868a;
+  --g6: #363636;
+  --g8: #121212;
 
-  --y1: #FFE869;
+  --w1: #c5b491;
+  --w2: #b6a48e;
 
-  --b1: #6996FF;
+  /* coverage ramp */
+
+  --b1: #D6FFFF;
+  --b2: #B8EDEC;
+  --b3: #ABE0DF;
+  --b4: #98CDCB;
+  --b5: #88BDBB;
+  --b6: #76AAA8;
+  --b7: #4C7F7E;
+  --b8: #326564;
+  --b9: #0F4646;
+  --b10: #00090A;
 
   --r1: #FFA883;
   --r2: #D85C4D;
   --r3: #B94033;
   --r4: #9E241B;
 
-  --accent-main: rgba(0, 45, 50, 1);
-  --accent1: var(--r2);
-  --accent2: var(--y1);
-  --accent3: var(--b1);
-  --accent4: var(--g2);
-  /* map styles
-  ---------------------------------------------
-  */
-  /* map fills */
-  --color-map-bg: var(--white);
-  --color-map-inactive: var(--g1);
-  --color-map-l0: var(--g1);
-  --color-map-l2: var(--r1);
-  --color-map-l3: var(--r2);
-
-  /* map borders */
-  --color-map-border-neutral: #E0E0E0;
-  --color-map-border-highlight: #ffffff;
-  --color-map-route-1: #000000;
-  --color-map-route-2: #000000;
-
-
-  --color-accent: #2c7be5;
-  --color-warn-text: #6d4a12;
-  --color-warn-bg: #fff4df;
-  --color-warn-border: #edd4a7;
-
-  --color-special-accent: #2c7be5;
-  --color-special-data: #0f4c81;
-  --color-special-highlight: #7c3aed;
-  --color-special-positive: #047857;
-  --color-special-positive-bg: #ecfdf5;
-  --color-special-negative: #b91c1c;
-  --color-special-negative-bg: #fef2f2;
-  --color-special-caution: #9a3412;
-  --color-special-neutral: #525252;
-
-
-  /* --- Space scale (px) — primitives --- */
-  --p-2: 2px;
-  --p-4: 4px;
-  --p-8: 8px;
-  --p-12: 12px;
-  --p-16: 16px;
-  --p-20: 20px;
-  --p-24: 24px;
-  --p-32: 32px;
-  --p-40: 40px;
-  --p-41: 41px;
-  --p-48: 48px;
-  --p-56: 56px;
-  --p-64: 64px;
-  --p-72: 72px;
-
-  /* --- Type scale (rem) — primitives --- */
-  --font-xs: 0.75rem;
-  --font-sm: 0.875rem;
-  --font-m: 1rem;
-  --font-lg: 1.5rem;
-  --font-xl: 2rem;
-  --font-2xl: 2.5rem;
-  --font-3xl: 3.5rem;
-
-  /* --- Semantic fills & ink --- */
-  --bg-default: var(--g0);
-  --default: var(--g8);
-  --secondary: var(--g6);
-  --subtle: var(--g4);
-  --border-subtle: var(--g3);
-  --border-default: var(--g2);
-  --border-dark-mode: var(--g6);
-  --fill-placeholder: var(--placeholder);
-
-  /* --- Border width --- */
-  --border-width-default: 1px;
-  --border-width-sm: 0.5px;
-
-  /* --- Font stacks: Albert Sans (UI/body); Literata @font-face (narrative + headings). Next sets vars on <html>. --- */
-  --font-sans-stack: var(--font-albert-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display-stack: Literata, ui-serif, Georgia, "Times New Roman", serif;
-  --font-mono-stack: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    monospace;
-
-  /* --- Weights --- */
-  --light: 300;
-  --regular: 400;
-  --semibold: 500;
-  --bold: 600;
-
-  /* --- Tracking & leading --- */
-  --tracking-display-tight: -0.08em;
-  --tracking-sans-tight: -0.035em;
-  --tracking-sans-bold: -0.5px;
-  --lead-note: 1.3;
-  --lead-base: 1;
-
-  /* Semantic rhythm: below md → 8 / 20 / 32; from md → 12 / 24 / 48 */
-  --space-xs: var(--p-8);
-  --space-s: var(--p-8);
-  --space-m: var(--p-20);
-  --space-lg: var(--p-32);
-  --space-xl: var(--p-64);
-
-  /* --- Layout --- */
-  /* --- Legacy module spacing (existing *.module.css — unchanged meanings) --- */
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-6: 40px;
-
-  /* --- Legacy / app semantic aliases (charts, modules) --- */
-  --font-family-caption: var(--font-sans-stack);
-  --font-story-narrative: var(--semibold) 1.25rem / 1.45 var(--font-display-stack);
-  --font-story-caption: var(--regular) 0.8125rem / 1.45 var(--font-sans-stack);
-  --font-body-sm: var(--regular) 1rem / 1.55 var(--font-sans-stack);
-  --font-body-md: var(--regular) var(--font-m) / var(--lead-note) var(--font-sans-stack);
-  --font-story-subhead: var(--semibold) var(--font-lg) / var(--lead-base) var(--font-display-stack);
-  --font-route-type-label: var(--regular) 16px / 1.35 var(--font-sans-stack);
-  --font-info-panel-heading: var(--semibold) 15px / 1.25 var(--font-sans-stack);
-  --font-caption-1: var(--font-story-caption);
-  --font-caption-2: var(--font-story-caption);
-  --font-num: var(--semibold) 1.25rem / 1.2 var(--font-sans-stack);
-
-  --color-bg-page: var(--bg-default);
-  --color-bg-surface: var(--white);
-  --color-text-primary: var(--default);
-  --color-text-secondary: var(--secondary);
-  --color-text-muted: var(--g5);
-  --color-text-subtle: var(--subtle);
-  --color-text-label: var(--g5);
-  --color-text-disclaimer: var(--g4);
-  --color-text-caption-1: var(--color-text-label);
-  --color-text-caption-2: var(--color-text-disclaimer);
-
-  --color-border-default: var(--border-default);
-  --border-minimal: none;
-
-
-  --radius-sm: 6px;
-  --radius-md: 8px;
-
-  --narrative-ink: var(--default);
+  /* Map / viz: single ink fill read by CoverageMap until ramp is applied in paint */
+  --accent-main: var(--g8);
 }
+
 
 @media (min-width: 768px) {
   :root {
@@ -199,39 +58,121 @@
   }
 }
 
-/*
- * Tailwind theme — maps :root tokens to utilities (`text-*`, `bg-*`, `border-*`, etc.).
- * Type `@utility` rules set font only; pair with `@layer utilities` ink classes (e.g. `text-ink-default`)
- * or theme `text-*` (e.g. `text-data-positive`) for color.
- */
 @theme inline {
-  --color-canvas: var(--bg-default);
-  --color-default: var(--default);
-  --color-secondary: var(--secondary);
-  --color-subtle: var(--subtle);
-  --color-line: var(--border-default);
-  --color-border-dark-mode: var(--border-dark-mode);
-  --font-sans: var(--font-sans-stack);
-  --font-display: var(--font-display-stack);
-  --font-mono: var(--font-mono-stack);
 
-  /* Data viz semantics — e.g. `text-data-positive`, `text-data-dataset`, `bg-data-positive-soft` */
-  --color-data-accent: var(--color-special-accent);
-  --color-data-dataset: var(--color-special-data);
-  --color-data-highlight: var(--color-special-highlight);
-  --color-data-positive: var(--color-special-positive);
-  --color-data-negative: var(--color-special-negative);
-  --color-data-caution: var(--color-special-caution);
-  --color-data-warning: var(--color-special-caution);
-  --color-data-neutral: var(--color-special-neutral);
-  --color-data-positive-soft: var(--color-special-positive-bg);
-  --color-data-negative-soft: var(--color-special-negative-bg);
+/* ALL TEXT--------------------------------------- */
+  /* fonts */
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-literata), ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+  monospace;
+
+  /* --- Weights --- */
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-semibold: 500;
+  --weight-bold: 600;
+
+  /* sizes */
+  --size-xs: 0.75rem;
+  --size-sm: 0.875rem;
+  --size-m: 1rem;
+  --size-lg: 1.5rem;
+  --size-xl: 2rem;
+  --size-2xl: 2.5rem;
+
+  /* textcolors */
+  --color-text-default: var(--g8);
+  --color-text-secondary: var(--g6);
+  --color-subtle: var(--g4);
+
+  /* --- Tracking & leading --- */
+  --tracking-default: -0.02em;
+  --tracking-display: -0.05em;
+  --tracking-sans-tight: -0.035em;
+  --leading-default: 1.3;
+
+  /* ----------------------------------------------------------------------- */
+
+  /* ALL FILL/VIS COLOR--------------------------------------- */
+
+  /* fills base*/
+  --color-bg-default: var(--g0);
+  --color-bg-light: var(--white);
+  --color-bg-medium: var(--n1);
+  --color-bg-dark: var(--n6);
+
+  /* Legacy names used by map + stats modules → semantic tokens */
+  --default: var(--color-text-default);
+  --secondary: var(--color-text-secondary);
+  --border-subtle: var(--color-border-medium);
+  --font-albert-sans: var(--font-sans);
+
+  /* data vis fills */
+/* poverty 1 bucket[ --color-fill-neg2]
+poverty 2 buckets[ deep poverty: --color-fill-neg3, poverty: --color-fill-neg2]
+medium values (poverty, drive or walk commute): --color-fill-neutral
+income 100k+, work from home: --color-fill-positive
+
+route before cut, route unaffected:--color-line-default
+route minor reduction :--color-line-reduced1
+route major reduction, route affected:--color-line-reduced2 
+*/
+
+  --color-fill-neg1: var(--r1);
+  --color-fill-neg2: var(--r2);
+  --color-fill-neg3: var(--r3);
+  --color-fill-neutral: var(--w1);
+  --color-fill-neutral2: var(--w2);
+  --color-fill-positive: var(--g1);
+  --color-fill-mute: var(--n1);
+
+  /* USE coverage ramp fills for coverage map instead of opacity round % to 1-10 color */
+  --color-fill-1: var(--b1);
+  --color-fill-2: var(--b2);
+  --color-fill-3: var(--b3);
+  --color-fill-4: var(--b4);
+  --color-fill-5: var(--b5);
+  --color-fill-6: var(--b6);
+  --color-fill-7: var(--b7);
+  --color-fill-8: var(--b8);
+  --color-fill-9: var(--b9);
+  --color-fill-10: var(--b10);
+
+  /* lines/borders */
+  --color-border-light: var(--white);
+  --color-border-medium: var(--n3);
+  --color-border-dark: var(--n6);
+
+  /* --- Border width --- use width-2 for default route lines, use width-1 for neighborhood borders if needed */
+  --width-1: 0.5px;
+  --width-2: 1px;
+  --width-3: 2px;
+
+  /* route line color styles, use for route lines in relationships route map before and after */
+  --color-line-reduced1: var(--b3);
+  --color-line-reduced2: var(--b8);
+  --color-line-default: var(--b6);
+  --color-line-accent: var(--b1);
+
+/* ----------------------------------------------------------------------- */
+
+  /* SPACING----------------------------------------------------------- */
+  /* use spacing-p-lg for info panel padding */
+  --spacing-p-xs: 8px;
+  --spacing-p-s: 12px;
+  --spacing-p-m: 24px;
+  --spacing-p-lg: 48px;
+  --spacing-p-xl: 64px;
+
+  /* for poverty dot graph */
+  --spacing-dot-gap-1: 0.1rem;
 }
 
 /* Text ink — color only; compose with `type-*` utilities (same file, utilities layer). */
 @layer utilities {
   .text-ink-default {
-    color: var(--color-text-primary);
+    color: var(--color-text-default);
   }
 
   .text-ink-secondary {
@@ -239,15 +180,15 @@
   }
 
   .text-ink-subtle {
-    color: var(--color-text-subtle);
+    color: var(--color-subtle);
   }
 
   .text-ink-label {
-    color: var(--color-text-label);
+    color: var(--color-text-secondary);
   }
 
   .text-ink-disclaimer {
-    color: var(--color-text-disclaimer);
+    color: var(--color-subtle);
   }
 }
 
@@ -255,138 +196,79 @@
    Type — product / chrome (navigation, cards, marketing shells)
    ============================================================================= */
 
+  /* use these for all text */
+  @utility type-body-m {
+    font: var(--weight-regular) var(--size-m) / var(--leading-default) var(--font-sans);
+    letter-spacing: var(--tracking-default);
+  }
+
 @utility type-body-sm {
-  font: var(--regular) var(--font-sm) / var(--lead-note) var(--font-sans-stack);
-  letter-spacing: 0;
+  font: var(--weight-regular) var(--size-sm) / var(--leading-default) var(--font-sans);
+  letter-spacing: var(--tracking-default);
 }
 
-@utility type-note {
-  font: var(--regular) var(--font-xs) / var(--lead-note) var(--font-sans-stack);
-  letter-spacing: 0;
+
+@utility type-h1-narrative{
+  font: var(--weight-light) var(--size-2xl) / var(--leading-default) var(--font-serif);
+  letter-spacing: var(--tracking-display);
 }
 
-@utility type-display {
-  font: var(--light) var(--font-3xl) / var(--lead-base) var(--font-display-stack);
-  letter-spacing: var(--tracking-display-tight);
+/* info panel header */
+
+@utility type-h2 {
+  font: var(--weight-regular) var(--size-lg) / var(--leading-default) var(--font-serif);
+  letter-spacing: var(--tracking-display);
 }
 
-@utility type-section-h2 {
-  font: var(--regular) var(--font-lg) / var(--lead-base) var(--font-display-stack);
-  letter-spacing: var(--tracking-sans-tight);
+/* data viz header */
+@utility type-h3 {
+  font: var(--weight-regular) var(--size-m) / var(--leading-default) var(--font-sans);
+  letter-spacing: var(--tracking-default);
 }
 
+/* info panel subheader */
+
+@utility type-h4 {
+  font: var(--weight-regular) var(--size-sm) / var(--leading-default) var(--font-serif);
+  letter-spacing: var(--tracking-display);
+}
 @utility type-nav-link {
-  font: var(--semibold) var(--font-sm) / var(--lead-base) var(--font-sans-stack);
+  font: var(--weight-semibold) var(--size-sm) / var(--leading-default) var(--font-sans);
   letter-spacing: 0;
 }
 
-@utility type-card-title {
-  font: var(--semibold) var(--font-m) / var(--lead-base) var(--font-sans-stack);
-  letter-spacing: 0;
-}
 
-@utility type-card-subtitle {
-  font: var(--regular) var(--font-m) / var(--lead-base) var(--font-sans-stack);
-  letter-spacing: 0;
-}
+
 
 @utility type-page-heading {
-  font: var(--regular) var(--font-xl) / var(--lead-base) var(--font-display-stack);
-  letter-spacing: var(--tracking-sans-tight);
+  font: var(--weight-regular) var(--size-xl) / var(--leading-default) var(--font-serif);
+  letter-spacing: var(--tracking-display);
 }
 
-@utility type-link-back {
-  font: var(--semibold) var(--font-m) / var(--lead-base) var(--font-sans-stack);
-  letter-spacing: 0;
-}
 
-/* =============================================================================
-   Type — story (long-form narrative, scrolly copy, pull quotes)
-   ============================================================================= */
 
-@utility type-story-narrative {
-  font: var(--font-story-narrative);
-  letter-spacing: 0;
-}
-
-@utility type-story-body {
-  font: var(--font-body-sm);
-  letter-spacing: 0;
-}
-
-@utility type-story-line {
-  margin-left: auto;
-  margin-right: auto;
-  text-align: left;
-  font: var(--font-story-narrative);
-}
-
-@utility type-story-line-wide {
-  max-width: 48rem;
-}
-
-@utility type-story-line-narrow {
-  max-width: 38rem;
-}
-
-@utility type-story-heading {
-  margin-left: auto;
-  margin-right: auto;
-  text-align: left;
-  max-width: 48rem;
-  font: var(--font-story-narrative);
-}
-
-@utility type-story-kicker {
-  display: block;
-  text-align: left;
-  font: var(--font-story-caption);
-  font-weight: var(--semibold);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-bottom: var(--space-2);
-}
-
-@utility type-story-footnote {
-  margin-left: auto;
-  margin-right: auto;
-  text-align: left;
-  max-width: 40rem;
-  font: var(--font-story-caption);
-  line-height: 1.5;
-  text-decoration: none;
-}
 
 /* =============================================================================
    Type — data (charts, maps, metrics, legends, small UI in visualizations)
    ============================================================================= */
 
 @utility type-data-label {
-  font: var(--font-caption-1);
+  font: var(--weight-regular) var(--size-xs) / var(--leading-default) var(--font-mono);
+  letter-spacing: var(--tracking-default);
+  font-variant-numeric: tabular-nums;
 }
 
-@utility type-data-disclaimer {
-  font: var(--font-caption-2);
-}
 
 @utility type-data-value {
-  font: var(--font-num);
+  font: var(--weight-regular) var(--size-m) / var(--leading-default) var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
-@utility type-data-mono {
-  font: var(--regular) var(--font-sm) / var(--lead-note) var(--font-mono-stack);
-  letter-spacing: 0;
-  font-variant-numeric: tabular-nums;
-}
 
 @utility type-data-route-label {
-  font: var(--font-route-type-label);
+  font: var(--weight-semibold) var(--size-xs) / var(--leading-default) var(--font-sans);
 }
 
-@utility type-data-panel-heading {
-  font: var(--font-info-panel-heading);
-}
 
 * {
   box-sizing: border-box;
@@ -394,20 +276,19 @@
 
 body {
   margin: 0;
-  font: var(--font-body-sm);
-  color: var(--color-text-primary);
-  background: var(--color-bg-page);
+  font: var(--weight-regular) var(--size-sm) / var(--leading-default) var(--font-sans);
+  color: var(--color-text-default);
+  background: var(--color-bg-default);
 }
 
 /* Semantic headings use display (Literata); low specificity so components can override. */
 .page-shell :where(h1, h2, h3, h4, h5, h6) {
-  font-family: var(--font-display-stack);
+  font-family: var(--font-serif);
 }
 
 /* Full-app content width: 80vw, capped 1200px, floored 800px, centered */
 .page-shell {
-  width: 80vw;
-  max-width: 1200px;
+  width: 95vw;
   min-width: 800px;
   margin-inline: auto;
 }

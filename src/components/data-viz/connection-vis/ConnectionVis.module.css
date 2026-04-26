@@ -12,7 +12,7 @@
 .header p {
   margin: 0;
   color: var(--secondary);
-  font: var(--font-body-sm);
+  font: var(--weight-regular) var(--size-sm) / var(--leading-default) var(--font-sans);
 }
 
 .toggleRow {
@@ -29,7 +29,7 @@
 .toggleActive {
   border: 0;
   border-radius: 999px;
-  font: 500 0.85rem/1.1 var(--font-sans-stack);
+  font: 500 0.85rem/1.1 var(--font-sans);
   padding: 0.45rem 0.8rem;
   cursor: pointer;
 }
@@ -63,7 +63,7 @@
 
 .centerLabel {
   fill: var(--n6);
-  font: 600 0.85rem/1.1 var(--font-sans-stack);
+  font: 600 0.85rem/1.1 var(--font-sans);
   letter-spacing: 0.01em;
 }
 
@@ -90,7 +90,7 @@
 
 .nodeLabel {
   fill: var(--n6);
-  font: 500 0.73rem/1.2 var(--font-sans-stack);
+  font: 500 0.73rem/1.2 var(--font-sans);
 }
 
 .legend {
@@ -98,7 +98,7 @@
   flex-wrap: wrap;
   gap: 0.75rem 1.15rem;
   margin-top: 0.65rem;
-  font: 500 0.77rem/1.2 var(--font-sans-stack);
+  font: 500 0.77rem/1.2 var(--font-sans);
   color: var(--secondary);
 }
 

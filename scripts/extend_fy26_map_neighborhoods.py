@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Build fy26_route_n_profiles_all.csv from neighborhoods + stop inventory.
+"""Build fy26_route_n_profiles_all.csv from neighborhoods + stop-based service.
 
-For each city neighborhood (GeoJSON `hood` labels, union any existing CSV names):
-- **All stops**: routes with any scheduled stop in the hood (block-group tagged).
-- **Street stops**: same, excluding stops whose name contains ``BUSWAY`` (East/West
-  Busway platforms and ramps — commuter/flyer transfer points, not mixed-traffic
-  local stops).
+Route–neighborhood links: `build_neighborhood_route_service.py` — stop points vs
+`neighborhoods.geojson` (plus optional buffer), not route line shapes. Details in
+`data/neighborhood_route_service.json`.
 
-FY26 cut flags come from ``data/FY26_route_status_all.csv``; demographics from
+- **All routes**: qualifying city stop in or near the polygon.
+- **Street routes**: same, excluding ``BUSWAY`` platform stops.
+
+FY26 cut flags: ``data/FY26_route_status_all.csv``. Demographics:
 ``data/primary/neighborhood_profiles.csv`` via ``data/n_crosswalk.csv``.
 
 Rewrites the target CSV in full so new columns stay aligned for every row.
@@ -18,24 +19,22 @@ from __future__ import annotations
 import csv
 import json
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(ROOT / "scripts"))
+from build_neighborhood_route_service import get_fy26_hood_route_sets
+
 DATA = ROOT / "data"
 GEOJSON = DATA / "neighborhoods.geojson"
 CROSSWALK = DATA / "n_crosswalk.csv"
 PROFILES = DATA / "primary" / "neighborhood_profiles.csv"
-STOPS = DATA / "primary" / "route-stop-table.csv"
 STATUS = DATA / "FY26_route_status_all.csv"
 TARGET = DATA / "fy26_route_n_profiles_all.csv"
 
-# GeoJSON `hood` -> `route-stop-table.csv` `hood` (only where labels differ).
-STOP_HOOD_OVERRIDES: dict[str, str] = {
-    "Arlington": "Arlington-Arlington Heights",
-    "Arlington Heights": "Arlington-Arlington Heights",
-}
-
-# GeoJSON hoods not listed in n_crosswalk.csv (ACS / stop naming mismatch).
+# Crosswalk/ACS: GeoJSON `hood` may differ from `n_crosswalk` `hood` row label.
 PROFILE_OVERRIDES: dict[str, tuple[str, str]] = {
     "Arlington": (
         "Arlington - Arlington Heights - Mount Oliver(City Neighborhood) - St. Clair",
@@ -90,30 +89,9 @@ def semijoin(codes: set[str]) -> str:
     return ";".join(sorted(codes))
 
 
-def stop_is_busway_platform(stop_name: str) -> bool:
-    """True if PRT labels this stop as part of the busway (not mixed-traffic street)."""
-    return "BUSWAY" in (stop_name or "").upper()
-
-
 def build_hood_route_sets() -> tuple[dict[str, set[str]], dict[str, set[str]]]:
     """Return (all_routes_by_hood, street_only_routes_by_hood)."""
-    all_h: dict[str, set[str]] = {}
-    street_h: dict[str, set[str]] = {}
-    with STOPS.open(newline="", encoding="utf-8-sig") as f:
-        for row in csv.DictReader(f):
-            rf = (row.get("route_filter") or "").strip()
-            if not rf or rf == "All Routes":
-                continue
-            h = (row.get("hood") or "").strip()
-            if not h:
-                continue
-            code = route_to_fy26(rf)
-            if not code:
-                continue
-            all_h.setdefault(h, set()).add(code)
-            if not stop_is_busway_platform(row.get("stop_name") or ""):
-                street_h.setdefault(h, set()).add(code)
-    return all_h, street_h
+    return get_fy26_hood_route_sets()
 
 
 def load_fy26_route_status() -> tuple[set[str], set[str]]:
@@ -195,7 +173,6 @@ def compute_status_tags(
 
 def row_for_hood(
     geo_hood: str,
-    stop_hood: str,
     hood_routes_all: dict[str, set[str]],
     hood_routes_street: dict[str, set[str]],
     eliminated: set[str],
@@ -203,8 +180,8 @@ def row_for_hood(
     crosswalk_by_hood: dict[str, dict[str, str]],
     profile_by_key: dict[tuple[str, str], dict[str, str]],
 ) -> dict[str, str]:
-    before = set(hood_routes_all.get(stop_hood, set()))
-    before_st = set(hood_routes_street.get(stop_hood, set()))
+    before = set(hood_routes_all.get(geo_hood, set()))
+    before_st = set(hood_routes_street.get(geo_hood, set()))
 
     losing = before & eliminated
     reduced_hit = before & reduced
@@ -268,16 +245,9 @@ def main() -> None:
     all_names = sorted(geo_hoods | existing_names, key=str.lower)
     rows: list[dict[str, str]] = []
     for geo_hood in all_names:
-        stop_hood = STOP_HOOD_OVERRIDES.get(geo_hood, geo_hood)
-        if stop_hood not in hood_routes_all:
-            raise RuntimeError(
-                f"No routes for stop hood {stop_hood!r} (geo {geo_hood!r}). "
-                "Update STOP_HOOD_OVERRIDES or route-stop-table hood labels."
-            )
         rows.append(
             row_for_hood(
                 geo_hood,
-                stop_hood,
                 hood_routes_all,
                 hood_routes_street,
                 eliminated,

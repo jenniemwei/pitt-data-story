@@ -4,14 +4,14 @@
 
 .title {
   margin: 0 0 0.65rem;
-  font-family: var(--font-display-stack, Literata, ui-serif, Georgia, serif);
-  font-size: 1rem;
+  font-family: var(--font-serif, Literata, ui-serif, Georgia, serif);
+  font-size: var(--size-m);
   line-height: 1.35;
-  color: var(--default, #121212);
+  color: var(--color-text-default, #121212);
 }
 
 .titleEm {
-  font-weight: 600;
+  font-weight: var(--weight-bold);
 }
 
 .chart {
@@ -32,9 +32,9 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
-  font-family: var(--font-albert-sans, system-ui, sans-serif);
+  font-family: var(--font-sans, system-ui, sans-serif);
   font-size: 0.72rem;
-  color: var(--default, #121212);
+  color: var(--color-text-default, #121212);
 }
 
 .legend li {
@@ -51,13 +51,13 @@
 }
 
 .swatch[data-variant="wfh"] {
-  background: var(--color-special-positive, #047857);
+  background: var(--color-fill-positive, #bfd0aa);
 }
 
 .swatch[data-variant="vehicle"] {
-  background: var(--n2, #d1cdc8);
+  background: var(--color-fill-neutral2, #b6a48e);
 }
 
 .swatch[data-variant="transit"] {
-  background: var(--r2, #d85c4d);
+  background: var(--color-fill-neg2, #d85c4d);
 }

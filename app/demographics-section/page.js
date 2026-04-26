@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ScrollDemographics } from "../../src/components/data-viz/scroll-demographics/ScrollDemographics";
-import { GalleryRow } from "../../src/components/layout/GalleryRow";
 import { demographicsPageStructure } from "../../src/data/structure";
 
 export const metadata = {
@@ -11,26 +10,17 @@ export const metadata = {
 export default function DemographicsSectionPage() {
   return (
     <main className="pt-6 px-4 pb-20">
-      <GalleryRow
-        variant={demographicsPageStructure.navRow.variant}
-        measure={demographicsPageStructure.navRow.measure}
-        layoutId={demographicsPageStructure.navRow.id}
+      <div
         className="max-w-3xl mx-auto w-full mb-8"
+        data-layout-id={demographicsPageStructure.navRow.id}
       >
-        <div>
-          <Link href="/" className="type-link-back text-ink-default underline-offset-4 hover:underline">
-            ← Back home
-          </Link>
-        </div>
-      </GalleryRow>
-      <GalleryRow
-        variant={demographicsPageStructure.bodyRow.variant}
-        measure={demographicsPageStructure.bodyRow.measure}
-        layoutId={demographicsPageStructure.bodyRow.id}
-        className="w-full max-w-[72rem] mx-auto"
-      >
+        <Link href="/" className="type-link-back text-ink-default underline-offset-4 hover:underline">
+          ← Back home
+        </Link>
+      </div>
+      <div className="w-full max-w-[72rem] mx-auto" data-layout-id={demographicsPageStructure.bodyRow.id}>
         <ScrollDemographics />
-      </GalleryRow>
+      </div>
     </main>
   );
 }

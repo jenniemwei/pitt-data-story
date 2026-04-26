@@ -31,7 +31,7 @@
   margin: 0 0 var(--space-2);
   text-align: left;
   font: var(--font-story-narrative);
-  color: var(--color-text-primary);
+  color: var(--color-text-default);
 }
 
 .leadBody {
@@ -39,7 +39,7 @@
   max-width: 42rem;
   text-align: left;
   font: var(--font-story-narrative);
-  color: var(--color-text-primary);
+  color: var(--color-text-default);
 }
 
 .routeCorridorKeys {
@@ -76,7 +76,7 @@
   max-width: 28rem;
   text-align: left;
   font: var(--font-story-narrative);
-  color: var(--color-text-primary);
+  color: var(--color-text-default);
 }
 
 .shell {
@@ -252,7 +252,7 @@
 .motionNote {
   margin-top: 0.35rem;
   font: var(--font-caption-2);
-  color: var(--color-text-disclaimer);
+  color: var(--color-subtle);
 }
 
 .steps {
@@ -271,13 +271,13 @@
 }
 
 .stepActive .stepTitle {
-  color: var(--color-text-primary);
+  color: var(--color-text-default);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
 .stepActive .stepIndex {
-  color: var(--color-text-primary);
+  color: var(--color-text-default);
   font-weight: 600;
 }
 
@@ -286,7 +286,7 @@
   max-width: 28rem;
   font: var(--font-story-narrative);
   line-height: 1.35;
-  color: var(--color-text-primary);
+  color: var(--color-text-default);
 }
 
 .step p {
@@ -297,7 +297,7 @@
   font: var(--font-caption-2);
   font-weight: 500;
   letter-spacing: 0.08em;
-  color: var(--color-text-label);
+  color: var(--color-text-secondary);
   margin-bottom: 0.35rem;
   text-align: left;
 }

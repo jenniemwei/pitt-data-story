@@ -1,10 +1,15 @@
-import { Albert_Sans, Geist_Mono } from "next/font/google";
+import {Geist_Mono, Literata, Geist } from "next/font/google";
 import "./globals.css";
 
-const albertSans = Albert_Sans({
+const geist = Geist({
   subsets: ["latin"],
-  variable: "--font-albert-sans",
-  weight: ["300", "400", "500", "600"],
+  variable: "--font-geist",
+  display: "swap",
+});
+
+const literata = Literata({
+  subsets: ["latin"],
+  variable: "--font-literata",
   display: "swap",
 });
 
@@ -21,7 +26,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${albertSans.variable} ${geistMono.variable}`}>
+    <html
+      lang="en"
+      className={`${geist.variable} ${literata.variable} ${geistMono.variable}`}
+    >
       <body>
         <div className="page-shell">{children}</div>
       </body>

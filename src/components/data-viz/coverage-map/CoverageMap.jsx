@@ -26,24 +26,20 @@ const FLAT_BASEMAP_STYLE = {
 };
 const MAP_CENTER = [-79.9959, 40.4406];
 const MAP_INITIAL_ZOOM = 10.1;
-/** Fill opacity from proportional lost coverage (0–1): 0.2 baseline → 1.0 at max loss. */
-const LOSS_FILL_OPACITY_EXPRESSION = [
-  "min",
-  1,
-  [
-    "max",
-    0.2,
-    [
-      "+",
-      0.2,
-      ["*", 0.8, ["coalesce", ["get", "lost_coverage"], 0]],
-    ],
-  ],
+
+/** Fallbacks match `globals.css` --b1 … --b10 when CSS vars are unavailable. */
+const COVERAGE_FILL_FALLBACKS = [
+  "#D6FFFF",
+  "#AEE3E2",
+  "#82B6B5",
+  "#588B8A",
+  "#326564",
+  "#134948",
+  "#003333",
+  "#002424",
+  "#001516",
+  "#00090A",
 ];
-/** Slightly darker fill on hover (neighborhood fill layer). */
-const FILL_HOVER = "#0d0d0d";
-/** In “after” view, service-reduced lines render in grey; unchanged in white. */
-const ROUTE_REDUCED_GREY = "#8a8a8a";
 
 function parseCsv(text) {
   return Papa.parse(text, { header: true, skipEmptyLines: true }).data;
@@ -53,6 +49,47 @@ function getCssVar(name, fallback) {
   if (typeof window === "undefined") return fallback;
   const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   return value || fallback;
+}
+
+/** Mapbox paint for coverage hoods: stepped `--color-fill-1`…`10` from `lost_coverage` (see globals @theme). */
+function buildCoverageFillPaint() {
+  const colors = Array.from({ length: 10 }, (_, i) =>
+    getCssVar(`--color-fill-${i + 1}`, COVERAGE_FILL_FALLBACKS[i]),
+  );
+  const hover = getCssVar("--color-bg-dark", "#1c1c1c");
+  const loss = /** @type {const} */ (["coalesce", ["get", "lost_coverage"], 0]);
+  const stepped = /** @type {import("mapbox-gl").ExpressionSpecification} */ ([
+    "step",
+    loss,
+    colors[0],
+    0.1,
+    colors[1],
+    0.2,
+    colors[2],
+    0.3,
+    colors[3],
+    0.4,
+    colors[4],
+    0.5,
+    colors[5],
+    0.6,
+    colors[6],
+    0.7,
+    colors[7],
+    0.8,
+    colors[8],
+    0.9,
+    colors[9],
+  ]);
+  return {
+    "fill-color": /** @type {import("mapbox-gl").ExpressionSpecification} */ ([
+      "case",
+      ["boolean", ["feature-state", "hover"], false],
+      hover,
+      stepped,
+    ]),
+    "fill-opacity": 1,
+  };
 }
 
 function extendBoundsForCoords(bounds, coords) {
@@ -73,8 +110,10 @@ function fitNeighborhoodBounds(map, featureCollection, fitOptions) {
     extendBoundsForCoords(bounds, feature?.geometry?.coordinates);
   }
   if (!bounds.isEmpty()) {
+    const pad = Number.parseInt(getCssVar("--spacing-p-lg", "48"), 10);
+    const padding = Number.isFinite(pad) && pad > 0 ? pad : 48;
     map.fitBounds(bounds, {
-      padding: 48,
+      padding,
       maxZoom: 12.5,
       duration: 0,
       ...fitOptions,
@@ -87,8 +126,10 @@ function fitMapToFeature(map, feature, fitOptions) {
   const bounds = new mapboxgl.LngLatBounds();
   extendBoundsForCoords(bounds, feature.geometry.coordinates);
   if (!bounds.isEmpty()) {
+    const pad = Number.parseInt(getCssVar("--spacing-p-xl", "64"), 10);
+    const padding = Number.isFinite(pad) && pad > 0 ? pad : 72;
     map.fitBounds(bounds, {
-      padding: 72,
+      padding,
       maxZoom: 13.8,
       duration: 550,
       ...fitOptions,
@@ -96,43 +137,36 @@ function fitMapToFeature(map, feature, fitOptions) {
   }
 }
 
-function applyCoverageViewMode(map, viewMode, accentMain) {
-  if (!map.getLayer("coverage-hood-fill")) return;
-  map.setPaintProperty("coverage-hood-fill", "fill-color", [
-    "case",
-    ["boolean", ["feature-state", "hover"], false],
-    FILL_HOVER,
-    accentMain,
-  ]);
-  map.setPaintProperty("coverage-hood-fill", "fill-opacity", LOSS_FILL_OPACITY_EXPRESSION);
-  if (map.getLayer("coverage-routes-line")) {
-    if (viewMode === "before") {
-      map.setPaintProperty("coverage-routes-line", "line-color", "#ffffff");
-      map.setPaintProperty("coverage-routes-line", "line-opacity", 1);
-    } else {
-      map.setPaintProperty("coverage-routes-line", "line-color", [
-        "match",
-        ["get", "route_status"],
-        "unchanged",
-        "#ffffff",
-        "reduced",
-        ROUTE_REDUCED_GREY,
-        "eliminated",
-        "#ffffff",
-        "#ffffff",
-      ]);
-      map.setPaintProperty("coverage-routes-line", "line-opacity", [
-        "match",
-        ["get", "route_status"],
-        "unchanged",
-        1,
-        "reduced",
-        1,
-        "eliminated",
-        0,
-        1,
-      ]);
-    }
+function applyCoverageViewMode(map, viewMode) {
+  if (!map.getLayer("coverage-routes-line")) return;
+  const lineLight = getCssVar("--color-border-light", "#ffffff");
+  const lineReduced = getCssVar("--color-line-reduced1", "#82B6B5");
+  if (viewMode === "before") {
+    map.setPaintProperty("coverage-routes-line", "line-color", lineLight);
+    map.setPaintProperty("coverage-routes-line", "line-opacity", 1);
+  } else {
+    map.setPaintProperty("coverage-routes-line", "line-color", [
+      "match",
+      ["get", "route_status"],
+      "unchanged",
+      lineLight,
+      "reduced",
+      lineReduced,
+      "eliminated",
+      lineLight,
+      lineLight,
+    ]);
+    map.setPaintProperty("coverage-routes-line", "line-opacity", [
+      "match",
+      ["get", "route_status"],
+      "unchanged",
+      1,
+      "reduced",
+      1,
+      "eliminated",
+      0,
+      1,
+    ]);
   }
 }
 
@@ -144,7 +178,6 @@ export default function CoverageMap() {
   const profilesRef = useRef(new Map());
   const cityFeatureCollectionRef = useRef(null);
   const viewModeRef = useRef("before");
-  const accentMainRef = useRef("#111111");
   const [viewMode, setViewMode] = useState("before");
   const [showRoutes, setShowRoutes] = useState(false);
   const [hoverData, setHoverData] = useState(null);
@@ -288,9 +321,7 @@ export default function CoverageMap() {
 
       cityFeatureCollectionRef.current = { ...hoodGeo, features: enrichedFeatures };
 
-      const n0 = getCssVar("--n0", "#f7f7f7");
-      const accentMain = getCssVar("--accent-main", "#111111");
-      accentMainRef.current = accentMain;
+      const pageBg = getCssVar("--color-bg-default", "#f7f7f7");
 
       const map = new mapboxgl.Map({
         container: containerRef.current,
@@ -298,7 +329,7 @@ export default function CoverageMap() {
           ...FLAT_BASEMAP_STYLE,
           layers: FLAT_BASEMAP_STYLE.layers.map((layer) =>
             layer.id === "basemap-flat"
-              ? { ...layer, paint: { ...(layer.paint || {}), "background-color": n0 } }
+              ? { ...layer, paint: { ...(layer.paint || {}), "background-color": pageBg } }
               : layer,
           ),
         },
@@ -317,26 +348,20 @@ export default function CoverageMap() {
           data: { ...hoodGeo, features: enrichedFeatures },
           promoteId: "neighborhood_name",
         });
+        const fillPaint = buildCoverageFillPaint();
+        const selLine = getCssVar("--color-border-light", "#ffffff");
         map.addLayer({
           id: "coverage-hood-fill",
           type: "fill",
           source: "coverage-hoods",
-          paint: {
-            "fill-color": [
-              "case",
-              ["boolean", ["feature-state", "hover"], false],
-              FILL_HOVER,
-              accentMain,
-            ],
-            "fill-opacity": LOSS_FILL_OPACITY_EXPRESSION,
-          },
+          paint: fillPaint,
         });
         map.addLayer({
           id: "coverage-hood-selected",
           type: "line",
           source: "coverage-hoods",
           paint: {
-            "line-color": "#ffffff",
+            "line-color": selLine,
             "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 2.5, 0],
             "line-opacity": ["case", ["boolean", ["feature-state", "selected"], false], 1, 0],
           },
@@ -425,7 +450,7 @@ export default function CoverageMap() {
           }
         });
 
-        applyCoverageViewMode(map, viewModeRef.current, accentMain);
+        applyCoverageViewMode(map, viewModeRef.current);
 
         fitNeighborhoodBounds(map, { ...hoodGeo, features: enrichedFeatures });
         void (async () => {
@@ -455,13 +480,14 @@ export default function CoverageMap() {
                 features: routeFeatures,
               },
             });
+            const routeLineW = Number.parseFloat(getCssVar("--width-2", "1")) || 0.7;
             map.addLayer({
               id: "coverage-routes-line",
               type: "line",
               source: "coverage-routes",
               paint: {
-                "line-color": "#ffffff",
-                "line-width": 0.7,
+                "line-color": getCssVar("--color-border-light", "#ffffff"),
+                "line-width": routeLineW,
                 "line-opacity": 1,
               },
               layout: {
@@ -470,7 +496,7 @@ export default function CoverageMap() {
                 visibility: "none",
               },
             });
-            applyCoverageViewMode(map, viewModeRef.current, accentMainRef.current);
+            applyCoverageViewMode(map, viewModeRef.current);
           }
         })();
       });
@@ -491,7 +517,7 @@ export default function CoverageMap() {
     const map = mapRef.current;
     if (!map) return;
     const apply = () => {
-      applyCoverageViewMode(map, viewMode, accentMainRef.current);
+      applyCoverageViewMode(map, viewMode);
     };
 
     if (map.isStyleLoaded()) apply();
@@ -515,29 +541,29 @@ export default function CoverageMap() {
       <div className={styles.mapShell}>
         <div ref={containerRef} className={styles.map} role="presentation" />
         <div className={styles.mapControls}>
-            <div className={styles.mapOverlay} role="group" aria-label="Map mode">
+            <div className={`${styles.mapOverlay} type-body-m text-ink-default`} role="group" aria-label="Map mode">
               <button
                 type="button"
-                className={`${styles.modeLink} ${viewMode === "before" ? styles.modeLinkOn : ""}`}
+                className={`${styles.modeLink} type-body-sm ${viewMode === "before" ? `text-ink-default ${styles.modeLinkOn}` : "text-ink-secondary"}`}
                 onClick={() => setViewMode("before")}
               >
                 before
               </button>
-              <span className={styles.modeSep} aria-hidden>
+              <span className={`${styles.modeSep} text-ink-label`} aria-hidden>
                 |
               </span>
               <button
                 type="button"
-                className={`${styles.modeLink} ${viewMode === "after" ? styles.modeLinkOn : ""}`}
+                className={`${styles.modeLink} type-body-sm ${viewMode === "after" ? `text-ink-default ${styles.modeLinkOn}` : "text-ink-secondary"}`}
                 onClick={() => setViewMode("after")}
               >
                 after
               </button>
             </div>
-            <button type="button" className={styles.recenterBtn} onClick={recenterMap}>
+            <button type="button" className={`${styles.recenterBtn} type-body-sm text-ink-default`} onClick={recenterMap}>
               Re-center map
             </button>
-            <label className={styles.routeToggle}>
+            <label className={`${styles.routeToggle} type-body-sm text-ink-default`}>
               <input type="checkbox" checked={showRoutes} onChange={(e) => setShowRoutes(e.target.checked)} />
               <span>routes</span>
             </label>

@@ -17,56 +17,33 @@ ACS columns: residents of anchor geography (not rider-level). Source: `data/n_pr
 Adds integer estimate columns next to each resident/household/worker % (rounded).
 """
 
+# -----------------------------------------------------------------------------
+# Route neighborhood anchors: use data/neighborhood_route_service.json (produced
+# by scripts/build_neighborhood_route_service.py) — stop-based, not shape-based.
+# Legacy hand map ROUTE_NEIGHBORHOODS was removed; run the build script to refresh.
+# -----------------------------------------------------------------------------
+
 from __future__ import annotations
 
 import csv
+import json
 import re
+from pathlib import Path
 from statistics import mean
 from typing import Any
 
-ROUTE_NEIGHBORHOODS: dict[str, tuple[list[str] | None, str]] = {
-    "002": (["Mount Washington"], "Corridor anchor for Mount Royal / South Hills access."),
-    "004": (["Perry South"], "Troy Hill and Northside river communities."),
-    "007": (["Fineview"], "Spring Garden and Fineview area."),
-    "014": (["Brighton Heights"], "Ohio River North / Brighton Heights corridor."),
-    "018": (["Central Northside"], "Manchester and Northside."),
-    "020": (["Crafton Heights"], "Kennedy / western corridor."),
-    "026": (["Crafton Heights"], "Chartiers Valley / West End."),
-    "029": (None, "Robinson and western suburbs (outside city neighborhood layer)."),
-    "036": (["Banksville"], "Banksville and South Hills."),
-    "038": (None, "Green Tree borough (outside city neighborhood layer)."),
-    "039": (["Brookline"], "Brookline."),
-    "040": (["Mount Washington"], "Mount Washington."),
-    "041": (["Beechview"], "Bower Hill / Beechview / South Hills."),
-    "043": (["Knoxville"], "Bailey / South Hills corridor."),
-    "058": (["Greenfield"], "Greenfield."),
-    "065": (["Squirrel Hill South"], "Squirrel Hill."),
-    "071": (None, "Edgewood / eastern suburbs (outside city neighborhood layer)."),
-    "G3": (None, "Moon and western express (outside city neighborhood layer)."),
-    "O1": (["Marshall-Shadeland"], "Ross / McKnight Road corridor city end."),
-    "O5": (None, "Thompson Run / northern suburbs."),
-    "P7": (None, "McKeesport / Mon Valley (outside city neighborhood layer)."),
-    "Y1": (None, "Large Flyer — regional express."),
-    "G31": (["Brookline"], "Bridgeville Flyer — Brookline / South Hills."),
-    "O12": (["Brighton Heights"], "McKnight Flyer — northern corridor."),
-    "P10": (["Brighton Heights"], "Allegheny Valley Flyer — northern corridor."),
-    "P12": (None, "Holiday Park / eastern suburbs."),
-    "P13": (["Mount Washington"], "Mount Royal Flyer."),
-    "P16": (["East Hills"], "Penn Hills Flyer — East Hills city pocket."),
-    "P17": (["Lincoln Place"], "Lincoln Park Flyer."),
-    "P67": (None, "Monroeville express."),
-    "P69": (None, "Trafford / eastern corridor."),
-    "P71": (["Swisshelm Park"], "Swissvale Flyer — Swisshelm Park area."),
-    "P76": (None, "Lincoln Highway express."),
-    "Y45": (["Carrick"], "Baldwin Manor Flyer — Carrick / South."),
-    "Y47": (["Brookline"], "Curry Flyer — South Hills."),
-    "Y49": (["Carrick"], "Prospect Flyer — Carrick / South."),
-    "019L": (["Brighton Heights"], "Emsworth Limited — Ohio River north."),
-    "051L": (["Carrick"], "Carrick Limited."),
-    "052L": (["Homewood South"], "Homewood / Homestead-limited corridor."),
-    "053L": (["Swisshelm Park"], "Homestead Park Limited — Mon Valley / East."),
-    "SLVR": (["Overbrook"], "Silver Line — South Hills rail; Overbrook area."),
-}
+REPO = Path(__file__).resolve().parents[1]
+NRS_JSON = REPO / "data" / "neighborhood_route_service.json"
+CUTS_CSV = (
+    REPO / "data" / "prt_fy2026_route_cuts.csv"
+    if (REPO / "data" / "prt_fy2026_route_cuts.csv").is_file()
+    else REPO / "data" / "primary" / "prt_fy2026_route_cuts.csv"
+)
+MONTHLY_RIDERSHIP_CSV = (
+    REPO / "data" / "monthly_avg_ridership.csv"
+    if (REPO / "data" / "monthly_avg_ridership.csv").is_file()
+    else REPO / "data" / "primary" / "monthly_avg_ridership.csv"
+)
 
 
 def normalize_route_key(key: str) -> str:
@@ -102,8 +79,11 @@ def ffloat(x: str | None) -> float | None:
 
 
 PROFILES_PATH = "data/n_profiles_new.csv"
-ROUTE_STOP_PATH = "data/route_stop_per_route.csv"
-CROSSWALK_PATH = "data/n_crosswalk.csv"
+
+ANCHOR_RATIONALE = (
+    "Anchor list from `data/neighborhood_route_service.json` (stop/polygon + buffer; "
+    "not from route line geometry). Rebuild: `python3 scripts/build_neighborhood_route_service.py`."
+)
 
 
 def load_profiles() -> dict[str, dict[str, str]]:
@@ -115,67 +95,35 @@ def load_profiles() -> dict[str, dict[str, str]]:
     return by_name
 
 
-def load_city_hood_to_group() -> dict[str, str]:
-    """Map city hood names from stop table to neighborhood groups."""
-    mapping: dict[str, str] = {}
-    with open(CROSSWALK_PATH, encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            if (row.get("muni") or "").strip() != "Pittsburgh city (Allegheny, PA)":
-                continue
-            hood = (row.get("hood") or "").strip()
-            group = (row.get("NeighborhoodGroup") or "").strip()
-            if hood and group:
-                mapping[hood] = group
-    return mapping
-
-
-def normalize_stop_route_id(route_id: str) -> str:
-    """Normalize route IDs from `route_stop_per_route.csv` to findings route keys."""
-    rid = (route_id or "").strip()
-    if not rid:
-        return rid
-    # Numeric routes in stop table are typically unpadded ("2", "54", ...)
-    if rid.isdigit():
-        return f"{int(rid):03d}"
-    # Mixed codes such as 19L, 71A, P3 should keep alpha suffix/prefix.
-    m = re.match(r"^(\d+)([A-Za-z]+)$", rid)
-    if m:
-        return f"{int(m.group(1)):03d}{m.group(2)}"
-    return rid
-
-
 def build_route_neighborhoods_from_stops() -> dict[str, tuple[list[str], str]]:
     """
-    Build route -> anchor neighborhood groups from stop coverage.
+    Invert `neighborhood_route_service.json` to route_id -> (ordered neighborhood names, note).
 
-    Uses city stops only and maps stop `hood` values through `n_crosswalk.csv` to
-    neighborhood groups used in profiles/findings outputs.
+    Neighborhoods with any given route are ordered by strength (weekday `daily_trips`, then
+    how many distinct stops, then name).
     """
-    hood_to_group = load_city_hood_to_group()
-    route_group_counts: dict[str, dict[str, int]] = {}
-    with open(ROUTE_STOP_PATH, encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            if (row.get("muni") or "").strip() != "Pittsburgh city (Allegheny, PA)":
+    if not NRS_JSON.is_file():
+        return {}
+    with NRS_JSON.open(encoding="utf-8") as f:
+        payload = json.load(f)
+    by_route: dict[str, list[tuple[str, int, int]]] = {}
+    for block in payload.get("neighborhoods", []):
+        n = (block.get("neighborhood") or "").strip()
+        for r in block.get("routes") or []:
+            rid = (r.get("route_id") or "").strip()
+            if not rid or not n:
                 continue
-            hood = (row.get("hood") or "").strip()
-            if not hood:
-                continue
-            group = hood_to_group.get(hood)
-            if not group:
-                continue
-            route_key = normalize_stop_route_id(row.get("route_id") or "")
-            if not route_key:
-                continue
-            per_route = route_group_counts.setdefault(route_key, {})
-            per_route[group] = per_route.get(group, 0) + 1
-
+            try:
+                trips = int(r.get("daily_trips") or 0)
+            except (TypeError, ValueError):
+                trips = 0
+            n_stops = len(r.get("stops_in_neighborhood") or [])
+            by_route.setdefault(rid, []).append((n, trips, n_stops))
     out: dict[str, tuple[list[str], str]] = {}
-    for route_key, counts in route_group_counts.items():
-        names = sorted(counts.keys(), key=lambda k: (-counts[k], k))
-        out[route_key] = (
-            names,
-            "Derived from city stop coverage (`route_stop_per_route.csv`) mapped through `n_crosswalk.csv`.",
-        )
+    for route_key, pairs in by_route.items():
+        pairs.sort(key=lambda x: (-x[1], -x[2], x[0].lower()))
+        names = [t[0] for t in pairs]
+        out[route_key] = (names, ANCHOR_RATIONALE)
     return out
 
 
@@ -235,7 +183,7 @@ def ridership_stats(code: str) -> tuple[float | None, float | None, float | None
     pre: list[float] = []
     post: list[float] = []
     covid: list[float] = []
-    with open("data/monthly_avg_ridership.csv", encoding="utf-8") as f:
+    with MONTHLY_RIDERSHIP_CSV.open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
             if row["day_type"] != "WEEKDAY" or canon_from_monthly_row(row) != code:
                 continue
@@ -260,7 +208,7 @@ def ridership_stats(code: str) -> tuple[float | None, float | None, float | None
 def route_full_name(code: str) -> str:
     code = normalize_route_key(code)
     best: tuple[str, str] | None = None
-    with open("data/monthly_avg_ridership.csv", encoding="utf-8") as f:
+    with MONTHLY_RIDERSHIP_CSV.open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
             if normalize_route_key(row.get("ridership_route_code") or "") != code and canon_from_monthly_row(row) != code:
                 continue
@@ -290,21 +238,16 @@ def build_route_finding_row(
     profiles: dict[str, dict[str, str]],
     county: dict[str, str],
     route_neighborhoods_lookup: dict[str, tuple[list[str], str]] | None = None,
-    prefer_lookup: bool = False,
 ) -> dict[str, Any]:
     """One row aligned with `fy2026_eliminated_route_findings.csv` (no reduction_tier)."""
     rcode = c["ridership_route_code"]
     route = c["route"]
     nk = normalize_route_key(rcode)
-    lookup_ninfo = None
+    ninfo: tuple[list[str] | None, str] | None = None
     if route_neighborhoods_lookup:
-        lookup_ninfo = route_neighborhoods_lookup.get(rcode) or route_neighborhoods_lookup.get(nk)
-    static_ninfo = ROUTE_NEIGHBORHOODS.get(rcode) or ROUTE_NEIGHBORHOODS.get(nk)
-    ninfo = lookup_ninfo if prefer_lookup else static_ninfo
+        ninfo = route_neighborhoods_lookup.get(rcode) or route_neighborhoods_lookup.get(nk)
     if not ninfo:
-        ninfo = static_ninfo if prefer_lookup else lookup_ninfo
-    if not ninfo:
-        ninfo = (None, "Mapping note: default rationale.")
+        ninfo = (None, "No stop-based neighborhood mapping in neighborhood_route_service.json; county proxy.")
     names, rationale = ninfo
     demo = agg_neighborhoods(names, profiles) if names else county_stats(county)
     pr, cv, po, ch, d2020 = ridership_stats(rcode)
@@ -406,7 +349,7 @@ def main() -> None:
     assert county is not None
 
     all_cuts: list[dict[str, str]] = []
-    with open("data/prt_fy2026_route_cuts.csv", encoding="utf-8") as f:
+    with CUTS_CSV.open(encoding="utf-8") as f:
         all_cuts = list(csv.DictReader(f))
 
     eliminated = [r for r in all_cuts if r["primary_reduction_action"] == "eliminate"]
@@ -420,7 +363,6 @@ def main() -> None:
                 profiles,
                 county,
                 route_neighborhoods_lookup=route_neighborhoods_lookup,
-                prefer_lookup=False,
             )
         )
 
@@ -446,7 +388,6 @@ def main() -> None:
             profiles,
             county,
             route_neighborhoods_lookup=route_neighborhoods_lookup,
-            prefer_lookup=True,
         )
         for c in sorted(unaffected, key=lambda x: x["ridership_route_code"])
     ]
@@ -500,7 +441,6 @@ def main() -> None:
             profiles,
             county,
             route_neighborhoods_lookup=route_neighborhoods_lookup,
-            prefer_lookup=True,
         )
         tier = reduction_tier_for_action(c["primary_reduction_action"])
         assert tier in ("major", "minor")

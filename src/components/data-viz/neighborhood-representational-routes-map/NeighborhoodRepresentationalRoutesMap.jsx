@@ -197,25 +197,24 @@ function getCssVar(name, fallback) {
 }
 
 /** @param {import('mapbox-gl').Map} map */
-const REP_ROUTE_REDUCED_GREY = "#8a8a8a";
-
 function applyRepresentationalRouteLineStyle(map, mode) {
   if (!map.getLayer("rep-route-lines-layer")) return;
-  const n6 = getCssVar("--n6", "#1c1c1c");
+  const lineDefault = getCssVar("--color-line-default", "#134948");
+  const lineReduced = getCssVar("--color-line-reduced1", "#82B6B5");
   if (mode === "before") {
-    map.setPaintProperty("rep-route-lines-layer", "line-color", n6);
+    map.setPaintProperty("rep-route-lines-layer", "line-color", lineDefault);
     map.setPaintProperty("rep-route-lines-layer", "line-opacity", 1);
   } else {
     map.setPaintProperty("rep-route-lines-layer", "line-color", [
       "match",
       ["get", "route_status"],
       "unchanged",
-      n6,
+      lineDefault,
       "reduced",
-      REP_ROUTE_REDUCED_GREY,
+      lineReduced,
       "eliminated",
-      n6,
-      n6,
+      lineDefault,
+      lineDefault,
     ]);
     map.setPaintProperty("rep-route-lines-layer", "line-opacity", [
       "match",
@@ -420,16 +419,16 @@ export default function NeighborhoodRepresentationalRoutesMap() {
       lineFcRef.current = lineFc;
       pointFcRef.current = pointFc;
 
-      const n0 = typeof window !== "undefined"
-        ? getComputedStyle(document.documentElement).getPropertyValue("--n0").trim() || "#f7f7f7"
-        : "#f7f7f7";
+      const pageBg = getCssVar("--color-bg-default", "#f7f7f7");
 
       const map = new mapboxgl.Map({
         container: containerRef.current,
         style: {
           ...FLAT_BASEMAP_STYLE,
           layers: FLAT_BASEMAP_STYLE.layers.map((layer) =>
-            layer.id === "basemap-flat" ? { ...layer, paint: { ...(layer.paint || {}), "background-color": n0 } } : layer,
+            layer.id === "basemap-flat"
+              ? { ...layer, paint: { ...(layer.paint || {}), "background-color": pageBg } }
+              : layer,
           ),
         },
         center: MAP_CENTER,
@@ -442,14 +441,20 @@ export default function NeighborhoodRepresentationalRoutesMap() {
       restrictMapboxFreeformZoom(map);
 
       map.on("load", () => {
+        const lineDefault = getCssVar("--color-line-default", "#134948");
+        const lineW = Number.parseFloat(getCssVar("--width-2", "1")) || 0.85;
+        const pov0 = getCssVar("--color-fill-positive", "#bfd0aa");
+        const pov1 = getCssVar("--color-fill-neutral", "#c5b491");
+        const pov2 = getCssVar("--color-fill-neg1", "#ffa883");
+        const pov3 = getCssVar("--color-fill-neg2", "#d85c4d");
         map.addSource("rep-route-lines", { type: "geojson", data: lineFc });
         map.addLayer({
           id: "rep-route-lines-layer",
           type: "line",
           source: "rep-route-lines",
           paint: {
-            "line-color": getCssVar("--n6", "#1c1c1c"),
-            "line-width": 0.85,
+            "line-color": lineDefault,
+            "line-width": lineW,
             "line-opacity": 1,
           },
           layout: { "line-cap": "round", "line-join": "round" },
@@ -476,13 +481,13 @@ export default function NeighborhoodRepresentationalRoutesMap() {
               ["linear"],
               ["get", "poverty"],
               0,
-              "#5a8f9e",
+              pov0,
               0.12,
-              "#6a9e8a",
+              pov1,
               0.22,
-              "#c49a6c",
+              pov2,
               0.35,
-              "#c45c3e",
+              pov3,
             ],
             "circle-stroke-width": [
               "case",

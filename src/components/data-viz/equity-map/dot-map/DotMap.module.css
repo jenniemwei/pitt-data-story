@@ -16,7 +16,7 @@
 }
 
 .intro p {
-  font: var(--font-body-md);
+  font: var(--weight-regular) var(--size-m) / var(--leading-default) var(--font-sans);
   color: var(--color-text-secondary);
   margin: 0;
   line-height: 1.55;
@@ -37,7 +37,7 @@
 .mapControlsLabel {
   font: var(--font-caption-2);
   font-weight: 600;
-  color: var(--color-text-label);
+  color: var(--color-text-secondary);
   margin-right: var(--space-1);
 }
 
@@ -56,7 +56,7 @@
   cursor: pointer;
   font: var(--font-caption-1);
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--color-text-default);
 }
 
 .controlButtonActive {
@@ -95,14 +95,14 @@
   border: var(--border-minimal);
   border-radius: var(--radius-md);
   padding: var(--space-3);
-  font: var(--font-body-sm);
+  font: var(--weight-regular) var(--size-sm) / var(--leading-default) var(--font-sans);
   line-height: 1.5;
 }
 
 .legendHeading {
   font-weight: 600;
   margin: 0 0 var(--space-2);
-  color: var(--color-text-primary);
+  color: var(--color-text-default);
 }
 
 .legendGrid {
@@ -115,7 +115,7 @@
 .legendRowLabel {
   font: var(--font-caption-2);
   font-weight: 600;
-  color: var(--color-text-label);
+  color: var(--color-text-secondary);
   padding-top: 2px;
 }
 
@@ -175,7 +175,7 @@
 
 .sizeCircle {
   border-radius: 50%;
-  background: var(--color-text-primary);
+  background: var(--color-text-default);
   opacity: 0.75;
 }
 
@@ -211,7 +211,7 @@
   padding: var(--space-2) var(--space-3);
   font: var(--font-caption-2);
   color: var(--color-text-caption-1);
-  background: color-mix(in srgb, var(--color-bg-page) 92%, transparent);
+  background: color-mix(in srgb, var(--color-bg-default) 92%, transparent);
   border-bottom: 1px solid var(--color-border-default);
 }
 
@@ -229,7 +229,7 @@
 }
 
 .sidepanel {
-  font: var(--font-body-sm);
+  font: var(--weight-regular) var(--size-sm) / var(--leading-default) var(--font-sans);
   background: var(--color-bg-surface);
   border: var(--border-minimal);
   border-radius: var(--radius-md);
@@ -243,7 +243,7 @@
 .sidepanel dt {
   font: var(--font-caption-2);
   font-weight: 600;
-  color: var(--color-text-label);
+  color: var(--color-text-secondary);
   margin-top: var(--space-2);
 }
 
@@ -253,7 +253,7 @@
 
 .sidepanel dd {
   margin: 2px 0 0;
-  font: var(--font-body-sm);
+  font: var(--weight-regular) var(--size-sm) / var(--leading-default) var(--font-sans);
 }
 
 .metric {
