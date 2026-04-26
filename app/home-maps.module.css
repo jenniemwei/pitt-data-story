@@ -17,11 +17,6 @@
   background: var(--n0, #f7f7f7);
 }
 
-.gridCollapsed .stickyPanelWrap {
-  border-right: none;
-  box-shadow: none;
-}
-
 .stickyPanelWrap {
   position: fixed;
   left: 0;
@@ -31,12 +26,11 @@
   width: var(--home-info-panel-width);
   max-width: none;
   height: 100dvh;
+  min-height: 100dvh;
   max-height: 100dvh;
   overflow: hidden;
   box-sizing: border-box;
-  background: var(--n0, #f7f7f7);
-  border-right: 1px solid var(--border-subtle, #d1cdc8);
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.06);
+  background: #fff;
 }
 
 .mapsColumn {
@@ -58,9 +52,6 @@
     height: auto;
     max-height: none;
     overflow: visible;
-    border-right: none;
-    border-bottom: 1px solid var(--border-subtle, #d1cdc8);
-    box-shadow: none;
   }
 
   .mapsColumn {

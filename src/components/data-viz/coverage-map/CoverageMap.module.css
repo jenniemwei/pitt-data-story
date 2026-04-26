@@ -31,47 +31,25 @@
 }
 
 .sidebar {
-  background: var(--white, #fff);
-  border-right: 1px solid var(--border-subtle, #d1cdc8);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100dvh;
+  background: #fff;
   z-index: 2;
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.04);
-  transition: width 0.2s ease, min-width 0.2s ease;
-}
-
-.sidebarCollapsed {
-  width: 0;
-  min-width: 0;
-  padding: 0;
-  overflow: hidden;
-  border-right: none;
 }
 
 .sidebarInner {
+  box-sizing: border-box;
+  flex: 1;
+  min-height: 0;
   padding: 1.1rem 1.15rem 1.5rem;
   max-height: 100dvh;
   overflow-y: auto;
 }
 
 .sidebarTop {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
   margin-bottom: 1rem;
-}
-
-.collapseToggle {
-  flex-shrink: 0;
-  appearance: none;
-  border: 1px solid var(--border-subtle);
-  background: var(--n0);
-  color: var(--default);
-  width: 2rem;
-  height: 2rem;
-  border-radius: 4px;
-  font-size: 1rem;
-  line-height: 1;
-  cursor: pointer;
 }
 
 .hoodTitle {
@@ -96,23 +74,6 @@
   margin-bottom: 1.25rem;
   padding-bottom: 0.25rem;
   border-bottom: 1px solid var(--border-subtle);
-}
-
-.clearBtn {
-  appearance: none;
-  border: 1px solid var(--border-subtle);
-  background: transparent;
-  color: var(--default);
-  font-size: 0.78rem;
-  padding: 0.35rem 0.65rem;
-  cursor: pointer;
-  margin-top: 0.35rem;
-}
-
-.hint {
-  margin: 0.35rem 0 0;
-  font-size: 0.72rem;
-  color: var(--secondary);
 }
 
 .missingProfile {
@@ -167,6 +128,10 @@
   word-break: break-word;
 }
 
+.routeNameReduced {
+  color: #8a8a8a;
+}
+
 .sidebarEmpty {
   margin: 0;
   color: var(--secondary);
@@ -180,26 +145,6 @@
   min-width: 0;
   max-width: none;
   width: 100%;
-}
-
-.expandFab {
-  position: absolute;
-  top: 50%;
-  right: 0.5rem;
-  left: auto;
-  z-index: 2;
-  transform: translateY(-50%);
-  appearance: none;
-  border: 1px solid var(--border-subtle);
-  background: var(--white);
-  color: var(--default);
-  width: 2rem;
-  height: 2.5rem;
-  border-radius: 6px 0 0 6px;
-  font-size: 1rem;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
 }
 
 .map {

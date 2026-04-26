@@ -11,8 +11,7 @@ function num(value, fallback = 0) {
 }
 
 export default function NeighborhoodInfoPanel() {
-  const { panelDisplay, coverageSelected, clearCoverageSelection, sidebarCollapsed, setSidebarCollapsed } =
-    useNeighborhoodPanel();
+  const { panelDisplay, coverageSelected } = useNeighborhoodPanel();
 
   const row = panelDisplay?.profile;
   const wfh = row ? num(row.share_commute_worked_from_home) : null;
@@ -34,10 +33,7 @@ export default function NeighborhoodInfoPanel() {
   const routesLeadSelected = Boolean(coverageSelected);
 
   return (
-    <aside
-      className={`${styles.sidebar} ${sidebarCollapsed ? styles.sidebarCollapsed : ""}`}
-      aria-label="Neighborhood details"
-    >
+    <aside className={styles.sidebar} aria-label="Neighborhood details">
       <div className={styles.sidebarInner}>
         <div className={styles.sidebarTop}>
           {panelDisplay ? (
@@ -45,74 +41,70 @@ export default function NeighborhoodInfoPanel() {
           ) : (
             <h2 className={styles.hoodTitleMuted}>Pittsburgh neighborhoods</h2>
           )}
-          <button
-            type="button"
-            className={styles.collapseToggle}
-            onClick={() => setSidebarCollapsed((c) => !c)}
-            aria-expanded={!sidebarCollapsed}
-            aria-label={sidebarCollapsed ? "Expand panel" : "Collapse panel"}
-          >
-            {sidebarCollapsed ? "‹" : "›"}
-          </button>
         </div>
 
-        {!sidebarCollapsed && (
-          <>
-            {showCharts && (
-              <div className={styles.demoBlock}>
-                <CommuteMethodGauge
-                  workFromHomeShare={wfh}
-                  vehicleWalkShare={vehicleWalk}
-                  transitShare={transit}
-                />
-                <PovertyPictogram
-                  belowPovertyLineShare={below100}
-                  deepPovertyShare={deepPov}
-                  highIncomeHouseholdShare={highInc}
-                  peoplePerDot={peoplePerDot}
-                />
-                <button type="button" className={styles.clearBtn} onClick={clearCoverageSelection}>
-                  Clear selection
-                </button>
-                <p className={styles.hint}>Press Esc to clear.</p>
+        {showCharts && (
+          <div className={styles.demoBlock}>
+            <CommuteMethodGauge
+              workFromHomeShare={wfh}
+              vehicleWalkShare={vehicleWalk}
+              transitShare={transit}
+            />
+            <PovertyPictogram
+              belowPovertyLineShare={below100}
+              deepPovertyShare={deepPov}
+              highIncomeHouseholdShare={highInc}
+              peoplePerDot={peoplePerDot}
+            />
+          </div>
+        )}
+
+        {coverageSelected && !row && (
+          <p className={styles.missingProfile}>
+            No profile row found for this neighborhood (check that <code>neighborhood_display_profiles.csv</code> is
+            built and synced).
+          </p>
+        )}
+
+        {panelDisplay && (
+          <div className={styles.routesBlock}>
+            <p className={styles.routesLead}>
+              {routesLeadSelected ? "Routes" : "Hover a neighborhood"}{" "}
+              <span className={styles.coveragePill}>lost coverage {(panelDisplay.lostCoverage * 100).toFixed(1)}%</span>
+            </p>
+            <div className={styles.routeCols}>
+              <div>
+                <h3 className={styles.routeHeading}>Before ({panelDisplay.beforeCount})</h3>
+                <p className={styles.routeList}>{panelDisplay.beforeRoutes.join(", ") || "—"}</p>
               </div>
-            )}
-
-            {coverageSelected && !row && (
-              <p className={styles.missingProfile}>
-                No profile row found for this neighborhood (check that{" "}
-                <code>neighborhood_display_profiles.csv</code> is built and synced).
-              </p>
-            )}
-
-            {panelDisplay && (
-              <div className={styles.routesBlock}>
-                <p className={styles.routesLead}>
-                  {routesLeadSelected ? "Routes" : "Hover a neighborhood"}{" "}
-                  <span className={styles.coveragePill}>
-                    lost coverage {(panelDisplay.lostCoverage * 100).toFixed(1)}%
-                  </span>
+              <div>
+                <h3 className={styles.routeHeading}>After ({panelDisplay.afterCount})</h3>
+                <p className={styles.routeList}>
+                  {panelDisplay.afterRouteItems?.length
+                    ? panelDisplay.afterRouteItems.map((item, i) => (
+                        <span key={item.id}>
+                          {i > 0 && ", "}
+                          <span
+                            className={item.status === "reduced" ? styles.routeNameReduced : undefined}
+                            title={item.status === "reduced" ? "Service reduced" : undefined}
+                          >
+                            {item.id}
+                          </span>
+                        </span>
+                      ))
+                    : panelDisplay.afterRoutes.join(", ") || "—"}
                 </p>
-                <div className={styles.routeCols}>
-                  <div>
-                    <h3 className={styles.routeHeading}>Before ({panelDisplay.beforeCount})</h3>
-                    <p className={styles.routeList}>{panelDisplay.beforeRoutes.join(", ") || "—"}</p>
-                  </div>
-                  <div>
-                    <h3 className={styles.routeHeading}>After ({panelDisplay.afterCount})</h3>
-                    <p className={styles.routeList}>{panelDisplay.afterRoutes.join(", ") || "—"}</p>
-                  </div>
-                </div>
               </div>
-            )}
+            </div>
+          </div>
+        )}
 
-            {!panelDisplay && (
-              <p className={styles.sidebarEmpty}>
-                Hover a neighborhood on the coverage map or the schematic map to compare routes before and after FY26.
-                Click a neighborhood on the coverage map to open commute and poverty charts (ACS).
-              </p>
-            )}
-          </>
+        {!panelDisplay && (
+          <p className={styles.sidebarEmpty}>
+            Hover a neighborhood on the coverage map or the schematic map to compare routes before and after FY26. Click
+            a neighborhood on the coverage map to open commute and poverty charts (ACS). Re-center the map or click
+            outside a neighborhood to leave selection.
+          </p>
         )}
       </div>
     </aside>

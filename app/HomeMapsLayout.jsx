@@ -1,18 +1,13 @@
 "use client";
 
-import { useNeighborhoodPanel } from "../src/contexts/NeighborhoodPanelContext";
 import NeighborhoodInfoPanel from "../src/components/neighborhood-panel/NeighborhoodInfoPanel";
 import homeStyles from "./home-maps.module.css";
 
-export default function HomeMapsLayout({ children }) {
-  const { sidebarCollapsed } = useNeighborhoodPanel();
-  const panelWidth = sidebarCollapsed ? "0px" : "clamp(280px, 34vw, 440px)";
+const PANEL_WIDTH = "clamp(280px, 34vw, 440px)";
 
+export default function HomeMapsLayout({ children }) {
   return (
-    <div
-      className={`${homeStyles.grid} ${sidebarCollapsed ? homeStyles.gridCollapsed : ""}`}
-      style={{ "--home-info-panel-width": panelWidth }}
-    >
+    <div className={homeStyles.grid} style={{ "--home-info-panel-width": PANEL_WIDTH }}>
       <div className={homeStyles.stickyPanelWrap}>
         <NeighborhoodInfoPanel />
       </div>

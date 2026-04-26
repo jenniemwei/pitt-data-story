@@ -197,20 +197,33 @@ function getCssVar(name, fallback) {
 }
 
 /** @param {import('mapbox-gl').Map} map */
+const REP_ROUTE_REDUCED_GREY = "#8a8a8a";
+
 function applyRepresentationalRouteLineStyle(map, mode) {
   if (!map.getLayer("rep-route-lines-layer")) return;
   const n6 = getCssVar("--n6", "#1c1c1c");
-  map.setPaintProperty("rep-route-lines-layer", "line-color", n6);
   if (mode === "before") {
+    map.setPaintProperty("rep-route-lines-layer", "line-color", n6);
     map.setPaintProperty("rep-route-lines-layer", "line-opacity", 1);
   } else {
+    map.setPaintProperty("rep-route-lines-layer", "line-color", [
+      "match",
+      ["get", "route_status"],
+      "unchanged",
+      n6,
+      "reduced",
+      REP_ROUTE_REDUCED_GREY,
+      "eliminated",
+      n6,
+      n6,
+    ]);
     map.setPaintProperty("rep-route-lines-layer", "line-opacity", [
       "match",
       ["get", "route_status"],
       "unchanged",
       1,
       "reduced",
-      0.3,
+      1,
       "eliminated",
       0,
       1,
@@ -471,23 +484,59 @@ export default function NeighborhoodRepresentationalRoutesMap() {
               0.35,
               "#c45c3e",
             ],
-            "circle-opacity": 0.92,
-            "circle-stroke-width": 0,
+            "circle-stroke-width": [
+              "case",
+              ["boolean", ["feature-state", "hover"], false],
+              2,
+              0,
+            ],
+            "circle-stroke-color": "rgba(0,0,0,0.3)",
+            "circle-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 0.86, 0.92],
           },
         });
 
+        let hoveredRepHood = null;
         const onHoodEnter = (e) => {
           const f = e.features?.[0];
           if (!f?.geometry || f.geometry.type !== "Point") return;
           map.getCanvas().style.cursor = "pointer";
           const name = String(f.properties?.neighborhood_name || "").trim();
           if (!name) return;
+          if (name !== hoveredRepHood) {
+            if (hoveredRepHood) {
+              try {
+                map.setFeatureState(
+                  { source: "rep-hood-points", id: hoveredRepHood },
+                  { hover: false },
+                );
+              } catch {
+                /* ignore */
+              }
+            }
+            hoveredRepHood = name;
+            try {
+              map.setFeatureState({ source: "rep-hood-points", id: name }, { hover: true });
+            } catch {
+              /* ignore */
+            }
+          }
           const { routesByNeighborhood: rbn, statusByRoute: sbr, reductionTierByRoute: rtr, profilesByHood: pbh } =
             hoverPanelDataRef.current;
           const payload = buildHoverPayloadForNeighborhoodName(name, rbn, sbr, rtr, pbh);
           setReprHoverRef.current(payload);
         };
         const onHoodLeave = () => {
+          if (hoveredRepHood) {
+            try {
+              map.setFeatureState(
+                { source: "rep-hood-points", id: hoveredRepHood },
+                { hover: false },
+              );
+            } catch {
+              /* ignore */
+            }
+            hoveredRepHood = null;
+          }
           map.getCanvas().style.cursor = "";
           setReprHoverRef.current(null);
         };

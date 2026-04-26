@@ -54,22 +54,47 @@ export function lossWeightForRoute(status, reductionTier) {
   return 0;
 }
 
+/**
+ * @param {object} p
+ * @param {Map} profilesByHood
+ * @returns {{
+ *   neighborhood: string; lostCoverage: number; beforeCount: number; afterCount: number;
+ *   beforeRoutes: string[]; afterRoutes: string[]; afterRouteItems: { id: string; status: string }[];
+ *   profile: object | null
+ * }}
+ */
 export function buildHoverPayload(p, profilesByHood) {
   const neighborhood = String(p.neighborhood_name || p.hood || "Unknown");
   const profile = pickProfile(profilesByHood, neighborhood);
+  const beforeRoutes = String(p.routes_before_csv || "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+  const afterRoutes = String(p.routes_after_csv || "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+  /** @type {Record<string, string> | null} */
+  let statusByRoute = null;
+  if (p.routes_after_status_json) {
+    try {
+      statusByRoute = JSON.parse(String(p.routes_after_status_json));
+    } catch {
+      statusByRoute = null;
+    }
+  }
+  const afterRouteItems = afterRoutes.map((id) => {
+    const raw = statusByRoute && typeof statusByRoute === "object" ? statusByRoute[id] : null;
+    return { id, status: normalizeStatus(raw) };
+  });
   return {
     neighborhood,
     lostCoverage: Number(p.lost_coverage ?? 0),
     beforeCount: Number(p.routes_before_count || 0),
     afterCount: Number(p.routes_after_count || 0),
-    beforeRoutes: String(p.routes_before_csv || "")
-      .split(",")
-      .map((v) => v.trim())
-      .filter(Boolean),
-    afterRoutes: String(p.routes_after_csv || "")
-      .split(",")
-      .map((v) => v.trim())
-      .filter(Boolean),
+    beforeRoutes,
+    afterRoutes,
+    afterRouteItems,
     profile,
   };
 }
@@ -94,14 +119,18 @@ export function computeNeighborhoodRouteStats(neighborhood, routesSet, statusByR
     String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" }),
   );
   const afterRoutes = beforeRoutes.filter((routeId) => (statusByRoute.get(routeId) || "unchanged") !== "eliminated");
+  const afterStatusById = Object.fromEntries(
+    afterRoutes.map((r) => [r, statusByRoute.get(r) || "unchanged"]),
+  );
 
   return {
     neighborhood_name: neighborhood,
     lost_coverage: lostCoverage,
     routes_before_csv: beforeRoutes.join(", "),
     routes_after_csv: afterRoutes.join(", "),
-    routes_before_count: beforeRoutes.length,
     routes_after_count: afterRoutes.length,
+    routes_after_status_json: JSON.stringify(afterStatusById),
+    routes_before_count: beforeRoutes.length,
   };
 }
 

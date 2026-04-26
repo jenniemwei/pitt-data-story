@@ -40,17 +40,10 @@ const LOSS_FILL_OPACITY_EXPRESSION = [
     ],
   ],
 ];
-const AFTER_ROUTE_OPACITY_EXPRESSION = [
-  "match",
-  ["get", "route_status"],
-  "unchanged",
-  1,
-  "reduced",
-  0.5,
-  "eliminated",
-  0,
-  1,
-];
+/** Slightly darker fill on hover (neighborhood fill layer). */
+const FILL_HOVER = "#0d0d0d";
+/** In “after” view, service-reduced lines render in grey; unchanged in white. */
+const ROUTE_REDUCED_GREY = "#8a8a8a";
 
 function parseCsv(text) {
   return Papa.parse(text, { header: true, skipEmptyLines: true }).data;
@@ -105,14 +98,41 @@ function fitMapToFeature(map, feature, fitOptions) {
 
 function applyCoverageViewMode(map, viewMode, accentMain) {
   if (!map.getLayer("coverage-hood-fill")) return;
-  map.setPaintProperty("coverage-hood-fill", "fill-color", accentMain);
+  map.setPaintProperty("coverage-hood-fill", "fill-color", [
+    "case",
+    ["boolean", ["feature-state", "hover"], false],
+    FILL_HOVER,
+    accentMain,
+  ]);
   map.setPaintProperty("coverage-hood-fill", "fill-opacity", LOSS_FILL_OPACITY_EXPRESSION);
   if (map.getLayer("coverage-routes-line")) {
-    map.setPaintProperty(
-      "coverage-routes-line",
-      "line-opacity",
-      viewMode === "before" ? 1 : AFTER_ROUTE_OPACITY_EXPRESSION,
-    );
+    if (viewMode === "before") {
+      map.setPaintProperty("coverage-routes-line", "line-color", "#ffffff");
+      map.setPaintProperty("coverage-routes-line", "line-opacity", 1);
+    } else {
+      map.setPaintProperty("coverage-routes-line", "line-color", [
+        "match",
+        ["get", "route_status"],
+        "unchanged",
+        "#ffffff",
+        "reduced",
+        ROUTE_REDUCED_GREY,
+        "eliminated",
+        "#ffffff",
+        "#ffffff",
+      ]);
+      map.setPaintProperty("coverage-routes-line", "line-opacity", [
+        "match",
+        ["get", "route_status"],
+        "unchanged",
+        1,
+        "reduced",
+        1,
+        "eliminated",
+        0,
+        1,
+      ]);
+    }
   }
 }
 
@@ -129,13 +149,8 @@ export default function CoverageMap() {
   const [showRoutes, setShowRoutes] = useState(false);
   const [hoverData, setHoverData] = useState(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(null);
-  const {
-    setCoveragePanelBase,
-    setCoverageSelected,
-    registerClearCoverageSelection,
-    sidebarCollapsed,
-    setSidebarCollapsed,
-  } = useNeighborhoodPanel();
+  const hoverHoodIdRef = useRef(null);
+  const { setCoveragePanelBase, setCoverageSelected } = useNeighborhoodPanel();
   const token = useMemo(() => process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "", []);
 
   selectedRef.current = selectedNeighborhood;
@@ -153,37 +168,33 @@ export default function CoverageMap() {
     }
     selectedIdRef.current = null;
     setSelectedNeighborhood(null);
+    if (map && hoverHoodIdRef.current) {
+      try {
+        map.setFeatureState(
+          { source: "coverage-hoods", id: hoverHoodIdRef.current },
+          { hover: false },
+        );
+      } catch {
+        /* ignore */
+      }
+      hoverHoodIdRef.current = null;
+    }
     const coll = cityFeatureCollectionRef.current;
     if (map && coll?.features?.length) {
       fitNeighborhoodBounds(map, coll, { duration: 550 });
     }
   }, []);
 
-  const recenterMap = useCallback(() => {
-    const map = mapRef.current;
-    const coll = cityFeatureCollectionRef.current;
-    if (map && coll?.features?.length) {
-      fitNeighborhoodBounds(map, coll, { duration: 650 });
-    }
-  }, []);
+  const clearSelectionOnMapRef = useRef(clearSelectionOnMap);
+  clearSelectionOnMapRef.current = clearSelectionOnMap;
 
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") clearSelectionOnMap();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [clearSelectionOnMap]);
+  /** Re-center the city and clear a selected neighborhood. */
+  const recenterMap = clearSelectionOnMap;
 
   useEffect(() => {
     setCoveragePanelBase(selectedNeighborhood || hoverData);
     setCoverageSelected(selectedNeighborhood);
   }, [hoverData, selectedNeighborhood, setCoveragePanelBase, setCoverageSelected]);
-
-  useEffect(() => {
-    registerClearCoverageSelection(clearSelectionOnMap);
-    return () => registerClearCoverageSelection(null);
-  }, [clearSelectionOnMap, registerClearCoverageSelection]);
 
   useEffect(() => {
     if (!token || !containerRef.current) return undefined;
@@ -252,6 +263,9 @@ export default function CoverageMap() {
           String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" }),
         );
         const afterRoutes = beforeRoutes.filter((routeId) => (statusByRoute.get(routeId) || "unchanged") !== "eliminated");
+        const afterStatusById = Object.fromEntries(
+          afterRoutes.map((r) => [r, statusByRoute.get(r) || "unchanged"]),
+        );
 
         return {
           ...feature,
@@ -261,6 +275,7 @@ export default function CoverageMap() {
             lost_coverage: lostCoverage,
             routes_before_csv: beforeRoutes.join(", "),
             routes_after_csv: afterRoutes.join(", "),
+            routes_after_status_json: JSON.stringify(afterStatusById),
             routes_before_count: beforeRoutes.length,
             routes_after_count: afterRoutes.length,
             is_water:
@@ -307,7 +322,12 @@ export default function CoverageMap() {
           type: "fill",
           source: "coverage-hoods",
           paint: {
-            "fill-color": accentMain,
+            "fill-color": [
+              "case",
+              ["boolean", ["feature-state", "hover"], false],
+              FILL_HOVER,
+              accentMain,
+            ],
             "fill-opacity": LOSS_FILL_OPACITY_EXPRESSION,
           },
         });
@@ -322,22 +342,56 @@ export default function CoverageMap() {
           },
         });
 
-        const clearHover = () => {
+        const clearHoverState = (clearPanelHover) => {
+          if (hoverHoodIdRef.current) {
+            try {
+              map.setFeatureState(
+                { source: "coverage-hoods", id: hoverHoodIdRef.current },
+                { hover: false },
+              );
+            } catch {
+              /* ignore */
+            }
+            hoverHoodIdRef.current = null;
+          }
           map.getCanvas().style.cursor = "";
-          if (!selectedRef.current) setHoverData(null);
+          if (clearPanelHover && !selectedRef.current) setHoverData(null);
         };
 
-        const onMoveFromHoodProps = (props) => {
-          if (!props) return;
+        const onMoveFromHoodFeature = (feature) => {
+          if (!feature?.properties) return;
+          const id = feature.properties.neighborhood_name;
+          if (id == null) return;
+          if (id !== hoverHoodIdRef.current) {
+            if (hoverHoodIdRef.current) {
+              try {
+                map.setFeatureState(
+                  { source: "coverage-hoods", id: hoverHoodIdRef.current },
+                  { hover: false },
+                );
+              } catch {
+                /* ignore */
+              }
+            }
+            hoverHoodIdRef.current = id;
+            try {
+              map.setFeatureState({ source: "coverage-hoods", id }, { hover: true });
+            } catch {
+              /* ignore */
+            }
+          }
           map.getCanvas().style.cursor = "pointer";
           if (selectedRef.current) return;
-          setHoverData(buildHoverPayload(props, profilesRef.current));
+          setHoverData(buildHoverPayload(feature.properties, profilesRef.current));
         };
 
         map.on("mousemove", "coverage-hood-fill", (e) => {
-          onMoveFromHoodProps(e.features?.[0]?.properties);
+          const f = e.features?.[0];
+          if (f) onMoveFromHoodFeature(f);
         });
-        map.on("mouseleave", "coverage-hood-fill", clearHover);
+        map.on("mouseleave", "coverage-hood-fill", () => {
+          clearHoverState(true);
+        });
 
         const onClickHoodFeature = (feature) => {
           if (!feature?.properties) return;
@@ -362,7 +416,14 @@ export default function CoverageMap() {
           fitMapToFeature(map, feature);
         };
 
-        map.on("click", "coverage-hood-fill", (e) => onClickHoodFeature(e.features?.[0]));
+        map.on("click", (e) => {
+          const hits = map.queryRenderedFeatures(e.point, { layers: ["coverage-hood-fill"] });
+          if (hits.length > 0) {
+            onClickHoodFeature(hits[0]);
+          } else if (selectedIdRef.current != null) {
+            clearSelectionOnMapRef.current();
+          }
+        });
 
         applyCoverageViewMode(map, viewModeRef.current, accentMain);
 
@@ -401,7 +462,7 @@ export default function CoverageMap() {
               paint: {
                 "line-color": "#ffffff",
                 "line-width": 0.7,
-                "line-opacity": AFTER_ROUTE_OPACITY_EXPRESSION,
+                "line-opacity": 1,
               },
               layout: {
                 "line-join": "round",
@@ -420,6 +481,7 @@ export default function CoverageMap() {
       setHoverData(null);
       setSelectedNeighborhood(null);
       selectedIdRef.current = null;
+      hoverHoodIdRef.current = null;
       if (mapRef.current) mapRef.current.remove();
       mapRef.current = null;
     };
@@ -452,17 +514,7 @@ export default function CoverageMap() {
     <div className={styles.coverageMapSection}>
       <div className={styles.mapShell}>
         <div ref={containerRef} className={styles.map} role="presentation" />
-        {sidebarCollapsed && (
-          <button
-            type="button"
-            className={styles.expandFab}
-            onClick={() => setSidebarCollapsed(false)}
-            aria-label="Expand neighborhood panel"
-          >
-            ‹
-          </button>
-        )}
-          <div className={styles.mapControls}>
+        <div className={styles.mapControls}>
             <div className={styles.mapOverlay} role="group" aria-label="Map mode">
               <button
                 type="button"
