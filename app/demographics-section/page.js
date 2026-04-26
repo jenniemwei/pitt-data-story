@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ScrollDemographics } from "../../src/components/data-viz";
+import { ScrollDemographics } from "../../src/components/data-viz/scroll-demographics/ScrollDemographics";
 import { GalleryRow } from "../../src/components/layout/GalleryRow";
 import { demographicsPageStructure } from "../../src/data/structure";
 
@@ -19,7 +19,7 @@ export default function DemographicsSectionPage() {
       >
         <div>
           <Link href="/" className="type-link-back text-ink-default underline-offset-4 hover:underline">
-            ← Back to full story
+            ← Back home
           </Link>
         </div>
       </GalleryRow>

@@ -1,6 +1,7 @@
 /**
  * Build GeoJSON for the bivariate dot map: global `pointGrid`, point-in-polygon → neighborhood;
- * poverty tertiles → color, transit proxy → three size buckets.
+ * poverty: two buckets (≥20% vs &lt;20% ACS below-poverty share) → color;
+ * transit proxy: fixed bands — no dot &lt;5%; smallest 5–10%; medium &gt;10–20%; largest &gt;20%.
  */
 
 import bbox from "@turf/bbox";
@@ -9,17 +10,20 @@ import { featureCollection } from "@turf/helpers";
 import pointGrid from "@turf/point-grid";
 import { pointsWithinPolygon } from "@turf/turf";
 import simplify from "@turf/simplify";
-
-import { POVERTY_LEVEL_COLORS } from "../../../components/data-viz/equity-map/mapStyles";
 import {
-  binFromCuts,
-  quartileUpperEdges,
-  sortedProp,
-  transitSizeBucketFromQuartileCuts,
-} from "../quartileBins";
+  POVERTY_HIGH_THRESHOLD,
+  TRANSIT_DOT_MEDIUM_MAX_RATIO,
+  TRANSIT_DOT_MIN_RATIO,
+  TRANSIT_DOT_SMALL_MAX_RATIO,
+} from "../constants";
 
-const DOT_MAP_SIMPLIFY_TOLERANCE_DEG = 0.00055;
-const DOT_MAP_DEFAULT_CELL_KM = 0.075;
+// map styles
+const POVERTY_LEVEL_COLORS = ["#D1CDC8", "#FFA883", "#D85C4D"];
+
+/** Exported for coverage map dot grid — same simplify tolerance as {@link buildDotMapGeojson}. */
+export const DOT_MAP_SIMPLIFY_TOLERANCE_DEG = 0.00055;
+/** Exported for coverage map dot grid — same cell size as {@link buildDotMapGeojson}. */
+export const DOT_MAP_DEFAULT_CELL_KM = 0.075;
 
 function safeFloat(v, fallback = 0) {
   const n = Number(v);
@@ -43,14 +47,17 @@ export function povertyTercileCuts(values) {
   return [quantileSorted(sorted, 1 / 3), quantileSorted(sorted, 2 / 3)];
 }
 
-function transitQuartileCuts(values) {
-  const sorted = values.filter((v) => Number.isFinite(v)).sort((a, b) => a - b);
-  if (!sorted.length) return [0.08, 0.15, 0.22];
-  return [
-    quantileSorted(sorted, 0.25),
-    quantileSorted(sorted, 0.5),
-    quantileSorted(sorted, 0.75),
-  ];
+/** @param {number} p — poverty rate; if &gt; 1, treated as whole percent (÷100). */
+export function povertyRateAsRatio(p) {
+  if (!Number.isFinite(p)) return null;
+  return p > 1 ? p / 100 : p;
+}
+
+/** 0 = below {@link POVERTY_HIGH_THRESHOLD}, 1 = at or above (20%+ when threshold is 0.2). */
+export function povertyDualBucketFromRate(p) {
+  const r = povertyRateAsRatio(p);
+  if (r == null) return 0;
+  return r >= POVERTY_HIGH_THRESHOLD ? 1 : 0;
 }
 
 /** @param {number} p @param {[number, number]} cuts */
@@ -61,27 +68,34 @@ export function povertyColorBucket(p, cuts) {
   return 2;
 }
 
-/** 0 = t ≤ Q2, 1 = Q2 < t ≤ Q3, 2 = t > Q3 */
-function transitSizeBucket(t, q) {
-  const [, q2, q3] = q;
-  if (t <= q2) return 0;
-  if (t <= q3) return 1;
-  return 2;
+/** Normalize transit proxy to 0–1 (whole percent in source → ÷100). */
+export function transitDependenceRatio(raw) {
+  const t = Number(raw);
+  if (!Number.isFinite(t)) return NaN;
+  return t > 1 ? t / 100 : t;
 }
 
 /**
- * Legend copy for three transit-dependence dot sizes (same bands as `transitSizeBucket`).
- * @param {[number, number, number]} cuts — Q1, Q2, Q3
+ * Fixed transit size bucket for dot maps. `null` = do not draw a dot (below {@link TRANSIT_DOT_MIN_RATIO}).
+ * @returns {0 | 1 | 2 | null}
  */
-export function transitSizeLegendFromCuts(cuts) {
-  const [q1, q2, q3] = cuts;
-  const p = (x) => `${(x * 100).toFixed(1)}%`;
+export function transitSizeBucketFromRatio(rawTransit) {
+  const r = transitDependenceRatio(rawTransit);
+  if (!Number.isFinite(r) || r < TRANSIT_DOT_MIN_RATIO) return null;
+  if (r <= TRANSIT_DOT_SMALL_MAX_RATIO) return 0;
+  if (r <= TRANSIT_DOT_MEDIUM_MAX_RATIO) return 1;
+  return 2;
+}
+
+/** Legend for fixed transit bands (matches `transitSizeBucketFromRatio`). */
+export function transitSizeLegendFixed() {
+  const p = (x) => `${Math.round(x * 100)}%`;
   return {
-    caption: `Smallest ≤ ${p(q2)}; medium ${p(q2)}–${p(q3)}; largest > ${p(q3)} (ref. Q1 ${p(q1)}).`,
+    caption: `No dots below ${p(TRANSIT_DOT_MIN_RATIO)}. Smallest ${p(TRANSIT_DOT_MIN_RATIO)}–${p(TRANSIT_DOT_SMALL_MAX_RATIO)}; medium >${p(TRANSIT_DOT_SMALL_MAX_RATIO)}–${p(TRANSIT_DOT_MEDIUM_MAX_RATIO)}; largest >${p(TRANSIT_DOT_MEDIUM_MAX_RATIO)}. Dot radii scale 1∶2∶3.`,
     entries: [
-      { b: 2, label: `largest dots — > ${p(q3)}` },
-      { b: 1, label: `medium — ${p(q2)}–${p(q3)}` },
-      { b: 0, label: `smallest dots — ≤ ${p(q2)}` },
+      { b: 2, label: `Largest — > ${p(TRANSIT_DOT_MEDIUM_MAX_RATIO)}` },
+      { b: 1, label: `Medium — > ${p(TRANSIT_DOT_SMALL_MAX_RATIO)}–${p(TRANSIT_DOT_MEDIUM_MAX_RATIO)}` },
+      { b: 0, label: `Smallest — ${p(TRANSIT_DOT_MIN_RATIO)}–${p(TRANSIT_DOT_SMALL_MAX_RATIO)}` },
     ],
   };
 }
@@ -102,12 +116,7 @@ export function buildDotMapGeojson(hoodFc, opts = {}) {
 
   const landFeatures = hoodFc.features.filter((f) => safeFloat(f.properties?.is_water, 0) !== 1);
 
-  const povertyVals = landFeatures.map((f) => safeFloat(f.properties?.poverty_rate));
-  const transitVals = landFeatures.map((f) => safeFloat(f.properties?.pct_transit_dependent));
-  const povertyCuts = povertyTercileCuts(povertyVals);
-  const transitCuts = transitQuartileCuts(transitVals);
-
-  /** @type {{ simplified: import('geojson').Feature; hood: string; poverty: number; pb: number; tb: number; servesP1071b: number; transit: number }[]} */
+  /** @type {{ simplified: import('geojson').Feature; hood: string; poverty: number; pb: number; tb: number | null; servesP1071b: number; transit: number }[]} */
   const prepared = [];
 
   for (const f of landFeatures) {
@@ -115,8 +124,8 @@ export function buildDotMapGeojson(hoodFc, opts = {}) {
     const poverty = safeFloat(f.properties?.poverty_rate);
     const transit = safeFloat(f.properties?.pct_transit_dependent);
     const servesP1071b = safeFloat(f.properties?.serves_p10_71b, 0);
-    const pb = povertyColorBucket(poverty, povertyCuts);
-    const tb = transitSizeBucket(transit, transitCuts);
+    const pb = povertyDualBucketFromRate(poverty);
+    const tb = transitSizeBucketFromRatio(transit);
 
     const simplified = simplify(clone(f), { tolerance: simplifyTol, highQuality: true });
     prepared.push({ simplified, hood, poverty, pb, tb, servesP1071b, transit });
@@ -127,8 +136,7 @@ export function buildDotMapGeojson(hoodFc, opts = {}) {
     return {
       dots: featureCollection([]),
       hoodsSimplified: featureCollection([]),
-      povertyCuts,
-      transitCuts,
+      povertyCuts: [POVERTY_HIGH_THRESHOLD, POVERTY_HIGH_THRESHOLD],
     };
   }
 
@@ -139,6 +147,7 @@ export function buildDotMapGeojson(hoodFc, opts = {}) {
   const dotFeatures = [];
 
   for (const { simplified, hood, poverty, pb, tb, servesP1071b, transit } of prepared) {
+    if (tb == null) continue;
     let inside;
     try {
       inside = pointsWithinPolygon(grid, simplified);
@@ -160,7 +169,7 @@ export function buildDotMapGeojson(hoodFc, opts = {}) {
           poverty_rate: poverty,
           transit_dependent: transit,
           serves_p10_71b: servesP1071b,
-          dot_color: POVERTY_LEVEL_COLORS[pb] ?? POVERTY_LEVEL_COLORS[1],
+          dot_color: POVERTY_LEVEL_COLORS[pb === 1 ? 2 : 0] ?? POVERTY_LEVEL_COLORS[0],
         },
       });
     }
@@ -169,57 +178,65 @@ export function buildDotMapGeojson(hoodFc, opts = {}) {
   return {
     dots: featureCollection(dotFeatures),
     hoodsSimplified: featureCollection(simplifiedPolys),
-    povertyCuts,
-    transitCuts,
+    povertyCuts: [POVERTY_HIGH_THRESHOLD, POVERTY_HIGH_THRESHOLD],
   };
 }
 
+function safeLostCoverageRatio(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(1, n));
+}
+
 /**
- * Corridor scroll map: same lattice as `buildDotMapGeojson`, but poverty uses **4 quartile bins**
- * on 71B/P10–touched hoods (matches choropleth); transit sizes use **touched-hood** quartile cuts.
- * @param {import('geojson').FeatureCollection} hoodFc — land features with `on_corridor`, `poverty_rate`, `pct_transit_dependent`, etc.
+ * Global point grid + simplified polygons (same pattern as {@link buildDotMapGeojson}):
+ * one `pointGrid` over combined bbox, `pointsWithinPolygon` per hood, `claimed` coord de-duping.
+ * Dot `lost_coverage` comes from FY26 proportional loss (0–1); radius scales in the map layer.
+ *
+ * @param {import('geojson').FeatureCollection} hoodFc — features need `lost_coverage`, `neighborhood_name` or `hood`, optional `is_water`
+ * @param {object} [opts]
+ * @param {number} [opts.cellKm]
+ * @param {number} [opts.simplifyToleranceDeg]
  */
-export function buildCorridorScrollDotsGeojson(hoodFc, opts = {}) {
+export function buildLostCoverageDotGridGeojson(hoodFc, opts = {}) {
   const simplifyTol = opts.simplifyToleranceDeg ?? DOT_MAP_SIMPLIFY_TOLERANCE_DEG;
   const cellKm = opts.cellKm ?? DOT_MAP_DEFAULT_CELL_KM;
 
   const landFeatures = hoodFc.features.filter((f) => safeFloat(f.properties?.is_water, 0) !== 1);
-  const touchedFeat = landFeatures.filter((f) => safeFloat(f.properties?.on_corridor, 0) === 1);
 
-  const pCutsC = quartileUpperEdges(sortedProp(touchedFeat, "poverty_rate"));
-  const tCutsC = quartileUpperEdges(sortedProp(touchedFeat, "pct_transit_dependent"));
-
-  /** @type {{ simplified: import('geojson').Feature; hood: string; poverty: number; transit: number; poverty_bin_c: number; transit_bucket: number }[]} */
+  /** @type {{ simplified: import('geojson').Feature; hood: string; lostCoverage: number }[]} */
   const prepared = [];
 
   for (const f of landFeatures) {
     const hood = (f.properties?.neighborhood_name || f.properties?.hood || "").trim();
-    const poverty = safeFloat(f.properties?.poverty_rate);
-    const transit = safeFloat(f.properties?.pct_transit_dependent);
-    const poverty_bin_c = binFromCuts(poverty, pCutsC);
-    const transit_bucket = transitSizeBucketFromQuartileCuts(transit, tCutsC);
-
+    const lostCoverage = safeLostCoverageRatio(f.properties?.lost_coverage);
     const simplified = simplify(clone(f), { tolerance: simplifyTol, highQuality: true });
-    prepared.push({ simplified, hood, poverty, transit, poverty_bin_c, transit_bucket });
+    prepared.push({ simplified, hood, lostCoverage });
   }
 
   const simplifiedPolys = prepared.map((p) => p.simplified);
   if (!simplifiedPolys.length) {
     return {
       dots: featureCollection([]),
-      hoodsSimplified: featureCollection(simplifiedPolys),
-      pCutsC,
-      tCutsC,
+      hoodsSimplified: featureCollection([]),
     };
   }
 
   const extent = bbox(featureCollection(simplifiedPolys));
-  const grid = pointGrid(extent, cellKm, { units: "kilometers" });
+  let grid;
+  try {
+    grid = pointGrid(extent, cellKm, { units: "kilometers" });
+  } catch {
+    return {
+      dots: featureCollection([]),
+      hoodsSimplified: featureCollection(simplifiedPolys),
+    };
+  }
 
   const claimed = new Set();
   const dotFeatures = [];
 
-  for (const { simplified, hood, poverty, transit, poverty_bin_c, transit_bucket } of prepared) {
+  for (const { simplified, hood, lostCoverage } of prepared) {
     let inside;
     try {
       inside = pointsWithinPolygon(grid, simplified);
@@ -236,10 +253,7 @@ export function buildCorridorScrollDotsGeojson(hoodFc, opts = {}) {
         geometry: cell.geometry,
         properties: {
           neighborhood_name: hood,
-          poverty_bin_c,
-          transit_bucket,
-          poverty_rate: poverty,
-          transit_dependent: transit,
+          lost_coverage: lostCoverage,
         },
       });
     }
@@ -248,7 +262,5 @@ export function buildCorridorScrollDotsGeojson(hoodFc, opts = {}) {
   return {
     dots: featureCollection(dotFeatures),
     hoodsSimplified: featureCollection(simplifiedPolys),
-    pCutsC,
-    tCutsC,
   };
 }

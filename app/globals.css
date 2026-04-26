@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: Literata;
+  src: url("/Literata_18pt-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* =============================================================================
    Design system primitives — tokens only; compose with @utility / Tailwind.
    Spacing scale uses --p-* (px) to avoid clashing with legacy --space-* module vars.
@@ -14,15 +22,15 @@
   --n3: #AEAAA5;
   --placeholder: #ffacac;
 
-  
+
   --n4: #86868a;
   --n5: #363636;
   --n6: #1c1c1c;
   --n8: #121212;
   --n10: #000000;
 
-  --g1:#BFD0AA;
-  --g2:#5e9f74;
+  --g1: #BFD0AA;
+  --g2: var(--n2);
   /* Grey ramp (semantic ink/border tokens reference g0, g3–g8) */
   --g0: var(--n0);
   --g3: var(--n2);
@@ -31,31 +39,30 @@
   --g6: var(--n5);
   --g8: var(--n8);
 
-  --y1:#FFE869;
+  --y1: #FFE869;
 
-  --b1:#6996FF;
+  --b1: #6996FF;
 
-  --r1:#FFA883;
-  --r2:#D85C4D;
-  --r3:#B94033;
-  --r4:#9E241B;
+  --r1: #FFA883;
+  --r2: #D85C4D;
+  --r3: #B94033;
+  --r4: #9E241B;
 
-
-  --accent1:var(--r2);
-  --accent2:var(--y1);
-  --accent3:var(--b1);
-  --accent4:var(--g2);
-/*MAP  COLORS
+  --accent-main: rgba(0, 45, 50, 1);
+  --accent1: var(--r2);
+  --accent2: var(--y1);
+  --accent3: var(--b1);
+  --accent4: var(--g2);
+  /* map styles
   ---------------------------------------------
   */
-
   /* map fills */
   --color-map-bg: var(--white);
   --color-map-inactive: var(--g1);
   --color-map-l0: var(--g1);
   --color-map-l2: var(--r1);
   --color-map-l3: var(--r2);
-  
+
   /* map borders */
   --color-map-border-neutral: #E0E0E0;
   --color-map-border-highlight: #ffffff;
@@ -118,9 +125,9 @@
   --border-width-default: 1px;
   --border-width-sm: 0.5px;
 
-  /* --- Font stacks (Next sets --font-albert-sans / --font-geist-mono on <html>) --- */
+  /* --- Font stacks: Albert Sans (UI/body); Literata @font-face (narrative + headings). Next sets vars on <html>. --- */
   --font-sans-stack: var(--font-albert-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display-stack: var(--font-sans-stack);
+  --font-display-stack: Literata, ui-serif, Georgia, "Times New Roman", serif;
   --font-mono-stack: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     monospace;
 
@@ -145,74 +152,23 @@
   --space-xl: var(--p-64);
 
   /* --- Layout --- */
-  --content-max: 1400px;
-  --shell-max-width: 1440px;
-  --page-gutter: clamp(1.25rem, 5.55vw, 5rem);
-
-  /* --- Nav --- */
-  --nav-fill-background: color-mix(in srgb, var(--bg-default) 30%, transparent);
-  --nav-fill-backdrop-blur: 16px;
-  --nav-icon-size: 32px;
-  --nav-scroll-margin: 4.75rem;
-
-  /* --- Hero / galleries / sections --- */
-  --hero-border-width: var(--border-width-sm);
-  --hero-height: 80vh;
-  --hero-grid-gap-x: var(--p-20);
-  --hero-visual-max-width: 240px;
-  --hero-visual-aspect-ratio: 7 / 10;
-  --spacer-section-height: 200px;
-  --spacer-inner-gap: var(--p-41);
-  --intro-grid-gap: var(--p-12);
-
-  /* --- Focus ring --- */
-  --focus-ring-width: var(--p-2);
-  --focus-ring-color: var(--default);
-  --focus-ring-offset: var(--p-2);
-
-  /* --- Placeholder routes / home --- */
-  --placeholder-body-max-width: 42rem;
-  --secondary-intro-max-width: 56rem;
-  --home-page-padding-bottom: var(--p-48);
-
-  /* --- Motion & interaction --- */
-  --image-hover-opacity: 0.95;
-  --link-hover-opacity: 0.7;
-  --transition-fast: 150ms ease;
-
-  /* --- Hero custom cursor --- */
-  --hero-cursor-width: 5rem;
-  --hero-cursor-z: 45;
-  --hero-cursor-hotspot-nudge-x: calc(var(--space-s) * -1);
-  --hero-cursor-hotspot-nudge-y: calc(var(--space-s) * -1);
-
   /* --- Legacy module spacing (existing *.module.css — unchanged meanings) --- */
   --space-2: 8px;
   --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
   --space-6: 40px;
-  --space-7: 56px;
-  --space-8: 80px;
 
   /* --- Legacy / app semantic aliases (charts, modules) --- */
-  --font-family-sans: var(--font-sans-stack);
-  --font-family-main: var(--font-sans-stack);
   --font-family-caption: var(--font-sans-stack);
-  --font-story-narrative: var(--semibold) 1.25rem / 1.45 var(--font-sans-stack);
-  --font-story-vis: var(--semibold) clamp(1.2rem, 2.4vw, 1.5rem) / 1.28 var(--font-sans-stack);
+  --font-story-narrative: var(--semibold) 1.25rem / 1.45 var(--font-display-stack);
   --font-story-caption: var(--regular) 0.8125rem / 1.45 var(--font-sans-stack);
   --font-body-sm: var(--regular) 1rem / 1.55 var(--font-sans-stack);
   --font-body-md: var(--regular) var(--font-m) / var(--lead-note) var(--font-sans-stack);
-  --font-story-subhead: var(--semibold) var(--font-lg) / var(--lead-base) var(--font-sans-stack);
+  --font-story-subhead: var(--semibold) var(--font-lg) / var(--lead-base) var(--font-display-stack);
   --font-route-type-label: var(--regular) 16px / 1.35 var(--font-sans-stack);
   --font-info-panel-heading: var(--semibold) 15px / 1.25 var(--font-sans-stack);
   --font-caption-1: var(--font-story-caption);
   --font-caption-2: var(--font-story-caption);
-  --font-mono-label: var(--font-story-caption);
   --font-num: var(--semibold) 1.25rem / 1.2 var(--font-sans-stack);
-  --font-narrative: var(--font-story-vis);
-  --font-page-title: var(--font-story-vis);
 
   --color-bg-page: var(--bg-default);
   --color-bg-surface: var(--white);
@@ -224,19 +180,13 @@
   --color-text-disclaimer: var(--g4);
   --color-text-caption-1: var(--color-text-label);
   --color-text-caption-2: var(--color-text-disclaimer);
-  --color-text-body: var(--secondary);
 
   --color-border-default: var(--border-default);
-  --color-border-strong: var(--g3);
   --border-minimal: none;
 
 
   --radius-sm: 6px;
   --radius-md: 8px;
-
-  --equity-map-line-xs: 0.5px;
-  --equity-map-line-s: 1px;
-  --equity-map-line-m: 2px;
 
   --narrative-ink: var(--default);
 }
@@ -246,7 +196,6 @@
     --space-s: var(--p-12);
     --space-m: var(--p-24);
     --space-lg: var(--p-48);
-    --hero-visual-max-width: 360px;
   }
 }
 
@@ -284,15 +233,19 @@
   .text-ink-default {
     color: var(--color-text-primary);
   }
+
   .text-ink-secondary {
     color: var(--color-text-secondary);
   }
+
   .text-ink-subtle {
     color: var(--color-text-subtle);
   }
+
   .text-ink-label {
     color: var(--color-text-label);
   }
+
   .text-ink-disclaimer {
     color: var(--color-text-disclaimer);
   }
@@ -318,7 +271,7 @@
 }
 
 @utility type-section-h2 {
-  font: var(--regular) var(--font-lg) / var(--lead-base) var(--font-sans-stack);
+  font: var(--regular) var(--font-lg) / var(--lead-base) var(--font-display-stack);
   letter-spacing: var(--tracking-sans-tight);
 }
 
@@ -338,7 +291,7 @@
 }
 
 @utility type-page-heading {
-  font: var(--regular) var(--font-xl) / var(--lead-base) var(--font-sans-stack);
+  font: var(--regular) var(--font-xl) / var(--lead-base) var(--font-display-stack);
   letter-spacing: var(--tracking-sans-tight);
 }
 
@@ -446,12 +399,30 @@ body {
   background: var(--color-bg-page);
 }
 
+/* Semantic headings use display (Literata); low specificity so components can override. */
+.page-shell :where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-display-stack);
+}
+
 /* Full-app content width: 80vw, capped 1200px, floored 800px, centered */
 .page-shell {
   width: 80vw;
   max-width: 1200px;
   min-width: 800px;
   margin-inline: auto;
+}
+
+/* Full-bleed coverage story: drop shell width floor so the map can use the viewport. */
+.page-shell:has(.coverage-home),
+.page-shell:has(.home-full-bleed) {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+
+.coverage-home {
+  margin: 0;
+  padding: 0;
 }
 
 body a,

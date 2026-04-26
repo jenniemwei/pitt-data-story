@@ -15,9 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "PRT FY26 cuts · full story",
-  description:
-    "Personas, route compare, trip purpose proxy, equity map, one scroll.",
+  title: "PRT FY26 cuts",
+  description: "PRT FY26 route changes, demographics, equity dot map, and orphaned stops.",
 };
 
 export default function RootLayout({ children }) {

@@ -1,8 +1,8 @@
 "use client";
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { scrollDemographicsNarrative as defaultNarrative } from "../../../data/narrative";
 import { scrollDemographicsStructure } from "../../../data/structure";
+import { scrollDemographicsNarrative as defaultNarrative } from "./scrollDemographicsNarrative";
 import { DataRationaleIcon } from "../../ui/DataRationaleIcon";
 import styles from "./ScrollDemographics.module.css";
 

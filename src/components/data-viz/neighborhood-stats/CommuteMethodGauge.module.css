@@ -1,0 +1,63 @@
+.wrap {
+  margin: 0 0 1.5rem;
+}
+
+.title {
+  margin: 0 0 0.65rem;
+  font-family: var(--font-display-stack, Literata, ui-serif, Georgia, serif);
+  font-size: 1rem;
+  line-height: 1.35;
+  color: var(--default, #121212);
+}
+
+.titleEm {
+  font-weight: 600;
+}
+
+.chart {
+  max-width: 220px;
+  margin: 0 auto 0.5rem;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-family: var(--font-albert-sans, system-ui, sans-serif);
+  font-size: 0.72rem;
+  color: var(--default, #121212);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.swatch {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.swatch[data-variant="wfh"] {
+  background: var(--color-special-positive, #047857);
+}
+
+.swatch[data-variant="vehicle"] {
+  background: var(--n2, #d1cdc8);
+}
+
+.swatch[data-variant="transit"] {
+  background: var(--r2, #d85c4d);
+}

@@ -10,8 +10,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
 const allowed = [
   "neighborhoods.geojson",
+  "corridor_story_routes.geojson",
   "route_lines_current.geojson",
   "fy26_route_n_profiles_all.csv",
+  "n_profiles_new.csv",
+  "neighborhood_display_profiles.csv",
   "FY26_route_status_all.csv",
   "demographics.csv",
   "routes_with_demographics.csv",

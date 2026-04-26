@@ -1,0 +1,82 @@
+.wrap {
+  width: 100%;
+  max-width: 62rem;
+  margin: 0 auto;
+}
+
+.header h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+  color: var(--default);
+}
+
+.header p {
+  margin: 0 0 1rem;
+  color: var(--secondary);
+}
+
+.stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  border: 1px solid var(--border-subtle);
+  background: var(--n0);
+  padding: 0.8rem;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.sub {
+  margin: 0.25rem 0 0.15rem;
+  color: var(--secondary);
+  font-size: 0.9rem;
+}
+
+.total {
+  margin: 0 0 0.55rem;
+  font-size: 0.9rem;
+  color: var(--default);
+}
+
+.timeline {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.segment {
+  border-left-width: 3px;
+  border-left-color: #111;
+  border-left-style: solid;
+  padding: 0.45rem 0.55rem;
+  background: #fff;
+  overflow: hidden;
+}
+
+.walk {
+  border-left-style: dotted;
+}
+
+.bus {
+  border-left-style: solid;
+}
+
+.segmentHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.segmentText {
+  margin: 0.25rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.28;
+  color: var(--secondary);
+}
+

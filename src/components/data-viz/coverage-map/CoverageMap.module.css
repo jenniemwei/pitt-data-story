@@ -1,0 +1,301 @@
+.fullPage {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  min-height: 100dvh;
+  background: var(--n0, #f7f7f7);
+}
+
+/* Map-only block when sidebar lives in shared home layout */
+.coverageMapSection {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 100dvh;
+  background: var(--n0, #f7f7f7);
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(280px, 36%) 1fr;
+  min-height: 100dvh;
+  width: 100%;
+}
+
+.shellCollapsed {
+  grid-template-columns: 0 1fr;
+}
+
+.sidebar {
+  background: var(--white, #fff);
+  border-right: 1px solid var(--border-subtle, #d1cdc8);
+  z-index: 2;
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.04);
+  transition: width 0.2s ease, min-width 0.2s ease;
+}
+
+.sidebarCollapsed {
+  width: 0;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border-right: none;
+}
+
+.sidebarInner {
+  padding: 1.1rem 1.15rem 1.5rem;
+  max-height: 100dvh;
+  overflow-y: auto;
+}
+
+.sidebarTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.collapseToggle {
+  flex-shrink: 0;
+  appearance: none;
+  border: 1px solid var(--border-subtle);
+  background: var(--n0);
+  color: var(--default);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.hoodTitle {
+  margin: 0;
+  font-family: var(--font-display-stack);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--default);
+}
+
+.hoodTitleMuted {
+  margin: 0;
+  font-family: var(--font-display-stack);
+  font-size: 1.1rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--secondary);
+}
+
+.demoBlock {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.clearBtn {
+  appearance: none;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--default);
+  font-size: 0.78rem;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  margin-top: 0.35rem;
+}
+
+.hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: var(--secondary);
+}
+
+.missingProfile {
+  margin: 0 0 1rem;
+  font-size: 0.82rem;
+  color: var(--secondary);
+  line-height: 1.45;
+}
+
+.routesBlock {
+  margin-top: 0.25rem;
+}
+
+.routesLead {
+  margin: 0 0 0.65rem;
+  font-family: var(--font-display-stack);
+  font-size: 0.88rem;
+  color: var(--default);
+}
+
+.coveragePill {
+  display: inline-block;
+  margin-left: 0.25rem;
+  font-family: var(--font-albert-sans, system-ui, sans-serif);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--secondary);
+}
+
+.routeCols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1rem;
+}
+
+.routeHeading {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-albert-sans, system-ui, sans-serif);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--secondary);
+}
+
+.routeList {
+  margin: 0;
+  font-family: var(--font-geist-mono, ui-monospace, monospace);
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--default);
+  word-break: break-word;
+}
+
+.sidebarEmpty {
+  margin: 0;
+  color: var(--secondary);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.mapShell {
+  position: relative;
+  min-height: 320px;
+  min-width: 0;
+  max-width: none;
+  width: 100%;
+}
+
+.expandFab {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  left: auto;
+  z-index: 2;
+  transform: translateY(-50%);
+  appearance: none;
+  border: 1px solid var(--border-subtle);
+  background: var(--white);
+  color: var(--default);
+  width: 2rem;
+  height: 2.5rem;
+  border-radius: 6px 0 0 6px;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}
+
+.map {
+  width: 100%;
+  height: 100dvh;
+  min-height: 400px;
+}
+
+.mapControls {
+  position: absolute;
+  top: 1rem;
+  right: 3.5rem;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45rem;
+}
+
+.mapOverlay {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-display-stack);
+  font-size: 1rem;
+  color: var(--default);
+  text-shadow: 0 1px 0 var(--n0);
+}
+
+.recenterBtn {
+  appearance: none;
+  border: 1px solid var(--border-subtle);
+  background: var(--white);
+  color: var(--default);
+  font-family: var(--font-albert-sans, system-ui, sans-serif);
+  font-size: 0.72rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.modeLink {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--secondary);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.modeLinkOn {
+  color: var(--default);
+  font-weight: 600;
+}
+
+.modeSep {
+  color: var(--n3);
+  user-select: none;
+}
+
+.routeToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-albert-sans, system-ui, sans-serif);
+  font-size: 0.75rem;
+  color: var(--default);
+  text-shadow: 0 1px 0 var(--n0);
+  cursor: pointer;
+  user-select: none;
+}
+
+@media (max-width: 880px) {
+  .shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(55dvh, 1fr);
+  }
+
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+    max-height: 42dvh;
+  }
+
+  .sidebarInner {
+    max-height: 42dvh;
+  }
+
+  .map {
+    height: min(58dvh, 560px);
+  }
+
+  .mapControls {
+    right: 3rem;
+  }
+}

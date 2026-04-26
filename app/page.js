@@ -1,25 +1,17 @@
-import { StoryFullExperience } from "../src/components/data-viz";
-import { GalleryRow } from "../src/components/layout/GalleryRow";
-import { homePageStructure } from "../src/data/structure";
+import { NeighborhoodPanelProvider } from "../src/contexts/NeighborhoodPanelContext";
+import CoverageMap from "../src/components/data-viz/coverage-map/CoverageMap";
+import NeighborhoodRepresentationalRoutesMap from "../src/components/data-viz/neighborhood-representational-routes-map/NeighborhoodRepresentationalRoutesMap";
+import HomeMapsLayout from "./HomeMapsLayout";
 
 export default function HomePage() {
   return (
-    <main className="pt-6 px-4 pb-20">
-      <GalleryRow
-        variant={homePageStructure.introRow.variant}
-        measure={homePageStructure.introRow.measure}
-        layoutId={homePageStructure.introRow.id}
-        className="max-w-3xl mx-auto w-full"
-      >
-        <header className="text-left">
-          <h1 className="type-story-narrative text-ink-default mb-3">PRT FY26 cuts: full story</h1>
-          <p className="type-story-narrative text-ink-default mb-10">
-            Regional scale, two riders, FY26 cuts, corridor map, limits of ridership framing, after cuts, and trip
-            purpose proxy.
-          </p>
-        </header>
-      </GalleryRow>
-      <StoryFullExperience />
+    <main className="home-full-bleed min-h-screen w-full max-w-none min-w-0 overflow-x-hidden pt-6 pb-20">
+      <NeighborhoodPanelProvider>
+        <HomeMapsLayout>
+          <CoverageMap />
+          <NeighborhoodRepresentationalRoutesMap />
+        </HomeMapsLayout>
+      </NeighborhoodPanelProvider>
     </main>
   );
 }

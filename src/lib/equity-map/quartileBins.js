@@ -45,11 +45,3 @@ export function binFromCuts(v, cuts) {
   if (v <= c2) return 2;
   return 3;
 }
-
-/** 0 = t ≤ Q2, 1 = Q2 < t ≤ Q3, 2 = t > Q3 — same bands as dot-map transit sizes. */
-export function transitSizeBucketFromQuartileCuts(t, cuts) {
-  const [, q2, q3] = cuts;
-  if (t <= q2) return 0;
-  if (t <= q3) return 1;
-  return 2;
-}

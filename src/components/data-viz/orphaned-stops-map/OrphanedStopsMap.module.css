@@ -1,0 +1,84 @@
+.wrap {
+  width: 100%;
+  max-width: 76rem;
+  margin: 0 auto;
+}
+
+.header h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.4rem;
+  color: var(--default);
+}
+
+.header p {
+  margin: 0 0 0.9rem;
+  color: var(--secondary);
+  font-size: 0.95rem;
+}
+
+.header p code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.88em;
+}
+
+.map {
+  width: 100%;
+  height: min(72vh, 760px);
+  border: 1px solid var(--border-subtle);
+}
+
+.legend {
+  margin-top: 0.75rem;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border-subtle);
+  background: var(--n0);
+  color: var(--secondary);
+  font-size: 0.85rem;
+}
+
+.legendTitle {
+  font-weight: 600;
+  color: var(--default);
+  margin-bottom: 0.2rem;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.swatchLow,
+.swatchHigh,
+.dotRemaining,
+.dot {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 1px solid #fff;
+}
+
+.swatchLow {
+  background: #d1cdc8;
+}
+
+.swatchHigh {
+  background: #d85c4d;
+}
+
+.dotRemaining {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.28);
+}
+
+.dot {
+  border-radius: 999px;
+  background: #000;
+}
+

@@ -2,10 +2,12 @@
  * Mapbox paint helpers: ground-matched circle radii + zoom resolution steps for the dot map.
  */
 
-import { MAP_CENTER, MAP_INITIAL_ZOOM } from "../mapStyles";
+// map styles
+const MAP_CENTER = [-79.9959, 40.4406];
+const MAP_INITIAL_ZOOM = 10.1;
 
-/** Relative to half of neighbor spacing; tier 2 = tangent at grid pitch (three transit sizes). */
-export const TRANSIT_BUCKET_MULT = [0.25, 0.65, 1.02];
+/** Relative to half of neighbor spacing; strict 1∶2∶3 area feel (smallest bumped vs older 0.25 tier). */
+export const TRANSIT_BUCKET_MULT = [0.34, 0.68, 1.02];
 
 /** Legend swatch scale — proportional to `TRANSIT_BUCKET_MULT`. */
 export const TRANSIT_LEGEND_RADIUS = {
@@ -32,6 +34,40 @@ function radiusMetersForTransitBucket(cellKm, bucket) {
 function radiusPxForTransitBucket(latDeg, zoom, cellKm, bucket) {
   const mpp = metersPerPixelAtLatZoom(latDeg, zoom);
   return radiusMetersForTransitBucket(cellKm, bucket) / mpp;
+}
+
+/** Half neighbor spacing in px (same base as smallest transit bucket without TRANSIT_BUCKET_MULT). */
+function radiusPxHalfCell(latDeg, zoom, cellKm) {
+  const mpp = metersPerPixelAtLatZoom(latDeg, zoom);
+  const radiusMeters = neighborSpacingMeters(cellKm) / 2;
+  return radiusMeters / mpp;
+}
+
+/**
+ * Mapbox `circle-radius`: ground-matched half-cell radius × `lost_coverage` (0–1), by zoom.
+ * Pairs with {@link DOT_MAP_RESOLUTION_STEPS} the same way as {@link circleRadiusGroundMatchExpression}.
+ */
+export function circleRadiusLostCoverageExpression(cellKm) {
+  const lat = MAP_CENTER[1];
+  const z = MAP_INITIAL_ZOOM;
+  const radiusAt = (zoom) => [
+    "*",
+    radiusPxHalfCell(lat, zoom, cellKm),
+    ["coalesce", ["get", "lost_coverage"], 0],
+  ];
+  return [
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+    z,
+    radiusAt(z),
+    z + 2,
+    radiusAt(z + 2),
+    z + 4,
+    radiusAt(z + 4),
+    z + 6.5,
+    radiusAt(z + 6.5),
+  ];
 }
 
 /** Mapbox `circle-radius` from `transit_bucket` and zoom for a given grid `cellKm`. */

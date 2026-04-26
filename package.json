@@ -1,15 +1,18 @@
 {
   "scripts": {
-    "dev": "node scripts/sync-public-data.mjs && next dev",
-    "build": "node scripts/sync-public-data.mjs && next build",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "sync-data": "node scripts/sync-public-data.mjs",
-    "build:static": "node scripts/sync-public-data.mjs && STATIC_EXPORT=1 next build",
+    "build:hood-profiles": "python3 scripts/build-neighborhood-display-profiles.py",
+    "build:corridor-routes": "node scripts/build-corridor-story-routes.mjs",
+    "build:static": "STATIC_EXPORT=1 next build",
     "preview:static": "npx --yes serve out"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.2",
     "@turf/turf": "^7.3.4",
+    "d3": "^7.9.0",
     "geist": "^1.7.0",
     "mapbox-gl": "^3.20.0",
     "next": "^16.2.1",
@@ -18,10 +21,7 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "scrollama": "^3.2.0",
-    "tailwindcss": "^4.2.2"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^6.0.1",
-    "vite": "^8.0.3"
+    "tailwindcss": "^4.2.2",
+    "textures": "^1.2.3"
   }
 }

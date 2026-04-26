@@ -18,7 +18,7 @@ This document describes where code and assets live and how responsibilities are 
 ## `app/` — routes only
 
 - **`app/layout.js`** — Root layout (fonts, `globals.css`).
-- **`app/page.js`** — Production home: full story.
+- **`app/page.js`** — Production home: maps and comparisons (see imports).
 - **`app/globals.css`** — Design tokens, resets, and **global** utility classes (e.g. narrative typography). Prefer colocated `*.module.css` for component-specific styles in `src/`.
 
 Future **API** handlers belong at **`app/api/.../route.js`** (not under `src/`). Shared logic for those handlers still lives in **`src/lib/`**.
@@ -27,16 +27,12 @@ Future **API** handlers belong at **`app/api/.../route.js`** (not under `src/`).
 
 | Path | Role |
 |------|------|
-| **`src/components/`** | React components. Feature areas are grouped (e.g. `data-viz/`, `motion/`, `ui/`). |
+| **`src/components/`** | React components. Feature areas are grouped (e.g. `data-viz/`, `layout/`, `ui/`). |
 | **`src/lib/`** | Pure helpers, hooks, and domain logic (equity-map builders, scroll helpers, URLs). |
-| **`src/data/`** | Story assembly (`narrative.js`) and viz copy modules under **`src/data/copy/`** (corridor map, trip purpose, persona journeys). |
+| **`src/data/`** | Shared layout metadata (e.g. `structure.js` for `GalleryRow` ids). Scroll demographics default copy lives next to **`ScrollDemographics`** (`scrollDemographicsNarrative.js`). |
 | **`src/styles/`** | Optional **non-module** CSS shared across routes (add files here if you outgrow `app/globals.css`). Component styles stay as `*.module.css` next to their components unless they are truly global. |
-
-## Vite (optional)
-
-- **`src/main.jsx`**, **`src/App.jsx`**, **`vite.config.js`** — Used if you run the Vite entry for quick experiments; production story shipping uses **Next.js** and `app/`.
 
 ## Related docs
 
-- Personas and copy source: [PERSONAS.md](./PERSONAS.md) (`narrative.js` + `src/data/copy/*.js`).
+- Personas / historical story copy: [PERSONAS.md](./PERSONAS.md) (may reference removed Vite-era paths; treat as archive unless refreshed).
 - Dataset caveats: [DATASET_LIMITATIONS.md](./DATASET_LIMITATIONS.md).

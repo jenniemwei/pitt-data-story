@@ -26,6 +26,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-start;
   gap: var(--space-2);
   background: var(--color-bg-surface);
   border: var(--border-minimal);
@@ -62,34 +63,26 @@
   background: #ece7de;
 }
 
-.toggleAllRoutes {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin: 0;
-  padding: 4px 2px;
-  font: var(--font-caption-1);
-  font-weight: 500;
-  color: var(--color-text-primary);
-  cursor: pointer;
-  user-select: none;
+.mapControlsDivider {
+  flex: 0 0 1px;
+  width: 1px;
+  height: 1.35rem;
+  align-self: center;
+  background: var(--color-border-default);
+  opacity: 0.65;
 }
 
-.toggleAllRoutesDisabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.toggleAllRoutesInput {
-  width: 1rem;
-  height: 1rem;
-  margin: 0;
-  flex-shrink: 0;
-  accent-color: var(--color-text-primary);
+.zoomButton {
+  min-width: 2.25rem;
+  padding-left: 8px;
+  padding-right: 8px;
+  font-size: 1.1rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .recenterButton {
-  margin-left: auto;
+  margin-left: 0;
 }
 
 .recenterButton:disabled {
@@ -227,6 +220,14 @@
   height: 480px;
 }
 
+.mapCanvasPan {
+  cursor: grab;
+}
+
+.mapCanvasPan:active {
+  cursor: grabbing;
+}
+
 .sidepanel {
   font: var(--font-body-sm);
   background: var(--color-bg-surface);
@@ -266,6 +267,14 @@
 }
 
 @media (max-width: 840px) {
+  .mapControls {
+    align-items: flex-start;
+  }
+
+  .mapControlsDivider {
+    display: none;
+  }
+
   .body {
     grid-template-columns: 1fr;
   }

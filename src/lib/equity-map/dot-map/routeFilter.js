@@ -1,11 +1,11 @@
 /**
- * P10 / 71B “corridor” filter for the dot map — from `routes_before_street` or `routes_before`
+ * Story route filter for the dot map — from `routes_before_street` or `routes_before`
  * in `fy26_route_n_profiles_all.csv`.
  */
 
 import { normalizeRouteId } from "../constants";
 
-const ROUTE_VIEW_IDS = ["P10", "71B"];
+const ROUTE_VIEW_IDS = ["26", "71B"];
 
 function routeListIncludesAny(routeListStr, ids) {
   const want = new Set(ids.map((id) => normalizeRouteId(id)));

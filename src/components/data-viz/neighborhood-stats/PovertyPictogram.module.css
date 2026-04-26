@@ -1,0 +1,86 @@
+.wrap {
+  margin: 0;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display-stack, Literata, ui-serif, Georgia, serif);
+  font-size: 1rem;
+  line-height: 1.35;
+  color: var(--default, #121212);
+}
+
+.titleEm {
+  font-weight: 600;
+}
+
+.legendNote {
+  margin: 0 0 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-albert-sans, system-ui, sans-serif);
+  font-size: 0.72rem;
+  color: var(--secondary, #363636);
+}
+
+.legendDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--n3, #aeaaa5);
+  flex-shrink: 0;
+}
+
+.grid {
+  display: grid;
+  gap: 0.28rem 0.28rem;
+  max-width: 200px;
+  margin: 0 auto 0.35rem;
+}
+
+.cell {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--n2, #d1cdc8);
+}
+
+.cell[data-tone="high"] {
+  background: var(--g1, #bfd0aa);
+}
+
+.cell[data-tone="mid"] {
+  background: var(--n2, #d1cdc8);
+}
+
+.cell[data-tone="poverty"] {
+  background: var(--r1, #ffa883);
+}
+
+.cell[data-tone="deep"] {
+  background: var(--r2, #d85c4d);
+}
+
+.axisRow {
+  display: flex;
+  max-width: 200px;
+  margin: 0 auto;
+  font-family: var(--font-albert-sans, system-ui, sans-serif);
+  font-size: 0.68rem;
+  color: var(--secondary, #363636);
+}
+
+.axisHigh {
+  flex: 4;
+  text-align: center;
+}
+
+.axisPov {
+  flex: 2;
+  text-align: center;
+}
+
+.axisDeep {
+  flex: 2;
+  text-align: center;
+}

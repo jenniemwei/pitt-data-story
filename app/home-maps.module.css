@@ -1,0 +1,70 @@
+/**
+ * Shared layout: fixed left info panel + maps (desktop).
+ * --home-info-panel-width is set inline (0 when sidebar collapsed).
+ *
+ * "One column fixed, one column scrolls" is implemented with position: fixed +
+ * margin on the scroll column. Scrollama is not used here: it detects which
+ * step/section is in view (onStepEnter), it does not pin a column. Use
+ * useScrollama when you need per-section triggers alongside this layout.
+ */
+.grid {
+  --home-info-panel-width: clamp(280px, 34vw, 440px);
+  display: block;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 100dvh;
+  background: var(--n0, #f7f7f7);
+}
+
+.gridCollapsed .stickyPanelWrap {
+  border-right: none;
+  box-shadow: none;
+}
+
+.stickyPanelWrap {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 20;
+  width: var(--home-info-panel-width);
+  max-width: none;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: var(--n0, #f7f7f7);
+  border-right: 1px solid var(--border-subtle, #d1cdc8);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.06);
+}
+
+.mapsColumn {
+  margin-left: var(--home-info-panel-width);
+  width: calc(100% - var(--home-info-panel-width));
+  min-width: 0;
+  max-width: none;
+  border-left: none;
+  background: var(--n0, #f7f7f7);
+}
+
+@media (max-width: 880px) {
+  .stickyPanelWrap {
+    position: relative;
+    left: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle, #d1cdc8);
+    box-shadow: none;
+  }
+
+  .mapsColumn {
+    margin-left: 0;
+    width: 100%;
+  }
+}

@@ -1,5 +1,7 @@
 # Neighborhood shortlist rationale
 
+> **Shipped story (Apr 2026):** The live narrative uses **Highland Park** for Marcus (71B alignment) with LLB unchanged for Denise. Below, **Pair C** still documents the original **Stanton Heights** baseline pairing from the shortlist CSV — kept as historical rationale.
+
 This document explains why the neighborhoods in `[data/n_shortlist.csv](../data/n_shortlist.csv)` were paired, how to read the metrics, and how official FY2026 cut **methodology** relates to places like **Allentown** (eliminated routes + reduced routes in the same neighborhood).
 
 ## Data sources

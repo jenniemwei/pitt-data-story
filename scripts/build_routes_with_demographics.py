@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Build route-level scatter inputs for RidershipEquityScatter.
+Build route-level scatter inputs (e.g. recovery scatter charts).
 
 Outputs:
   - data/ridership.csv — route_id, avg_daily_riders (weekday recent from FY26)
