@@ -1,6 +1,6 @@
 "use client";
 
-import NeighborhoodInfoPanel from "../src/components/neighborhood-panel/NeighborhoodInfoPanel";
+import NeighborhoodInfoPanel from "../src/components/info-panel/InfoPanel";
 import homeStyles from "./home-maps.module.css";
 
 const PANEL_WIDTH = "clamp(280px, 34vw, 440px)";

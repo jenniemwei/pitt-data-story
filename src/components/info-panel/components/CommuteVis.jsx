@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "./CommuteMethodGauge.module.css";
+import styles from "./CommuteVis.module.css";
 
 function clamp01(x) {
   const n = Number(x);
@@ -38,10 +38,10 @@ export default function CommuteMethodGauge({
 
   const start = Math.PI;
   let angle = start;
-  const segments = [
-    { share: a, color: "var(--color-special-positive, #047857)" },
-    { share: b, color: "var(--n2, #d1cdc8)" },
-    { share: c, color: "var(--r2, #d85c4d)" },
+  const segments = [    
+    { share: a, color: "var(--color-fill-positive, #047857)" },
+    { share: b, color: "var(--color-fill-neutral2, #d1cdc8)" },
+    { share: c, color: "var(--color-fill-neg2, #d85c4d)" },
   ];
 
   const paths = [];

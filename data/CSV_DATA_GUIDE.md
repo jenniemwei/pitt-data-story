@@ -33,16 +33,22 @@ This file documents what each CSV in `data/` currently contains, using the updat
 - `data/primary/neighborhood_profiles.csv`  
   Neighborhood profile source table (demographic and socioeconomic context), used in profile and summary workflows.
 
-## Archive Outputs (`data/archive/`)
+## Archive — older snapshots & unreferenced CSVs (`data/archive/unreferenced/`)
 
-- `data/archive/fy2026_eliminated_route_findings.csv`  
-  Archived eliminated-route findings output (pre-combined export).
+- `data/archive/unreferenced/fy2026-csv-older-snapshots/fy2026_eliminated_route_findings.csv`  
+  Older eliminated-route findings snapshot (differs from current `data/fy2026_eliminated_route_findings.csv`).
 
-- `data/archive/fy2026_reduced_route_findings.csv`  
-  Archived reduced-route findings output (pre-combined export).
+- `data/archive/unreferenced/fy2026-csv-older-snapshots/fy2026_reduced_route_findings.csv`  
+  Older reduced-route findings snapshot (differs from current `data/fy2026_reduced_route_findings.csv`).
 
-- `data/archive/fy2026_unaffected_route_findings.csv`  
-  Archived unaffected-route findings output (pre-combined export).
+- `data/archive/unreferenced/fy2026-csv-older-snapshots/fy2026_unaffected_route_findings.csv`  
+  Older unaffected-route findings snapshot (differs from current `data/fy2026_unaffected_route_findings.csv`).
+
+- `data/archive/unreferenced/homewood_south_vs_lower_lawrenceville_story_data.csv`  
+  One-off comparison export (not used by the app).
+
+- `data/archive/unreferenced/join-qa-exports/*.csv`  
+  Join key QA tables previously under `data/join/`; regenerate with `python3 scripts/build_join_key_maps.py` into `data/join/`.
 
 ## Crosswalk / Profile Tables (Top-Level)
 
@@ -55,14 +61,14 @@ This file documents what each CSV in `data/` currently contains, using the updat
 - `data/n_crosswalk.csv`  
   Crosswalk linking municipal/neighborhood labels (including city neighborhood names) to `NeighborhoodGroup` and `GeographyType`.
 
-- `data/n_crosswalk_overrides.csv`  
-  Manual override mappings for neighborhood/group crosswalk edge cases.
+- `data/archive/unreferenced/n_crosswalk_overrides.csv`  
+  Manual override mappings for neighborhood/group crosswalk edge cases (archived; not used by the Next.js app).
 
-- `data/n_neighborhood.csv`  
-  Wide, neighborhood-focused profile/change table with many ACS-derived fields and year-over-year indicators.
+- `data/archive/unreferenced/n_neighborhood.csv`  
+  Wide, neighborhood-focused profile/change table with many ACS-derived fields and year-over-year indicators (archived reference).
 
-- `data/n_group.csv`  
-  Neighborhood-group-level profile/change table (aggregated geography).
+- `data/archive/unreferenced/n_group.csv`  
+  Neighborhood-group-level profile/change table (aggregated geography; archived reference).
 
 ## Notes
 

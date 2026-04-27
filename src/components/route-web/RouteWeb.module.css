@@ -31,10 +31,10 @@
   position: relative;
   width: 100%;
   max-width: none;
-  height: min(68vh, 680px);
+  height: 95vh;
   border-radius: 0;
   overflow: hidden;
-  border: 1px solid var(--color-border-medium, #aeaaa5);
+  border: none;
   background: var(--color-bg-default, #f7f7f7);
 }
 
@@ -87,6 +87,10 @@
 .map {
   position: absolute;
   inset: 0;
+}
+
+.map :global(.mapboxgl-canvas) {
+  outline: none;
 }
 
 

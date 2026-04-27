@@ -1,9 +1,9 @@
 "use client";
 
 import { useNeighborhoodPanel } from "../../contexts/NeighborhoodPanelContext";
-import CommuteMethodGauge from "../data-viz/neighborhood-stats/CommuteMethodGauge";
-import PovertyPictogram from "../data-viz/neighborhood-stats/PovertyPictogram";
-import styles from "./NeighborhoodInfoPanel.module.css";
+import CommuteMethodGauge from "./components/CommuteVis";
+import PovertyPictogram from "./components/IncomeVis";
+import styles from "./InfoPanel.module.css";
 
 function num(value, fallback = 0) {
   const n = Number(value);
@@ -118,9 +118,7 @@ export default function NeighborhoodInfoPanel() {
 
         {!panelDisplay && (
           <p className={`${styles.sidebarEmpty} type-body-sm text-ink-secondary`}>
-            Hover a neighborhood on the coverage map or the schematic map to see commute and poverty (ACS), and to
-            compare routes before and after FY26. Click a neighborhood on the coverage map to persist selection and fit
-            bounds. Re-center the map or click outside a neighborhood to clear selection.
+            Hover a neighborhood on any map to see poverty and commute data for residents.
           </p>
         )}
       </div>

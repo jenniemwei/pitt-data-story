@@ -4,17 +4,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import Papa from "papaparse";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useNeighborhoodPanel } from "../../../contexts/NeighborhoodPanelContext";
-import { normalizeRouteId } from "../../../lib/equity-map/constants";
-import { restrictMapboxFreeformZoom } from "../../../lib/mapboxRestrictZoom";
+import { useNeighborhoodPanel } from "../../contexts/NeighborhoodPanelContext";
+import { normalizeRouteId } from "../../lib/equity-map/constants";
+import { restrictMapboxFreeformZoom } from "../../lib/mapboxRestrictZoom";
 import {
   buildHoverPayload,
   lossWeightForRoute,
   mergeDisplayAndNProfiles,
   normalizeStatus,
   parseRouteList,
-} from "../../../lib/neighborhoodPanelPayload";
-import { dataAssetUrl } from "../../../lib/dataAssetUrl";
+} from "../../lib/neighborhoodPanelPayload";
+import { dataAssetUrl } from "../../lib/dataAssetUrl";
+import { buildGroupedCoverageFeatures, buildHoodToGroupNameMap } from "../../lib/coverageHoodGroups";
 import styles from "./CoverageMap.module.css";
 
 const FLAT_BASEMAP_STYLE = {
@@ -27,17 +28,22 @@ const FLAT_BASEMAP_STYLE = {
 const MAP_CENTER = [-79.9959, 40.4406];
 const MAP_INITIAL_ZOOM = 10.1;
 
-/** Fallbacks match `globals.css` --b1 … --b10 when CSS vars are unavailable. */
-const COVERAGE_FILL_FALLBACKS = [
+/**
+ * Mapbox `fill-color` must be resolved hex (or rgba) strings — not `var(--b1)` text.
+ * `--color-fill-*` in `@theme` often resolves to `var(--b*)`; `getPropertyValue` then
+ * returns the unevaluated `var(...)` which Mapbox cannot parse. Read `--b1`…`--b10` from
+ * `:root` (literal hex) instead; keep this list in sync with `app/globals.css` :root.
+ */
+const COVERAGE_B_RAMP_FALLBACKS = [
   "#D6FFFF",
-  "#AEE3E2",
-  "#82B6B5",
-  "#588B8A",
-  "#326564",
-  "#134948",
-  "#003333",
-  "#002424",
-  "#001516",
+  "#D7FFFF",
+  "#C8FFFF",
+  "#BEFFFF",
+  "#B4F5FC",
+  "#B4F5FC",
+  "#7BBAC1",
+  "#2B6B72",
+  "#0F4646",
   "#00090A",
 ];
 
@@ -51,45 +57,88 @@ function getCssVar(name, fallback) {
   return value || fallback;
 }
 
-/** Mapbox paint for coverage hoods: stepped `--color-fill-1`…`10` from `lost_coverage` (see globals @theme). */
-function buildCoverageFillPaint() {
-  const colors = Array.from({ length: 10 }, (_, i) =>
-    getCssVar(`--color-fill-${i + 1}`, COVERAGE_FILL_FALLBACKS[i]),
-  );
-  const hover = getCssVar("--color-bg-dark", "#1c1c1c");
+/** Pixel width for Mapbox `line-width` from e.g. `--width-1: 0.5px` in `globals.css`. */
+function parseWidthTokenPx(varName, fallbackNum) {
+  const raw = getCssVar(varName, `${fallbackNum}px`);
+  const s = String(raw).trim();
+  const px = s.match(/^([\d.]+)\s*px$/i);
+  if (px) {
+    const n = parseFloat(px[1]);
+    return Number.isFinite(n) ? n : fallbackNum;
+  }
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : fallbackNum;
+}
+
+function getCoverageRampColors() {
+  return Array.from({ length: 10 }, (_, i) => getCssVar(`--b${i + 1}`, COVERAGE_B_RAMP_FALLBACKS[i]));
+}
+
+/** `lost_coverage`–weighted ramp (post-cuts). */
+function buildCoverageFillColorAfterExpression(colors, hover) {
   const loss = /** @type {const} */ (["coalesce", ["get", "lost_coverage"], 0]);
-  const stepped = /** @type {import("mapbox-gl").ExpressionSpecification} */ ([
-    "step",
-    loss,
-    colors[0],
-    0.1,
-    colors[1],
-    0.2,
-    colors[2],
-    0.3,
-    colors[3],
-    0.4,
-    colors[4],
-    0.5,
-    colors[5],
-    0.6,
-    colors[6],
-    0.7,
-    colors[7],
-    0.8,
-    colors[8],
-    0.9,
-    colors[9],
+  return /** @type {import("mapbox-gl").ExpressionSpecification} */ ([
+    "case",
+    ["boolean", ["feature-state", "hover"], false],
+    hover,
+    [
+      "step",
+      loss,
+      colors[0],
+      0.1,
+      colors[1],
+      0.2,
+      colors[2],
+      0.3,
+      colors[3],
+      0.4,
+      colors[4],
+      0.5,
+      colors[5],
+      0.6,
+      colors[6],
+      0.7,
+      colors[7],
+      0.8,
+      colors[8],
+      0.9,
+      colors[9],
+    ],
   ]);
+}
+
+/**
+ * Pre-cuts ("before"): every hood uses ramp step 1 (`b1` / `colors[0]`). Hover ink unchanged.
+ */
+function buildCoverageFillColorBeforeExpression(colors, hover) {
+  return /** @type {import("mapbox-gl").ExpressionSpecification} */ ([
+    "case",
+    ["boolean", ["feature-state", "hover"], false],
+    hover,
+    colors[0],
+  ]);
+}
+
+function buildCoverageFillColorExpression(viewMode) {
+  const colors = getCoverageRampColors();
+  const hover = getCssVar("--n6", "#1c1c1c");
+  if (viewMode === "before") {
+    return buildCoverageFillColorBeforeExpression(colors, hover);
+  }
+  return buildCoverageFillColorAfterExpression(colors, hover);
+}
+
+/** Mapbox fill paint for `coverage-hood-fill`. */
+function buildCoverageFillPaint(viewMode) {
   return {
-    "fill-color": /** @type {import("mapbox-gl").ExpressionSpecification} */ ([
-      "case",
-      ["boolean", ["feature-state", "hover"], false],
-      hover,
-      stepped,
-    ]),
+    "fill-color": buildCoverageFillColorExpression(viewMode),
     "fill-opacity": 1,
   };
+}
+
+function applyCoverageHoodFill(map, viewMode) {
+  if (!map.getLayer("coverage-hood-fill")) return;
+  map.setPaintProperty("coverage-hood-fill", "fill-color", buildCoverageFillColorExpression(viewMode));
 }
 
 function extendBoundsForCoords(bounds, coords) {
@@ -137,24 +186,27 @@ function fitMapToFeature(map, feature, fitOptions) {
   }
 }
 
+
+
 function applyCoverageViewMode(map, viewMode) {
   if (!map.getLayer("coverage-routes-line")) return;
-  const lineLight = getCssVar("--color-border-light", "#ffffff");
+  const lineDefault = getCssVar("--color-line-default", "#326564");
   const lineReduced = getCssVar("--color-line-reduced1", "#82B6B5");
+  const lineStrong = getCssVar("--color-line-reduced2", "#002424");
   if (viewMode === "before") {
-    map.setPaintProperty("coverage-routes-line", "line-color", lineLight);
+    map.setPaintProperty("coverage-routes-line", "line-color", lineDefault);
     map.setPaintProperty("coverage-routes-line", "line-opacity", 1);
   } else {
     map.setPaintProperty("coverage-routes-line", "line-color", [
       "match",
       ["get", "route_status"],
       "unchanged",
-      lineLight,
+      lineDefault,
       "reduced",
       lineReduced,
       "eliminated",
-      lineLight,
-      lineLight,
+      lineStrong,
+      lineDefault,
     ]);
     map.setPaintProperty("coverage-routes-line", "line-opacity", [
       "match",
@@ -248,7 +300,8 @@ export default function CoverageMap() {
       fetch(dataAssetUrl("neighborhood_display_profiles.csv"))
         .then((r) => (r.ok ? r.text() : ""))
         .catch(() => ""),
-    ]).then(([hoodGeo, profilesRaw, routeStatusRaw, routeLineGeo, nProfilesRaw, displayRaw]) => {
+      fetch(dataAssetUrl("n_crosswalk.csv")).then((r) => (r.ok ? r.text() : "")),
+    ]).then(([hoodGeo, profilesRaw, routeStatusRaw, routeLineGeo, nProfilesRaw, displayRaw, crosswalkCsv]) => {
       if (cancelled) return;
 
       const profileRows = parseCsv(profilesRaw);
@@ -260,6 +313,8 @@ export default function CoverageMap() {
       );
       const profilesByHood = mergeDisplayAndNProfiles(displayRows, nHoodOnly);
       profilesRef.current = profilesByHood;
+
+      const hoodToGroup = buildHoodToGroupNameMap(crosswalkCsv);
 
       const statusByRoute = new Map();
       const reductionTierByRoute = new Map();
@@ -319,7 +374,8 @@ export default function CoverageMap() {
         };
       });
 
-      cityFeatureCollectionRef.current = { ...hoodGeo, features: enrichedFeatures };
+      const displayFeatures = buildGroupedCoverageFeatures(enrichedFeatures, hoodToGroup);
+      cityFeatureCollectionRef.current = { type: "FeatureCollection", features: displayFeatures };
 
       const pageBg = getCssVar("--color-bg-default", "#f7f7f7");
 
@@ -345,11 +401,17 @@ export default function CoverageMap() {
       map.on("load", () => {
         map.addSource("coverage-hoods", {
           type: "geojson",
-          data: { ...hoodGeo, features: enrichedFeatures },
+          data: { type: "FeatureCollection", features: displayFeatures },
           promoteId: "neighborhood_name",
         });
-        const fillPaint = buildCoverageFillPaint();
-        const selLine = getCssVar("--color-border-light", "#ffffff");
+        const fillPaint = buildCoverageFillPaint(viewModeRef.current);
+        const hoodBorderDefault = getCssVar("--map-coverage-hood-border", getCssVar("--color-border-dark", "#363636"));
+        const hoodBorderHover = getCssVar("--map-coverage-hood-border-hover", getCssVar("--color-border-light", "#ffffff"));
+        const hoodBorderSelected = getCssVar(
+          "--map-coverage-hood-border-selected",
+          getCssVar("--color-border-light", "#ffffff"),
+        );
+        const borderWidth = parseWidthTokenPx("--width-1", 0.5);
         map.addLayer({
           id: "coverage-hood-fill",
           type: "fill",
@@ -357,11 +419,26 @@ export default function CoverageMap() {
           paint: fillPaint,
         });
         map.addLayer({
+          id: "coverage-hood-outline",
+          type: "line",
+          source: "coverage-hoods",
+          paint: {
+            "line-color": [
+              "case",
+              ["boolean", ["feature-state", "hover"], false],
+              hoodBorderHover,
+              hoodBorderDefault,
+            ],
+            "line-width": borderWidth,
+            "line-opacity": 1,
+          },
+        });
+        map.addLayer({
           id: "coverage-hood-selected",
           type: "line",
           source: "coverage-hoods",
           paint: {
-            "line-color": selLine,
+            "line-color": hoodBorderSelected,
             "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 2.5, 0],
             "line-opacity": ["case", ["boolean", ["feature-state", "selected"], false], 1, 0],
           },
@@ -451,8 +528,9 @@ export default function CoverageMap() {
         });
 
         applyCoverageViewMode(map, viewModeRef.current);
+        applyCoverageHoodFill(map, viewModeRef.current);
 
-        fitNeighborhoodBounds(map, { ...hoodGeo, features: enrichedFeatures });
+        fitNeighborhoodBounds(map, { type: "FeatureCollection", features: displayFeatures });
         void (async () => {
           if (cancelled || mapRef.current !== map) return;
           if (routeLineGeo?.features?.length) {
@@ -486,7 +564,7 @@ export default function CoverageMap() {
               type: "line",
               source: "coverage-routes",
               paint: {
-                "line-color": getCssVar("--color-border-light", "#ffffff"),
+                "line-color": getCssVar("--color-line-default", "#326564"),
                 "line-width": routeLineW,
                 "line-opacity": 1,
               },
@@ -497,6 +575,7 @@ export default function CoverageMap() {
               },
             });
             applyCoverageViewMode(map, viewModeRef.current);
+            applyCoverageHoodFill(map, viewModeRef.current);
           }
         })();
       });
@@ -518,6 +597,7 @@ export default function CoverageMap() {
     if (!map) return;
     const apply = () => {
       applyCoverageViewMode(map, viewMode);
+      applyCoverageHoodFill(map, viewMode);
     };
 
     if (map.isStyleLoaded()) apply();

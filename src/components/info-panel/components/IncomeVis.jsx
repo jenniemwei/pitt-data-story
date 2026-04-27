@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "./PovertyPictogram.module.css";
+import styles from "./IncomeVis.module.css";
 
 const DOTS = 100;
 const COLS = 20;
@@ -12,15 +12,15 @@ function clamp01(x) {
   return Math.max(0, Math.min(1, n));
 }
 
-/** Largest-remainder allocation so counts sum to `total`. */
-function allocateCounts(total, weights) {
-  const w = weights.map(clamp01);
-  const s = w.reduce((a, b) => a + b, 0) || 1;
-  const norm = w.map((x) => (x / s) * total);
-  const floors = norm.map((x) => Math.floor(x));
+/** Largest-remainder allocation on absolute shares; leaves remainder unfilled. */
+function allocateCountsForShares(total, shares) {
+  const w = shares.map(clamp01);
+  const raw = w.map((x) => x * total);
+  const floors = raw.map((x) => Math.floor(x));
   let used = floors.reduce((a, b) => a + b, 0);
-  let remainder = total - used;
-  const frac = norm.map((x, i) => x - floors[i]);
+  const target = Math.min(total, Math.round(raw.reduce((a, b) => a + b, 0)));
+  let remainder = target - used;
+  const frac = raw.map((x, i) => x - floors[i]);
   const order = frac.map((_, i) => i).sort((a, b) => frac[b] - frac[a]);
   const out = [...floors];
   let k = 0;
@@ -33,20 +33,20 @@ function allocateCounts(total, weights) {
 }
 
 /**
- * Rightmost `count` cells in column-major order: each column top→bottom, columns right→left.
+ * Rightmost `count` cells in column-major order: each column bottom→top, columns right→left.
  * Index is row-major linear index (row * COLS + col).
  */
 function rightColumnMajorIndices(cols, rows, count) {
   const out = [];
   for (let c = cols - 1; c >= 0 && out.length < count; c -= 1) {
-    for (let r = 0; r < rows && out.length < count; r += 1) {
+    for (let r = rows - 1; r >= 0 && out.length < count; r -= 1) {
       out.push(r * cols + c);
     }
   }
   return out;
 }
 
-/** Sort linear indices column-major from the left: col 0 top→bottom, then col 1, … */
+/** Sort linear indices column-major from the left: col 0 bottom→top, then col 1, … */
 function leftColumnMajorSort(indices, cols) {
   return [...indices].sort((a, b) => {
     const ca = a % cols;
@@ -54,7 +54,7 @@ function leftColumnMajorSort(indices, cols) {
     if (ca !== cb) return ca - cb;
     const ra = Math.floor(a / cols);
     const rb = Math.floor(b / cols);
-    return ra - rb;
+    return rb - ra;
   });
 }
 
@@ -67,6 +67,7 @@ export default function PovertyPictogram({
   belowPovertyLineShare = 0,
   deepPovertyShare = 0,
   highIncomeHouseholdShare = 0,
+  lowIncomeShare = null,
   peoplePerDot = 100,
 }) {
   const below = clamp01(belowPovertyLineShare);
@@ -74,9 +75,11 @@ export default function PovertyPictogram({
   const povertyOnly = Math.max(0, below - deep);
   const high = clamp01(highIncomeHouseholdShare);
   const notPoor = Math.max(0, 1 - below);
-  const middle = Math.max(0, notPoor - high);
+  const lowAll = clamp01(lowIncomeShare == null ? 0 : lowIncomeShare);
+  const lowNonPoverty = Math.max(0, Math.min(notPoor, lowAll - below));
+  const middle = Math.max(0, notPoor - high - lowNonPoverty);
 
-  const [nGreen, nGray, nOrange, nRed] = allocateCounts(DOTS, [high, middle, povertyOnly, deep]);
+  const [nGreen, nLow, nOrange, nRed] = allocateCountsForShares(DOTS, [high, lowNonPoverty, povertyOnly, deep]);
 
   const povertyBlock = nOrange + nRed;
   const rightOrder = rightColumnMajorIndices(COLS, ROWS, povertyBlock);
@@ -89,16 +92,16 @@ export default function PovertyPictogram({
     if (!povertySet.has(idx)) remaining.push(idx);
   }
 
-  /** Order for all “left block” income tones (extend when new shares are added). */
+  /** Order for all “left block” filled income tones (extend when new shares are added). */
   const leftBands = [
     { count: nGreen, tone: "high" },
-    { count: nGray, tone: "mid" },
+    { count: nLow, tone: "low" },
   ];
 
   const remainingLeftCm = leftColumnMajorSort(remaining, COLS);
 
-  /** @type {("high"|"mid"|"poverty"|"deep"|string)[]} */
-  const tones = Array(DOTS).fill("mid");
+  /** @type {("high"|"low"|"poverty"|"deep"|"empty"|string)[]} */
+  const tones = Array(DOTS).fill("empty");
   let leftOffset = 0;
   for (const band of leftBands) {
     for (let k = 0; k < band.count; k += 1) {
@@ -128,7 +131,7 @@ export default function PovertyPictogram({
         className={styles.grid}
         style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}
         role="img"
-        aria-label={`Pictogram of about ${DOTS} times ${peoplePerDot} people by income and poverty status`}
+        aria-label={`Pictogram of about ${DOTS} times ${peoplePerDot} people by income and poverty status, with unfilled cells representing about ${Math.round(middle * 100)}% in the $50k-$99k range`}
       >
         {tones.map((tone, idx) => (
           <span key={idx} className={styles.cell} data-tone={tone} />
@@ -136,7 +139,7 @@ export default function PovertyPictogram({
       </div>
       <div className={styles.axisRow}>
         <span className={styles.axisHigh}>$100k+</span>
-        <span className={styles.axisMid}>other incomes</span>
+        <span className={styles.axisMid}>$50k-$99k (unfilled)</span>
         <span className={styles.axisPov}>poverty</span>
         <span className={styles.axisDeep}>deep poverty</span>
       </div>

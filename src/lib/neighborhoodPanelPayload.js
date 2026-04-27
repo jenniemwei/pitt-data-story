@@ -6,19 +6,38 @@ export function normHoodKey(name) {
     .toLowerCase();
 }
 
+/**
+ * @param {Map<string, object>} map
+ * @param {object} row
+ * @param {string} [keyField]
+ */
+function putProfileByKeys(map, row, keyField = "neighborhood_group") {
+  const primary = String(row[keyField] || row.neighborhood_group || "").trim();
+  if (!primary) return;
+  const merged = { ...row };
+  const k1 = normHoodKey(primary);
+  if (k1) {
+    const prev = map.get(k1) || {};
+    map.set(k1, { ...prev, ...merged });
+  }
+  const profileLabel = String(row.profile_neighborhood_group || "").trim();
+  if (profileLabel) {
+    const k2 = normHoodKey(profileLabel);
+    if (k2 && k2 !== k1) {
+      const prev2 = map.get(k2) || {};
+      map.set(k2, { ...prev2, ...merged });
+    }
+  }
+}
+
 /** Primary ACS from display CSV, optional n_profiles neighborhood rows overlay. */
 export function mergeDisplayAndNProfiles(displayRows, nProfileNeighborhoodRows) {
   const map = new Map();
   for (const row of displayRows) {
-    const hood = normHoodKey(row.neighborhood_group);
-    if (!hood) continue;
-    map.set(hood, { ...row });
+    putProfileByKeys(map, row);
   }
   for (const row of nProfileNeighborhoodRows) {
-    const hood = normHoodKey(row.neighborhood_group);
-    if (!hood) continue;
-    const prev = map.get(hood) || {};
-    map.set(hood, { ...prev, ...row });
+    putProfileByKeys(map, row);
   }
   return map;
 }

@@ -27,32 +27,41 @@
 .legendDot {
   width: 0.5rem;
   height: 0.5rem;
-  border-radius: 50%;
+  border-radius: var(--radius-dot);
   background: var(--color-border-medium, #aeaaa5);
   flex-shrink: 0;
 }
 
 .grid {
   display: grid;
-  gap: var(--spacing-dot-gap-1, 0.1rem) var(--spacing-dot-gap-1, 0.1rem);
   width: 100%;
   max-width: none;
   margin: 0 0 0.35rem;
+  /* background: var(--color-fill-neutral2); */
 }
 
 /* Dots use data-tone from JSX. New income bands: add a row here + an entry in PovertyPictogram.jsx `leftBands`. */
 .cell {
+  /* border: .5px solid var(--color-border-medium); */
   aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--color-fill-neutral2, #b6a48e);
+  border-radius: var(--radius-dot);
+  /* background: var(--color-fill-neutral2, #b6a48e); */
 }
 
 .cell[data-tone="high"] {
   background: var(--color-fill-positive, #bfd0aa);
 }
 
+.cell[data-tone="low"] {
+  background: var(--color-fill-neg1, #ffa883);
+}
+
 .cell[data-tone="mid"] {
   background: var(--color-fill-neutral, #c5b491);
+}
+
+.cell[data-tone="empty"] {
+  background: transparent;
 }
 
 .cell[data-tone="poverty"] {
@@ -66,7 +75,7 @@
 .axisRow {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap: 0.25rem;
+  gap: var(--spacing-dot-gap-1);
   width: 100%;
   font-family: var(--font-sans, system-ui, sans-serif);
   font-size: 0.68rem;

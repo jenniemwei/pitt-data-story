@@ -1,8 +1,8 @@
 import { NeighborhoodPanelProvider } from "../src/contexts/NeighborhoodPanelContext";
-import CoverageMap from "../src/components/data-viz/coverage-map/CoverageMap";
-import NeighborhoodRepresentationalRoutesMap from "../src/components/data-viz/neighborhood-representational-routes-map/NeighborhoodRepresentationalRoutesMap";
+import CoverageMap from "../src/components/coverage-map/CoverageMap";
+import NeighborhoodRepresentationalRoutesMap from "../src/components/route-web/RouteWeb";
 import HomeMapsLayout from "./HomeMapsLayout";
-import CovidRecoveryDotsComparison from "../src/components/data-viz/covid-recovery-dots/CovidRecoveryDotsComparison";
+import CovidRecoveryDotsComparison from "../src/components/covid-recovery/CovidVis";
 
 export default function HomePage() {
   return (

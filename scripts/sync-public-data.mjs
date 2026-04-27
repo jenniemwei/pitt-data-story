@@ -13,6 +13,7 @@ const allowed = [
   "corridor_story_routes.geojson",
   "route_lines_current.geojson",
   "fy26_route_n_profiles_all.csv",
+  "n_crosswalk.csv",
   "n_profiles_new.csv",
   "neighborhood_display_profiles.csv",
   "FY26_route_status_all.csv",

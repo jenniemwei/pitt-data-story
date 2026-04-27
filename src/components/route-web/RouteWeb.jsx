@@ -5,17 +5,22 @@ import mapboxgl from "mapbox-gl";
 import Papa from "papaparse";
 import { bearing, centroid, destination, distance, midpoint, point } from "@turf/turf";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useNeighborhoodPanel } from "../../../contexts/NeighborhoodPanelContext";
-import { normalizeRouteId } from "../../../lib/equity-map/constants";
-import { dataAssetUrl } from "../../../lib/dataAssetUrl";
-import { restrictMapboxFreeformZoom } from "../../../lib/mapboxRestrictZoom";
+import { useNeighborhoodPanel } from "../../contexts/NeighborhoodPanelContext";
+import { normalizeRouteId } from "../../lib/equity-map/constants";
+import { dataAssetUrl } from "../../lib/dataAssetUrl";
+import { restrictMapboxFreeformZoom } from "../../lib/mapboxRestrictZoom";
 import {
   buildHoverPayloadForNeighborhoodName,
   mergeDisplayAndNProfiles,
   normalizeStatus,
   parseRouteList,
-} from "../../../lib/neighborhoodPanelPayload";
-import styles from "./NeighborhoodRepresentationalRoutesMap.module.css";
+} from "../../lib/neighborhoodPanelPayload";
+import {
+  addGroupKeysToRoutesMap,
+  buildHoodToGroupNameMap,
+  buildRepresentationalGroupPointFeatures,
+} from "../../lib/coverageHoodGroups";
+import styles from "./RouteWeb.module.css";
 
 const FLAT_BASEMAP_STYLE = {
   version: 8,
@@ -26,7 +31,24 @@ const FLAT_BASEMAP_STYLE = {
 };
 
 const MAP_CENTER = [-79.9959, 40.4406];
-const MAP_INITIAL_ZOOM = 10.35;
+/** Match `CoverageMap` initial view (see `MAP_INITIAL_ZOOM` + 0.45 there). */
+const MAP_INITIAL_ZOOM = 10.1;
+
+/**
+ * `n_crosswalk` / FY26 anchor group for downtown core (CBD ± Crawford-Roberts).
+ * Anchor CSV sometimes uses the short "Central Business District" token alone.
+ * @param {string | undefined} rep
+ */
+function isDowntownGroupRep(rep) {
+  if (!rep) return false;
+  const s = String(rep).trim();
+  return s === "Central Business District" || s === "Central Business District - Crawford Roberts";
+}
+
+/** @param {string[]} chain Hood names in FY26 order; getRepName maps block hood → group label. */
+function chainTouchesDowntownGroup(chain, getRepName) {
+  return chain.some((h) => isDowntownGroupRep(getRepName(h)));
+}
 
 function parseCsv(text) {
   return Papa.parse(text, { header: true, skipEmptyLines: true }).data;
@@ -186,7 +208,13 @@ function fitToLineAndPoints(map, lineFc, pointFc) {
     extendBoundsForCoords(bounds, f?.geometry?.coordinates);
   }
   if (!bounds.isEmpty()) {
-    map.fitBounds(bounds, { padding: 56, maxZoom: 11.4, duration: 0 });
+    const pad = Number.parseInt(getCssVar("--spacing-p-lg", "48"), 10);
+    const padding = Number.isFinite(pad) && pad > 0 ? pad : 48;
+    map.fitBounds(bounds, {
+      padding,
+      maxZoom: 12.5,
+      duration: 0,
+    });
   }
 }
 
@@ -196,37 +224,51 @@ function getCssVar(name, fallback) {
   return value || fallback;
 }
 
+/**
+ * `line-opacity` in **after** mode for all `route_status: reduced` segments (solid lines, no dashing).
+ */
+const REDUCED_LINE_OPACITY = 0.5;
+
 /** @param {import('mapbox-gl').Map} map */
 function applyRepresentationalRouteLineStyle(map, mode) {
   if (!map.getLayer("rep-route-lines-layer")) return;
+  const lineW2 = Number.parseFloat(getCssVar("--width-2", "0.5")) || 0.5;
+  const lineW3 = Number.parseFloat(getCssVar("--width-3", "1")) || 1;
+  const lineWidthExpr = /** @type {import("mapbox-gl").DataDrivenPropertyValueSpecification<number>} */ ([
+    "case",
+    ["==", ["get", "downtown_route"], 1],
+    lineW3,
+    lineW2,
+  ]);
   const lineDefault = getCssVar("--color-line-default", "#134948");
-  const lineReduced = getCssVar("--color-line-reduced1", "#82B6B5");
+  const lineReduced = getCssVar("--color-line-reduced2", "#82B6B5");
+  const colorAfter = /** @type {import("mapbox-gl").DataDrivenPropertyValueSpecification<string>} */ ([
+    "match",
+    ["get", "route_status"],
+    "unchanged",
+    lineDefault,
+    "reduced",
+    lineReduced,
+    "eliminated",
+    lineDefault,
+    lineDefault,
+  ]);
+  const opacityAfter = /** @type {import("mapbox-gl").DataDrivenPropertyValueSpecification<number>} */ ([
+    "case",
+    ["==", ["get", "route_status"], "eliminated"],
+    0,
+    ["==", ["get", "route_status"], "reduced"],
+    REDUCED_LINE_OPACITY,
+    1,
+  ]);
+
+  map.setPaintProperty("rep-route-lines-layer", "line-width", lineWidthExpr);
   if (mode === "before") {
     map.setPaintProperty("rep-route-lines-layer", "line-color", lineDefault);
     map.setPaintProperty("rep-route-lines-layer", "line-opacity", 1);
   } else {
-    map.setPaintProperty("rep-route-lines-layer", "line-color", [
-      "match",
-      ["get", "route_status"],
-      "unchanged",
-      lineDefault,
-      "reduced",
-      lineReduced,
-      "eliminated",
-      lineDefault,
-      lineDefault,
-    ]);
-    map.setPaintProperty("rep-route-lines-layer", "line-opacity", [
-      "match",
-      ["get", "route_status"],
-      "unchanged",
-      1,
-      "reduced",
-      1,
-      "eliminated",
-      0,
-      1,
-    ]);
+    map.setPaintProperty("rep-route-lines-layer", "line-color", colorAfter);
+    map.setPaintProperty("rep-route-lines-layer", "line-opacity", opacityAfter);
   }
 }
 
@@ -290,7 +332,8 @@ export default function NeighborhoodRepresentationalRoutesMap() {
       fetch(dataAssetUrl("n_profiles_new.csv"))
         .then((r) => (r.ok ? r.text() : ""))
         .catch(() => ""),
-    ]).then(([hoodGeo, fy26Raw, displayRaw, nProfRaw, nProfilesNewRaw]) => {
+      fetch(dataAssetUrl("n_crosswalk.csv")).then((r) => (r.ok ? r.text() : "")),
+    ]).then(([hoodGeo, fy26Raw, displayRaw, nProfRaw, nProfilesNewRaw, crosswalkCsv]) => {
       if (cancelled || !containerRef.current) return;
 
       const fy26Rows = parseCsv(fy26Raw);
@@ -301,6 +344,8 @@ export default function NeighborhoodRepresentationalRoutesMap() {
         (r) => String(r.geography_type || "").toLowerCase() === "neighborhood",
       );
       const profilesByHood = mergeDisplayAndNProfiles(displayRows, nHoodOnly);
+
+      const hoodToGroup = buildHoodToGroupNameMap(crosswalkCsv);
 
       const statusByRoute = new Map();
       const reductionTierByRoute = new Map();
@@ -321,6 +366,8 @@ export default function NeighborhoodRepresentationalRoutesMap() {
           routesByNeighborhood.get(neighborhood).add(routeId);
         }
       }
+
+      addGroupKeysToRoutesMap(routesByNeighborhood, hoodToGroup);
 
       hoverPanelDataRef.current = {
         routesByNeighborhood,
@@ -350,27 +397,25 @@ export default function NeighborhoodRepresentationalRoutesMap() {
         povByHood.set(n, normalizePovertyRatio(row.below_poverty_pct));
       }
 
-      const pops = [...popByHood.values()].filter((p) => p > 0);
-      const minPop = pops.length ? Math.min(...pops) : 1;
-      const maxPop = pops.length ? Math.max(...pops) : minPop + 1;
-      const sqrtMin = Math.sqrt(Math.max(minPop, 1));
-      const sqrtMax = Math.sqrt(Math.max(maxPop, 1));
-
       /** @type {GeoJSON.Feature[]} */
-      const pointFeatures = [];
-      for (const hood of hoodSet) {
-        const c = centroids.get(hood);
-        if (!c) continue;
-        pointFeatures.push({
-          type: "Feature",
-          properties: {
-            neighborhood_name: hood,
-            population: popByHood.get(hood) ?? 0,
-            poverty: povByHood.get(hood) ?? 0,
-          },
-          geometry: { type: "Point", coordinates: c },
-        });
+      const pointFeatures = buildRepresentationalGroupPointFeatures(
+        hoodSet,
+        centroids,
+        popByHood,
+        povByHood,
+        hoodToGroup,
+      );
+      /** One schematic dot per group (or stand-alone hood) — line endpoints must use these, not per-hood centroids. */
+      const repCoordByName = new Map();
+      for (const f of pointFeatures) {
+        const n = f.properties?.neighborhood_name;
+        if (n == null || f.geometry?.type !== "Point") continue;
+        repCoordByName.set(String(n).trim(), f.geometry.coordinates);
       }
+      const getRepName = (hood) => hoodToGroup.get(hood) || hood;
+
+      const pops = pointFeatures.map((f) => num(f.properties?.population, 0)).filter((p) => p > 0);
+      const maxPop = pops.length ? Math.max(...pops) : 1;
 
       /** @type {Map<string, number>} */
       const pairArcIndex = new Map();
@@ -385,14 +430,19 @@ export default function NeighborhoodRepresentationalRoutesMap() {
         const chain = buildHoodChain(row.anchor_neighborhoods, hoodSet, profileToHoods, centroids);
         if (chain.length < 2) continue;
 
+        const routeTouchesDowntown = chainTouchesDowntownGroup(chain, getRepName) ? 1 : 0;
+
         for (let i = 0; i < chain.length - 1; i += 1) {
           const a = chain[i];
           const b = chain[i + 1];
-          const p0 = centroids.get(a);
-          const p2 = centroids.get(b);
+          const repA = getRepName(a);
+          const repB = getRepName(b);
+          if (repA === repB) continue;
+          const p0 = repCoordByName.get(repA);
+          const p2 = repCoordByName.get(repB);
           if (!p0 || !p2) continue;
 
-          const pairKey = [a, b].sort().join("\0");
+          const pairKey = [repA, repB].sort().join("\0");
           const arcN = pairArcIndex.get(pairKey) || 0;
           pairArcIndex.set(pairKey, arcN + 1);
           const bendSign = arcN % 2 === 0 ? 1 : -1;
@@ -405,6 +455,9 @@ export default function NeighborhoodRepresentationalRoutesMap() {
               route_status: routeStatus,
               from_hood: a,
               to_hood: b,
+              from_rep: repA,
+              to_rep: repB,
+              downtown_route: routeTouchesDowntown,
             },
             geometry: {
               type: "LineString",
@@ -432,7 +485,7 @@ export default function NeighborhoodRepresentationalRoutesMap() {
           ),
         },
         center: MAP_CENTER,
-        zoom: MAP_INITIAL_ZOOM,
+        zoom: MAP_INITIAL_ZOOM + 0.45,
         attributionControl: true,
       });
       mapRef.current = map;
@@ -468,13 +521,13 @@ export default function NeighborhoodRepresentationalRoutesMap() {
           source: "rep-hood-points",
           paint: {
             "circle-radius": [
-              "interpolate",
-              ["linear"],
-              ["^", ["max", ["get", "population"], 1], 0.5],
-              sqrtMin,
+              "max",
               4,
-              sqrtMax,
-              26,
+              [
+                "min",
+                52,
+                ["/", ["*", 52, ["max", ["get", "population"], 1]], Math.max(maxPop, 1)],
+              ],
             ],
             "circle-color": [
               "interpolate",
@@ -581,7 +634,7 @@ export default function NeighborhoodRepresentationalRoutesMap() {
           <h2 className={styles.title}>Neighborhoods and corridor anchors</h2>
           <p className={styles.lede}>
             Schematic arcs connect consecutive FY26 anchor neighborhoods along each route (not the real street path).
-            Circle area reflects population from neighborhood profiles.
+            Circle radius is proportional to population (doubling the population doubles the circle size).
           </p>
           <div className={styles.tokenMissing}>
             Set <code>NEXT_PUBLIC_MAPBOX_TOKEN</code> to view this map (same token as the coverage map above).
@@ -596,9 +649,10 @@ export default function NeighborhoodRepresentationalRoutesMap() {
       <div className={styles.inner}>
         <h2 className={styles.title}>Neighborhoods and corridor anchors</h2>
         <p className={styles.lede}>
-          Each point is a neighborhood centroid; circle size scales with total population. Curved gray segments link
-          consecutive neighborhoods in the FY26 published anchor order (including expanded compound anchors), so
-          overlapping routes fan apart slightly—this is a schematic, not a geographic trace of streets.
+          Each point is one neighborhood, or one merged point for a hyphenated neighborhood group; position is the
+          average of member centroids. Circle radius is proportional to population. Curved gray segments link consecutive
+          anchor positions in the FY26 published order (including expanded compound anchors), so overlapping routes
+          fan apart slightly—this is a schematic, not a geographic trace of streets.
         </p>
       </div>
       <div className={styles.mapWrap}>

@@ -5,8 +5,8 @@ import {
   getCutRoutesByPovertyTier,
   getRidershipTotalsByPovertyTier,
   RIDERS_PER_DOT,
-} from "../../../lib/routeData";
-import styles from "./CovidRecoveryDotsComparison.module.css";
+} from "../../lib/routeData";
+import styles from "./CovidVis.module.css";
 
 const TIER_ORDER = /** @type {const} */ (["high", "low"]);
 

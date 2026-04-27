@@ -141,6 +141,25 @@ def stop_is_busway_platform(stop_name: str) -> bool:
     return "BUSWAY" in (stop_name or "").upper()
 
 
+def is_employees_only_stop(stop_name: str) -> bool:
+    """PRT employees-only / restricted stops — exclude from service-area coverage (not public)."""
+    name = (stop_name or "").upper()
+    return "EMPLOYEES ONLY" in name or "EMPLOYEE PARKING LOT" in name
+
+
+def is_boundary_edge_only_stop(stop_name: str) -> bool:
+    """
+    Stops that sit on neighborhood boundary edges and should not, by themselves,
+    make a route count as serving a neighborhood.
+    """
+    name = (stop_name or "").upper()
+    return (
+        "FIFTH AVE RAMP" in name
+        or "FIFTH AVE OPP MCPHERSON" in name
+        or "PENN AVE AT BAKERY SQUARE" in name
+    )
+
+
 def _parse_one_date(s: str) -> date | None:
     s = (s or "").strip()
     if not s:
@@ -169,8 +188,11 @@ class RouteAgg:
     has_ib: bool = False
     has_ob: bool = False
     max_trips_wd: int = 0
+    has_meaningful_stop: bool = False
 
-    def add(self, stop_id: str, direction: str, trips_wd: int) -> None:
+    def add(
+        self, stop_id: str, direction: str, trips_wd: int, *, meaningful_for_route_count: bool
+    ) -> None:
         if stop_id:
             self.stop_ids.add(stop_id)
         d = (direction or "").strip().upper()
@@ -180,6 +202,8 @@ class RouteAgg:
             self.has_ob = True
         if trips_wd > self.max_trips_wd:
             self.max_trips_wd = trips_wd
+        if meaningful_for_route_count:
+            self.has_meaningful_stop = True
 
 
 def load_neighborhood_geoms(geojson_path: Path) -> list[tuple[str, str, Any]]:
@@ -204,6 +228,23 @@ def build_stop_to_hoods(
     for hood, gtype, coords in geoms:
         if _stop_in_polygonish(lon, lat, gtype, coords):
             names.append(hood)
+    return names
+
+
+def build_stop_to_hoods_interior_only(
+    geoms: list[tuple[str, str, Any]], lon: float, lat: float
+) -> set[str]:
+    """Neighborhoods that strictly contain the stop point (no boundary buffer)."""
+    names: set[str] = set()
+    for hood, gtype, coords in geoms:
+        if gtype == "Polygon":
+            if _point_in_polygon_rings(lon, lat, coords):
+                names.add(hood)
+        elif gtype == "MultiPolygon":
+            for poly in coords:
+                if _point_in_polygon_rings(lon, lat, poly):
+                    names.add(hood)
+                    break
     return names
 
 
@@ -247,6 +288,9 @@ def run(*, pittsburgh_muni_only: bool = True) -> dict[str, Any]:
     cell: dict[tuple[str, str], RouteAgg] = {}
     with ROUTE_STOPS.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
+            stop_name = row.get("stop_name") or ""
+            if is_employees_only_stop(stop_name):
+                continue
             if pittsburgh_muni_only and (row.get("muni") or "").strip() != PITTS_MUNI:
                 continue
             if not row_is_active_on(row, AS_OF):
@@ -266,13 +310,26 @@ def run(*, pittsburgh_muni_only: bool = True) -> dict[str, Any]:
                 tw = 0
             sid = (row.get("stop_id") or "").strip()
             direction = (row.get("direction") or "").strip()
+            interior_hoods = build_stop_to_hoods_interior_only(geoms, lon, lat)
             for hood in build_stop_to_hoods(geoms, lon, lat):
                 k = (hood, rkey)
                 a = cell.setdefault(k, RouteAgg())
-                a.add(sid, direction, tw)
+                meaningful_for_route_count = (
+                    hood in interior_hoods and not is_boundary_edge_only_stop(stop_name)
+                )
+                a.add(
+                    sid,
+                    direction,
+                    tw,
+                    meaningful_for_route_count=meaningful_for_route_count,
+                )
 
     by_hood: dict[str, list[dict[str, Any]]] = {}
     for (hood, rkey), agg in cell.items():
+        # A route only counts for a neighborhood if it has at least one
+        # non-boundary-edge stop there.
+        if not agg.has_meaningful_stop:
+            continue
         dsv = compute_directions_served(agg)
         sl = compute_service_level(agg)
         rname = route_names.get(rkey, rkey)
@@ -294,7 +351,11 @@ def run(*, pittsburgh_muni_only: bool = True) -> dict[str, Any]:
             "Stop-based only: each stop×route (active table date window) is tested against "
             "neighborhood GeoJSON (interior or within buffer of boundary). "
             "Route line shapes are not used. "
-            "No bundled stop_times.txt; grain matches stops→stop_times→trips using route_stop_per_route.csv."
+            "No bundled stop_times.txt; grain matches stops→stop_times→trips using route_stop_per_route.csv. "
+            "Rows where stop_name contains 'EMPLOYEES ONLY' or 'EMPLOYEE PARKING LOT' (any case) are excluded. "
+            "A route counts for a neighborhood only if it has at least one stop in that neighborhood whose stop_name "
+            "does not contain 'FIFTH AVE RAMP', 'FIFTH AVE OPP MCPHERSON', or 'PENN AVE AT BAKERY SQUARE'. "
+            "When that condition is met, all of the route's stops in the neighborhood are retained for service metrics."
         ),
         "walking_buffer_m": WALKING_BUFFER_M,
         "min_trips_per_weekday": MIN_TRIPS_WEEKDAY,
@@ -316,10 +377,15 @@ def run(*, pittsburgh_muni_only: bool = True) -> dict[str, Any]:
 def get_fy26_hood_route_sets() -> tuple[dict[str, set[str]], dict[str, set[str]]]:
     """(all_routes_by_hood, street_routes_by_hood) for extend_fy26_map_neighborhoods."""
     geoms = load_neighborhood_geoms(NEIGHBOR_GEO)
+    qualifier_all: dict[tuple[str, str], bool] = {}
+    qualifier_street: dict[tuple[str, str], bool] = {}
     all_h: dict[str, set[str]] = {}
     street_h: dict[str, set[str]] = {}
     with ROUTE_STOPS.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
+            name = row.get("stop_name") or ""
+            if is_employees_only_stop(name):
+                continue
             if (row.get("muni") or "").strip() != PITTS_MUNI:
                 continue
             if not row_is_active_on(row, AS_OF):
@@ -333,11 +399,19 @@ def get_fy26_hood_route_sets() -> tuple[dict[str, set[str]], dict[str, set[str]]
             rkey = route_to_fy26(route_raw)
             if not rkey:
                 continue
-            name = row.get("stop_name") or ""
+            interior_hoods = build_stop_to_hoods_interior_only(geoms, lon, lat)
             for hood in build_stop_to_hoods(geoms, lon, lat):
-                all_h.setdefault(hood, set()).add(rkey)
-                if not stop_is_busway_platform(name):
-                    street_h.setdefault(hood, set()).add(rkey)
+                hk = (hood, rkey)
+                meaningful = hood in interior_hoods and not is_boundary_edge_only_stop(name)
+                if meaningful:
+                    qualifier_all[hk] = True
+                    if not stop_is_busway_platform(name):
+                        qualifier_street[hk] = True
+
+    for hood, rkey in qualifier_all:
+        all_h.setdefault(hood, set()).add(rkey)
+    for hood, rkey in qualifier_street:
+        street_h.setdefault(hood, set()).add(rkey)
     return all_h, street_h
 
 

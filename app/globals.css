@@ -24,21 +24,25 @@
   --g6: #363636;
   --g8: #121212;
 
-  --w1: #c5b491;
+  --w1: #f5f0e7;
   --w2: #b6a48e;
 
   /* coverage ramp */
 
-  --b1: #D6FFFF;
-  --b2: #B8EDEC;
-  --b3: #ABE0DF;
-  --b4: #98CDCB;
-  --b5: #88BDBB;
-  --b6: #76AAA8;
-  --b7: #4C7F7E;
-  --b8: #326564;
-  --b9: #0F4646;
-  --b10: #00090A;
+  --b1: #edffff;
+  --b2: #D7FFFF;
+  --b3: #A4E5EB;
+  --b4: #88C7CE;
+  --b5: #6CABB1;
+  --b6: #539298;
+  --b7: #38777D;
+  --b8: #12575E;
+  --b9: #002F35;
+  --b10: #0a191f;
+
+
+
+
 
   --r1: #FFA883;
   --r2: #D85C4D;
@@ -123,7 +127,7 @@ route major reduction, route affected:--color-line-reduced2
   --color-fill-neg2: var(--r2);
   --color-fill-neg3: var(--r3);
   --color-fill-neutral: var(--w1);
-  --color-fill-neutral2: var(--w2);
+  --color-fill-neutral2: var(--w1);
   --color-fill-positive: var(--g1);
   --color-fill-mute: var(--n1);
 
@@ -141,19 +145,25 @@ route major reduction, route affected:--color-line-reduced2
 
   /* lines/borders */
   --color-border-light: var(--white);
-  --color-border-medium: var(--n3);
+  --color-border-medium: var(--n4);
   --color-border-dark: var(--n6);
 
   /* --- Border width --- use width-2 for default route lines, use width-1 for neighborhood borders if needed */
-  --width-1: 0.5px;
-  --width-2: 1px;
+  --width-1: 0.25px;
+  --width-2: 0.5px;
   --width-3: 2px;
+  --width-4: 4px;
 
   /* route line color styles, use for route lines in relationships route map before and after */
-  --color-line-reduced1: var(--b3);
-  --color-line-reduced2: var(--b8);
-  --color-line-default: var(--b6);
+  --color-line-muted: var(--b5);
+  --color-line-secondary: var(--b8);
+  --color-line-primary: var(--b10);
   --color-line-accent: var(--b1);
+
+  /* coverage map: neighborhood outline (use these; route lines use --color-line-*) */
+  --map-coverage-hood-border: var(--color-border-dark);
+  --map-coverage-hood-border-hover: var(--color-border-light);
+  --map-coverage-hood-border-selected: var(--color-border-light);
 
 /* ----------------------------------------------------------------------- */
 
@@ -166,7 +176,8 @@ route major reduction, route affected:--color-line-reduced2
   --spacing-p-xl: 64px;
 
   /* for poverty dot graph */
-  --spacing-dot-gap-1: 0.1rem;
+  --spacing-dot-gap-1: 0.04rem;
+  --radius-dot: 100%;
 }
 
 /* Text ink — color only; compose with `type-*` utilities (same file, utilities layer). */

@@ -72,6 +72,41 @@ FIELDNAMES = [
     "transit_dependent_pct_proxy",
 ]
 
+# Neighborhood groups that should be treated as one combined route-service unit.
+GROUPED_SERVICE_GROUP_NAMES = {
+    "Esplen-Sheraden-Chartiers City-Wind Gap-Fairywood",
+    "Central Business District - Crawford Roberts",
+    "Point Breeze-RegentSquare",
+    "Hazelwood-Glen Hazel -New Homestead-Hays",
+    "Terrace Village - West Oakland",
+    "Marshall-Shadeland",
+    "Westwood - Ridgemont",
+    "Troy Hill - Spring Garden",
+    "Homewood North - Homewood West",
+    "Northview Heights - Summer Hill",
+    "Manchester-California-Kirkbride",
+    "Beltzhoover - Bon Air",
+    "Arlington - Arlington Heights - Mount Oliver(City Neighborhood) - St. Clair",
+    "Allegheny Center-Allegheny West",
+    "East Allegheny-North Shore",
+    "East Carnegie - Oakwood",
+}
+
+# Extra group membership expansions where GeoJSON/crosswalk hood labels differ.
+GROUP_MEMBER_OVERRIDES: dict[str, set[str]] = {
+    "Arlington - Arlington Heights - Mount Oliver(City Neighborhood) - St. Clair": {
+        "Arlington",
+        "Arlington Heights",
+        "Arlington-Arlington Heights",
+        "Mt. Oliver",
+        "St. Clair",
+    },
+}
+
+
+def normalize_group_name(s: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", (s or "").lower())
+
 
 def route_to_fy26(raw: str) -> str:
     s = (raw or "").strip().upper()
@@ -131,6 +166,42 @@ def load_crosswalk() -> dict[str, dict[str, str]]:
             if h:
                 by_hood[h] = row
     return by_hood
+
+
+def build_group_members(crosswalk_by_hood: dict[str, dict[str, str]]) -> dict[str, set[str]]:
+    members: dict[str, set[str]] = {}
+    for hood, row in crosswalk_by_hood.items():
+        group_name = (row.get("NeighborhoodGroup") or "").strip()
+        geo_type = (row.get("GeographyType") or "").strip().lower()
+        if not hood or not group_name or geo_type != "neighborhood group":
+            continue
+        members.setdefault(group_name, set()).add(hood)
+    return members
+
+
+def apply_grouped_service_routes(
+    hood_routes_all: dict[str, set[str]],
+    hood_routes_street: dict[str, set[str]],
+    crosswalk_by_hood: dict[str, dict[str, str]],
+) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
+    target_group_keys = {normalize_group_name(n) for n in GROUPED_SERVICE_GROUP_NAMES}
+    group_members = build_group_members(crosswalk_by_hood)
+    out_all = {k: set(v) for k, v in hood_routes_all.items()}
+    out_street = {k: set(v) for k, v in hood_routes_street.items()}
+
+    for group_name, hoods in group_members.items():
+        if normalize_group_name(group_name) not in target_group_keys or not hoods:
+            continue
+        hoods = set(hoods) | GROUP_MEMBER_OVERRIDES.get(group_name, set())
+        union_all: set[str] = set()
+        union_street: set[str] = set()
+        for hood in hoods:
+            union_all |= hood_routes_all.get(hood, set())
+            union_street |= hood_routes_street.get(hood, set())
+        for hood in hoods:
+            out_all[hood] = set(union_all)
+            out_street[hood] = set(union_street)
+    return out_all, out_street
 
 
 def profile_for_geo_hood(
@@ -226,10 +297,13 @@ def row_for_hood(
 
 
 def main() -> None:
+    crosswalk_by_hood = load_crosswalk()
     hood_routes_all, hood_routes_street = build_hood_route_sets()
+    hood_routes_all, hood_routes_street = apply_grouped_service_routes(
+        hood_routes_all, hood_routes_street, crosswalk_by_hood
+    )
     eliminated, reduced = load_fy26_route_status()
     profile_by_key = load_profile_index()
-    crosswalk_by_hood = load_crosswalk()
 
     with GEOJSON.open(encoding="utf-8") as f:
         geo_hoods = {feat["properties"]["hood"].strip() for feat in json.load(f)["features"]}

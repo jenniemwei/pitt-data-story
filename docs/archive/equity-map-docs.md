@@ -125,8 +125,8 @@ Build an interactive equity map with:
   - choose representative shape per route or keep variant features
 
 ## Planned output files (alignment + map payload)
-- `data/join/route_key_map.csv`
-- `data/join/neighborhood_key_map.csv`
+- `data/join/route_key_map.csv` (regenerate with `python3 scripts/build_join_key_maps.py`; last copy also under `data/archive/unreferenced/join-qa-exports/`)
+- `data/join/neighborhood_key_map.csv` (same)
 - `interactive/equity-map/data/routes_lines.geojson` (or before/after split)
 - `interactive/equity-map/data/neighborhoods.geojson` (enriched properties)
 - `interactive/equity-map/data/route_status_enriched.json` (optional)
@@ -156,10 +156,10 @@ Build an interactive equity map with:
 - No linter diagnostics in edited files.
 
 ### Data join QA artifacts generated
-- `data/join/route_key_map.csv`
-- `data/join/route_key_map_unmatched.csv`
-- `data/join/neighborhood_key_map.csv`
-- `data/join/neighborhood_key_map_unmatched.csv`
+- `data/archive/unreferenced/join-qa-exports/route_key_map.csv` (regenerate to `data/join/` via `python3 scripts/build_join_key_maps.py`)
+- `data/archive/unreferenced/join-qa-exports/route_key_map_unmatched.csv`
+- `data/archive/unreferenced/join-qa-exports/neighborhood_key_map.csv`
+- `data/archive/unreferenced/join-qa-exports/neighborhood_key_map_unmatched.csv`
 
 ### Join coverage summary
 - Route join map: `100 total`, `100 matched`, `0 unmatched` (after alias crosswalk update).
