@@ -297,7 +297,7 @@ export default function CoverageMap() {
       fetch(dataAssetUrl("n_profiles_new.csv"))
         .then((r) => (r.ok ? r.text() : ""))
         .catch(() => ""),
-      fetch(dataAssetUrl("neighborhood_display_profiles.csv"))
+      fetch(dataAssetUrl("display_profiles_2024.csv"))
         .then((r) => (r.ok ? r.text() : ""))
         .catch(() => ""),
       fetch(dataAssetUrl("n_crosswalk.csv")).then((r) => (r.ok ? r.text() : "")),

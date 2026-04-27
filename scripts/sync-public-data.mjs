@@ -1,6 +1,14 @@
 /**
- * Copy approved data files into public/data for Next dev, static export, and GitHub Pages.
- * Keep this allowlist in sync with data consumers (viz components).
+ * Copy approved data files from `data/` into `public/data` for Next dev, static export, and
+ * Vercel — the app fetches from `/data/…` (see `src/lib/dataAssetUrl.js`), not from `data/` directly.
+ *
+ * **Why a copy step (vs only editing `public/data` by hand):**
+ * - A single *source* under `data/` can be rebuilt from primary tables + crosswalks (reproducible;
+ *   same `hood` keys as the map). `sync-data` is the one place that publishes those into the static
+ *   URL space.
+ * - You can still commit a hand-maintained `public/data/display_profiles_2024.csv` if the source
+ *   in `data/` is absent: sync will skip the copy, and the committed public file is what deploy serves.
+ * Keep the allowlist aligned with any `dataAssetUrl("…")` filenames in the app.
  */
 import { cpSync, existsSync, mkdirSync } from "fs";
 import { dirname, join } from "path";
@@ -15,7 +23,7 @@ const allowed = [
   "fy26_route_n_profiles_all.csv",
   "n_crosswalk.csv",
   "n_profiles_new.csv",
-  "neighborhood_display_profiles.csv",
+  "display_profiles_2024.csv",
   "FY26_route_status_all.csv",
   "demographics.csv",
   "routes_with_demographics.csv",

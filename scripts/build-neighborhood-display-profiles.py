@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
-"""Build data/neighborhood_display_profiles.csv for map sidebar ACS panels.
+"""Build ``data/display_profiles_2024.csv`` for map sidebar panels (reproducible path).
 
-Joins GeoJSON ``hood`` labels to ``data/primary/neighborhood_profiles.csv`` using
-the same rules as ``scripts/extend_fy26_map_neighborhoods.py`` (``n_crosswalk.csv``
-+ ``PROFILE_OVERRIDES``). Output uses semantic column names aligned with
-``data/n_profiles_new.csv`` so ``CoverageMap`` can merge overlays.
+**Why this pipeline exists (vs only hand-editing a CSV in ``public/data``):**
+- Ties every neighborhood polygon label to the same **crosswalk + overrides** as the route/FY26
+  pipeline, so profile rows match ``neighborhoods.geojson`` and merge cleanly with
+  ``n_profiles_new.csv`` in the app.
+- When ACS or primary tables change, you **regenerate** one file instead of pasting error-prone
+  partial updates.
 
-Regenerate when primary profiles or crosswalk change, then run ``sync-public-data``.
+**Alternative:** a script such as ``update_to_2024.py`` (or a checked-in
+``public/data/display_profiles_2024.csv``) can be the source of truth; then this builder is
+optional. If you use only the public file, run ``npm run sync-data`` will skip missing ``data/``
+  copies; commit ``public/data`` so deploys still serve the file.
+
+Input: ``data/primary/neighborhood_profiles.csv`` + ``n_crosswalk.csv`` + ``neighborhoods.geojson``.
+Regenerate when those change, then run ``sync-public-data`` to publish into ``public/data``.
 """
 
 from __future__ import annotations
@@ -20,7 +28,7 @@ DATA = ROOT / "data"
 GEOJSON = DATA / "neighborhoods.geojson"
 CROSSWALK = DATA / "n_crosswalk.csv"
 PROFILES = DATA / "primary" / "neighborhood_profiles.csv"
-TARGET = DATA / "neighborhood_display_profiles.csv"
+TARGET = DATA / "display_profiles_2024.csv"
 
 PROFILE_OVERRIDES: dict[str, tuple[str, str]] = {
     "Arlington": (

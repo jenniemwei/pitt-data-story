@@ -70,7 +70,7 @@ export default function NeighborhoodInfoPanel() {
 
         {panelDisplay && !row && (
           <p className={`${styles.missingProfile} type-body-sm text-ink-secondary`}>
-            No profile row found for this neighborhood (check that <code>neighborhood_display_profiles.csv</code> is
+            No profile row found for this neighborhood (check that <code>display_profiles_2024.csv</code> is
             built and synced).
           </p>
         )}

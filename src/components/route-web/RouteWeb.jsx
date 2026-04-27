@@ -135,7 +135,7 @@ function orderHoodsByProximity(hoods, centroids, fromLngLat) {
 
 /**
  * FY26 `anchor_neighborhoods` is an ordered comma-separated list (along the corridor).
- * Compound labels match `profile_neighborhood_group` in neighborhood_display_profiles.csv.
+ * Compound labels match `profile_neighborhood_group` in display_profiles_2024.csv.
  */
 function buildHoodChain(anchorStr, hoodSet, profileToHoods, centroids) {
   const rawParts = String(anchorStr || "")
@@ -327,7 +327,7 @@ export default function NeighborhoodRepresentationalRoutesMap() {
     Promise.all([
       fetch(dataAssetUrl("neighborhoods.geojson")).then((r) => r.json()),
       fetch(dataAssetUrl("FY26_route_status_all.csv")).then((r) => r.text()),
-      fetch(dataAssetUrl("neighborhood_display_profiles.csv")).then((r) => r.text()),
+      fetch(dataAssetUrl("display_profiles_2024.csv")).then((r) => r.text()),
       fetch(dataAssetUrl("fy26_route_n_profiles_all.csv")).then((r) => r.text()),
       fetch(dataAssetUrl("n_profiles_new.csv"))
         .then((r) => (r.ok ? r.text() : ""))
