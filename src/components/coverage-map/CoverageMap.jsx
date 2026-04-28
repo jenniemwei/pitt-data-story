@@ -222,7 +222,17 @@ function applyCoverageViewMode(map, viewMode) {
   }
 }
 
-export default function CoverageMap() {
+/**
+ * @param {{
+ *   mode?: "interactive" | "story" | "explore";
+ *   storyViewMode?: "before" | "after";
+ *   selectedNeighborhoods?: string[];
+ * }} props
+ *
+ * mode="story"   — hides interactive controls; viewMode follows storyViewMode prop.
+ * mode="interactive" (default) — existing behavior, fully interactive.
+ */
+export default function CoverageMap({ mode = "interactive", storyViewMode, selectedNeighborhoods = [] }) {
   const mapRef = useRef(null);
   const containerRef = useRef(null);
   const selectedIdRef = useRef(null);
@@ -234,6 +244,7 @@ export default function CoverageMap() {
   const [showRoutes, setShowRoutes] = useState(false);
   const [hoverData, setHoverData] = useState(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(null);
+  const featureByNeighborhoodNameRef = useRef(new Map());
   const hoverHoodIdRef = useRef(null);
   const { setCoveragePanelBase, setCoverageSelected } = useNeighborhoodPanel();
   const token = useMemo(() => process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "", []);
@@ -290,7 +301,7 @@ export default function CoverageMap() {
     Promise.all([
       fetch(dataAssetUrl("neighborhoods.geojson")).then((r) => r.json()),
       fetch(dataAssetUrl("fy26_route_n_profiles_all.csv")).then((r) => r.text()),
-      fetch(dataAssetUrl("FY26_route_status_all.csv")).then((r) => r.text()),
+      fetch(dataAssetUrl("route_status_official.csv")).then((r) => r.text()),
       fetch(dataAssetUrl("route_lines_current.geojson"))
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null),
@@ -378,6 +389,9 @@ export default function CoverageMap() {
       });
 
       const displayFeatures = buildGroupedCoverageFeatures(enrichedFeatures, hoodToGroup);
+      featureByNeighborhoodNameRef.current = new Map(
+        displayFeatures.map((f) => [String(f?.properties?.neighborhood_name || "").trim(), f]).filter(([k]) => k),
+      );
       cityFeatureCollectionRef.current = { type: "FeatureCollection", features: displayFeatures };
 
       const pageBg = getCssVar("--color-bg-default", "#f7f7f7");
@@ -521,14 +535,16 @@ export default function CoverageMap() {
           fitMapToFeature(map, feature);
         };
 
-        map.on("click", (e) => {
-          const hits = map.queryRenderedFeatures(e.point, { layers: ["coverage-hood-fill"] });
-          if (hits.length > 0) {
-            onClickHoodFeature(hits[0]);
-          } else if (selectedIdRef.current != null) {
-            clearSelectionOnMapRef.current();
-          }
-        });
+        if (mode !== "explore") {
+          map.on("click", (e) => {
+            const hits = map.queryRenderedFeatures(e.point, { layers: ["coverage-hood-fill"] });
+            if (hits.length > 0) {
+              onClickHoodFeature(hits[0]);
+            } else if (selectedIdRef.current != null) {
+              clearSelectionOnMapRef.current();
+            }
+          });
+        }
 
         applyCoverageViewMode(map, viewModeRef.current);
         applyCoverageHoodFill(map, viewModeRef.current);
@@ -593,7 +609,7 @@ export default function CoverageMap() {
       if (mapRef.current) mapRef.current.remove();
       mapRef.current = null;
     };
-  }, [token]);
+  }, [token, mode]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -619,11 +635,73 @@ export default function CoverageMap() {
     else map.once("load", applyRouteVisibility);
   }, [showRoutes]);
 
+  useEffect(() => {
+    if (mode !== "explore") return;
+    const map = mapRef.current;
+    if (!map) return;
+    const apply = () => {
+      if (!map.getLayer("coverage-hood-fill")) return;
+      const names = selectedNeighborhoods.map((v) => String(v || "").trim()).filter(Boolean);
+      if (names.length === 0) {
+        map.setFilter("coverage-hood-fill", null);
+        map.setFilter("coverage-hood-outline", null);
+        map.setFilter("coverage-hood-selected", null);
+        if (map.getLayer("coverage-routes-line")) {
+          map.setPaintProperty("coverage-routes-line", "line-opacity", viewMode === "before" ? 1 : [
+            "match",
+            ["get", "route_status"],
+            "unchanged",
+            1,
+            "reduced",
+            1,
+            "eliminated",
+            0,
+            1,
+          ]);
+        }
+        return;
+      }
+
+      const selectedRoutes = new Set();
+      for (const name of names) {
+        const f = featureByNeighborhoodNameRef.current.get(name);
+        const routes = String(f?.properties?.routes_before_csv || "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+        for (const routeId of routes) selectedRoutes.add(routeId);
+      }
+      const routeList = Array.from(selectedRoutes);
+      const filterExpr = ["in", ["get", "neighborhood_name"], ["literal", names]];
+      map.setFilter("coverage-hood-fill", filterExpr);
+      map.setFilter("coverage-hood-outline", filterExpr);
+      map.setFilter("coverage-hood-selected", filterExpr);
+      if (map.getLayer("coverage-routes-line")) {
+        map.setPaintProperty("coverage-routes-line", "line-opacity", [
+          "case",
+          ["in", ["get", "route_id"], ["literal", routeList]],
+          1,
+          0.06,
+        ]);
+      }
+    };
+    if (map.isStyleLoaded()) apply();
+    else map.once("load", apply);
+  }, [mode, selectedNeighborhoods, viewMode]);
+
+  // Story mode: sync external storyViewMode → internal viewMode.
+  useEffect(() => {
+    if (mode === "story" && storyViewMode && storyViewMode !== viewMode) {
+      setViewMode(storyViewMode);
+    }
+  }, [mode, storyViewMode, viewMode]);
+
   return (
     <div className={styles.coverageMapSection}>
       <div className={styles.mapShell}>
         <div ref={containerRef} className={styles.map} role="presentation" />
-        <div className={styles.mapControls}>
+        {mode !== "story" && (
+          <div className={styles.mapControls}>
             <div className={`${styles.mapOverlay} type-body-m text-ink-default`} role="group" aria-label="Map mode">
               <button
                 type="button"
@@ -651,6 +729,7 @@ export default function CoverageMap() {
               <span>routes</span>
             </label>
           </div>
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,90 @@
+.wrap {
+  display: grid;
+  gap: var(--spacing-s-3xl);
+  padding: var(--spacing-p-xl) var(--spacing-p-lg) var(--spacing-p-2xl);
+}
+
+.panel {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+}
+
+.panelHeader {
+  padding: var(--spacing-p-md) var(--spacing-p-md) var(--spacing-p-sm);
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.panelTitle {
+  margin: 0;
+}
+
+.panelSub {
+  margin: var(--spacing-p-xs) 0 0;
+}
+
+.radialSlot {
+  min-height: 520px;
+}
+
+.coverageSlot {
+  min-height: 600px;
+}
+
+.detailsBody {
+  padding: var(--spacing-p-md);
+}
+
+.emptyState {
+  margin: 0;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: var(--spacing-s-lg);
+}
+
+.card {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-default);
+  padding: var(--spacing-p-md);
+}
+
+.cardTitle {
+  margin: 0 0 var(--spacing-p-xs);
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-s-sm) var(--spacing-s-md);
+  margin-bottom: var(--spacing-s-md);
+}
+
+.metricLabel {
+  display: block;
+}
+
+.routeBlock {
+  margin-top: var(--spacing-s-md);
+}
+
+.routeList {
+  margin: var(--spacing-p-xs) 0 0;
+  line-height: 1.5;
+}
+
+.routeReduced {
+  color: var(--color-fill-neg2);
+}
+
+.routeEliminated {
+  text-decoration: line-through;
+  color: var(--color-text-secondary);
+}
+
+@media (min-width: 980px) {
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

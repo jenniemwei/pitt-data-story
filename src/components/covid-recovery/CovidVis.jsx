@@ -101,7 +101,7 @@ export default function CovidRecoveryDotsComparison() {
       </h2>
       <p className={styles.dek}>
         Each dot is <strong>1,000</strong> summed weekday riders (rounded) from{" "}
-        <code className={styles.code}>FY26_route_status_all.csv</code>, grouped by route anchor poverty tier. Faded
+        <code className={styles.code}>route_status_official.csv</code>, grouped by route anchor poverty tier. Faded
         dots are the <strong>2017–19 baseline</strong> tier total; solid dots are <strong>2023–24 recent</strong> on
         the same scale. Each tier is a horizontal bar (4 dots tall); bar at left, label at right.
       </p>
@@ -141,7 +141,7 @@ export default function CovidRecoveryDotsComparison() {
             })}
           </div>
 
-          {cuts ? (
+          {/* {cuts ? (
             <div className={styles.cutTableWrap}>
               <h3 className={styles.cutTableTitle}>FY26 routes eliminated or reduced, by poverty tier</h3>
               <p className={styles.cutTableDek}>
@@ -192,7 +192,7 @@ export default function CovidRecoveryDotsComparison() {
                 })}
               </div>
             </div>
-          ) : null}
+          ) : null} */}
 
           <p className={styles.footnote}>
             Dot counts: <code className={styles.code}>round(riders / {RIDERS_PER_DOT})</code> per tier (

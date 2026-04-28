@@ -24,6 +24,7 @@ const allowed = [
   "n_crosswalk.csv",
   "display_profiles_2024.csv",
   "FY26_route_status_all.csv",
+  "route_status_official.csv",
   "demographics.csv",
   "routes_with_demographics.csv",
   "ridership.csv",

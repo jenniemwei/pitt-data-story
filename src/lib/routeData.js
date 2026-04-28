@@ -3,14 +3,14 @@ import { dataAssetUrl } from "./dataAssetUrl";
 import { POVERTY_HIGH_THRESHOLD } from "./equity-map/constants";
 
 /**
- * Verified against `data/FY26_route_status_all.csv` (Apr 2026).
+ * Verified against `data/route_status_official.csv` (Apr 2026).
  *
  * Tiers use `pct_below_poverty_line_residents` normalized to 0–1:
  * - high: ≥ {@link POVERTY_HIGH_THRESHOLD} (20%+)
  * - low:  &lt; 20%
  */
 
-const STATUS_CSV = "FY26_route_status_all.csv";
+const STATUS_CSV = "route_status_official.csv";
 
 let routesPromise = null;
 

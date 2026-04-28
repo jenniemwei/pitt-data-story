@@ -1,4 +1,4 @@
-import GuidedStory from "../src/components/story/GuidedStory";
+import GuidedStory from "../../src/components/story/GuidedStory";
 
 export const metadata = {
   title: "Pittsburgh Transit Equity — Story",

@@ -281,6 +281,34 @@ route major reduction, route affected:--color-line-reduced2
 }
 
 
+/* ── Story layer tokens ───────────────────────────────────────── */
+:root {
+  --story-section-min-height: 100vh;
+  --story-beat-padding: 4rem 2rem;
+  --story-copy-max-width: 600px;
+  --story-vis-max-width: 960px;
+  --story-transition-duration: 0.6s;
+  --story-copy-gap: 1.5rem;
+  --story-beat-number-size: var(--size-xs);
+}
+
+/* Story narrative typography */
+@utility type-story-lede {
+  font: var(--weight-light) var(--size-xl) / 1.2 var(--font-serif);
+  letter-spacing: var(--tracking-display);
+}
+
+@utility type-story-body {
+  font: var(--weight-regular) var(--size-m) / 1.6 var(--font-sans);
+  letter-spacing: var(--tracking-default);
+}
+
+@utility type-story-beat-label {
+  font: var(--weight-regular) var(--size-xs) / var(--leading-default) var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 * {
   box-sizing: border-box;
 }

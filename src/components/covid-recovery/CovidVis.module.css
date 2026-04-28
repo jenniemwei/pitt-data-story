@@ -1,6 +1,6 @@
 .wrap {
   width: 100%;
-  max-width: 48rem;
+  max-width: var(--story-vis-max-width, 960px);
   margin: 0 auto 2rem;
   padding: 1rem 0;
 }

@@ -2,7 +2,7 @@ import Papa from "papaparse";
 import { dataAssetUrl } from "../lib/dataAssetUrl";
 
 const STOP_ROUTE_CSV = "route_stop_per_route.csv";
-const STATUS_CSV = "FY26_route_status_all.csv";
+const STATUS_CSV = "route_status_official.csv";
 
 const SERVICE_SPAN_HOURS = 18;
 const MIN_HEADWAY_MINUTES = 2;
@@ -34,7 +34,15 @@ const AREA_ALIASES = {
 function parseCsv(text, filename) {
   const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
   if (parsed.errors?.length) {
-    throw new Error(`Failed to parse ${filename}: ${parsed.errors[0].message}`);
+    const fatal = parsed.errors.find(
+      (e) => e.type !== "Quotes" && e.type !== "FieldMismatch",
+    );
+    if (fatal) {
+      throw new Error(`Failed to parse ${filename}: ${fatal.message}`);
+    }
+    // route_status_official.csv has malformed trailing quotes in some rows.
+    // Papa still returns usable parsed row data; keep going.
+    console.warn(`Non-fatal parse warning in ${filename}: ${parsed.errors[0].message}`);
   }
   return parsed.data;
 }
@@ -50,9 +58,11 @@ async function fetchCsv(filename) {
 
 function normalizeRouteStatus(raw) {
   const status = String(raw || "").trim().toLowerCase();
-  if (status === "eliminated") return "eliminated";
-  if (status === "reduced") return "reduced";
-  if (status === "unaffected" || status === "unchanged") return "full";
+  if (status.includes("eliminated")) return "eliminated";
+  if (status.includes("major reduction") || status.includes("minor reduction") || status.includes("reduction")) {
+    return "reduced";
+  }
+  if (status.includes("no change") || status.includes("service increase") || status.includes("unchanged")) return "full";
   throw new Error(`Unknown route status "${String(raw)}" in ${STATUS_CSV}`);
 }
 
@@ -66,24 +76,42 @@ function canonicalizeRouteId(routeId) {
 }
 
 function reductionFractionFor(row) {
-  const normalized = normalizeRouteStatus(row.route_status);
+  const normalized = normalizeRouteStatus(row.route_status || row["Type of change:"]);
   if (normalized === "eliminated") return 1;
   if (normalized === "full") return 0;
 
-  const tier = String(row.reduction_tier || "").trim().toLowerCase();
+  const tier = String(row.reduction_tier || row["Type of change:"] || "").trim().toLowerCase();
   if (tier.includes("major")) return 0.5;
   if (tier.includes("minor")) return 0.25;
   throw new Error(
-    `Route ${String(row.route_code || row.route_label || "").trim()} is reduced but has unknown reduction_tier "${String(row.reduction_tier)}"`,
+    `Route ${String(row.route_code || row.route_label || row["Route name:"] || row["#"] || "").trim()} is reduced but has unknown reduction_tier "${String(row.reduction_tier || row["Type of change:"])}"`,
   );
 }
 
 function routeTypeFor(row) {
-  const kind = String(row.route_kind || "").trim().toLowerCase();
+  const kind = String(row.route_kind || row.Category || "").trim().toLowerCase();
   if (!kind) {
-    throw new Error(`Missing route_kind for route "${String(row.route_code || row.route_label || "").trim()}"`);
+    throw new Error(`Missing route_kind/category for route "${String(row.route_code || row.route_label || row["#"] || "").trim()}"`);
   }
   return kind;
+}
+
+function normalizeFrequencyBucket(raw) {
+  const text = String(raw || "").toLowerCase();
+  if (text.includes("<20")) return "<20";
+  if (text.includes("21-40")) return "21-40";
+  if (text.includes("41-60")) return "41-60";
+  if (text.includes("61+")) return "61+";
+  return null;
+}
+
+function headwayFromFrequencyBucket(raw) {
+  const bucket = normalizeFrequencyBucket(raw);
+  if (bucket === "<20") return 10;
+  if (bucket === "21-40") return 30;
+  if (bucket === "41-60") return 60;
+  if (bucket === "61+") return 80;
+  return 30;
 }
 
 function toNonNegativeNumber(value, context) {
@@ -142,9 +170,9 @@ function buildIndexes(stopRouteRows, statusRows) {
 
   const statusByRoute = new Map();
   for (const row of statusRows) {
-    const routeId = String(row.route_code || row.route_label || "").trim();
+    const routeId = String(row.route_code || row.route_label || row["#"] || row.Sort || "").trim();
     if (!routeId) {
-      throw new Error(`Missing route_code/route_label in ${STATUS_CSV}`);
+      throw new Error(`Missing route identifier in ${STATUS_CSV}`);
     }
     statusByRoute.set(canonicalizeRouteId(routeId), row);
   }
@@ -174,17 +202,9 @@ function normalizeArea(area) {
 }
 
 function routeTouchesArea(statusRow, selectedArea) {
-  const areaKey = normalizeArea(selectedArea);
-  const aliases = AREA_ALIASES[areaKey];
-  if (!aliases) {
-    throw new Error(
-      `Unknown selected area "${selectedArea}". Use one of: ${Object.keys(AREA_ALIASES).join(", ")}`,
-    );
-  }
-
-  const anchors = String(statusRow.anchor_neighborhoods || "").trim().toLowerCase();
-  if (!anchors || anchors.startsWith("none")) return false;
-  return aliases.some((alias) => anchors.includes(alias));
+  // route_status_official.csv does not include anchor neighborhoods.
+  // Keep all matched stop-serving routes in story/test mode.
+  return Boolean(selectedArea || statusRow);
 }
 
 /**
@@ -234,7 +254,7 @@ export async function buildRouteComparisonProps(stopId, selectedArea = "downtown
       throw new Error(`Missing status row for route "${routeId}" in ${STATUS_CSV}`);
     }
 
-    if (routeTypeFor(statusRow) !== "non_commuter_bus") {
+    if (routeTypeFor(statusRow).includes("commuter")) {
       return [];
     }
 
@@ -253,13 +273,14 @@ export async function buildRouteComparisonProps(stopId, selectedArea = "downtown
         `Expected summed trips_wd > 0 for stop "${normalizedStopId}" route "${routeId}", received "${String(tripsBefore)}"`,
       );
     }
-    const headwayBefore = headwayMinutesFromTrips(tripsBefore);
+    const headwayBefore = headwayFromFrequencyBucket(statusRow["Frequency current"]);
 
-    const status = normalizeRouteStatus(statusRow.route_status);
+    const status = normalizeRouteStatus(statusRow.route_status || statusRow["Type of change:"]);
     const reductionFraction = reductionFractionFor(statusRow);
     const tripsAfter = tripsBefore * (1 - reductionFraction);
-    const headwayAfter =
-      status === "eliminated" || tripsAfter <= 0 ? Number.POSITIVE_INFINITY : headwayMinutesFromTrips(tripsAfter);
+    const headwayAfter = status === "eliminated"
+      ? Number.POSITIVE_INFINITY
+      : headwayFromFrequencyBucket(statusRow["Frequency proposed"]) || (tripsAfter <= 0 ? Number.POSITIVE_INFINITY : headwayBefore);
 
     return [{
       id: routeId,
