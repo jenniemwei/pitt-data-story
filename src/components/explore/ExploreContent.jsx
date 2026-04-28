@@ -76,7 +76,9 @@ export default function ExploreContent() {
       >
         <div className={styles.panelInner}>
           <header className={styles.panelHeader}>
-            <h2 className={`${styles.panelTitle} type-h2-sans text-ink-default`}>1) Coverage change</h2>
+            <h2 className={`${styles.panelTitle} type-h2-sans text-ink-default`}>
+              PRT coverage lost after FY26 plan
+            </h2>
           </header>
           <div className={styles.coverageSlot}>
             <CoverageMap mode="explore" />
@@ -93,7 +95,9 @@ export default function ExploreContent() {
       >
         <div className={styles.panelInner}>
           <header className={styles.panelHeader}>
-            <h2 className={`${styles.panelTitle} type-h2-sans text-ink-default`}>2) Route web</h2>
+            <h2 className={`${styles.panelTitle} type-h2-sans text-ink-default`}>
+              Bus frequency to Downtown per neighborhood
+            </h2>
           </header>
           <div className={styles.routeSlot}>
             <RadialNetworkMapView />

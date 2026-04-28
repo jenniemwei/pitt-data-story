@@ -21,11 +21,11 @@ import {
 } from "../../lib/neighborhoodPanelPayload";
 import styles from "./RadialNetworkMapView.module.css";
 
-const DOT_SPEED_PX_PER_SEC = 10;
+const DOT_SPEED_PX_PER_SEC = 8;
 const DOT_RADIUS = 2.2;
 const BEFORE_SPACING = 120;
-const AFTER_SPACING_UNCHANGED = 800;
-const AFTER_SPACING_REDUCED = 1300;
+const AFTER_SPACING_UNCHANGED = 1000;
+const AFTER_SPACING_REDUCED = 2000;
 const MAX_DOTS_PER_ROUTE = 6;
 const ZOOM_MIN = 0.7;
 const ZOOM_MAX = 1.8;
@@ -58,6 +58,8 @@ export default function RadialNetworkMapView() {
   const [dotMode, setDotMode] = useState("before");
   const [zoomLevel, setZoomLevel] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const subtitle =
+    "Toggle before and after to see the frequency difference to downtown, hover neighborhoods to see demographic data, and click to focus on one.";
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const layoutRef = useRef([]);
@@ -224,8 +226,8 @@ export default function RadialNetworkMapView() {
     const dpr = window.devicePixelRatio || 1;
     canvas.width = Math.round(drawWidth * dpr);
     canvas.height = Math.round(h * dpr);
-    canvas.style.width = `${drawWidth}px`;
-    canvas.style.height = `${h}px`;
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, drawWidth, h);
 
@@ -412,13 +414,6 @@ export default function RadialNetworkMapView() {
     }
     return null;
   };
-
-  const activeNode = (hovered || selected)
-    ? layoutRef.current.find((n) => n.name === (hovered || selected))
-    : null;
-  const subtitle = activeNode
-    ? `${activeNode.name}: ${activeNode.routes.length} route${activeNode.routes.length === 1 ? "" : "s"} tracked (${dotMode} state)`
-    : `Hover or click a neighborhood dot to inspect route losses (${dotMode} state).`;
 
   return (
     <section className={styles.section} aria-label="Radial neighborhood transit network">

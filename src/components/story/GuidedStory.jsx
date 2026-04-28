@@ -584,7 +584,7 @@ export default function GuidedStory() {
           <div className={styles.copyBlock}>
             <BeatLabel n={5} label="Two people, one stop" />
             <h2 id="beat-5-h" className={`${styles.lede} type-h1-serif text-ink-default`}>
-              Same city. Same efficiency score. Different lives.
+              Both neighborhoods are losing service, but with very different consequences for the humans who use them.
             </h2>
             <p className={`${styles.body} type-body`}>
               Larimer: daytime gap doubles — from ~20 to ~40 min between buses. Highland Park:

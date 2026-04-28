@@ -240,8 +240,8 @@ route major reduction, route affected:--color-line-reduced2
 }
 
 @utility type-h2-sans {
-  font: var(--weight-regular) var(--size-m) / var(--leading-default) var(--font-sans);
-  letter-spacing: var(--tracking-default);
+  font: var(--weight-semibold) var(--size-lg) / var(--leading-default) var(--font-sans);
+  letter-spacing: var(--tracking-display);
 }
 
 @utility type-h4-mono-allcaps {

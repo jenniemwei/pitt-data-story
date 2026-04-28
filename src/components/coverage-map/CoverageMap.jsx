@@ -249,6 +249,7 @@ export default function CoverageMap({
   const [showRoutes, setShowRoutes] = useState(false);
   const [hoverData, setHoverData] = useState(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(null);
+  const exploreIntroAnimatedRef = useRef(false);
   const featureByNeighborhoodNameRef = useRef(new Map());
   const hoverHoodIdRef = useRef(null);
   const { setCoveragePanelBase, setCoverageSelected } = useNeighborhoodPanel();
@@ -645,6 +646,16 @@ export default function CoverageMap({
       mapRef.current = null;
     };
   }, [token, mode, onToggleNeighborhood, onHoverNeighborhood]);
+
+  useEffect(() => {
+    if (mode !== "explore" || exploreIntroAnimatedRef.current) return;
+    exploreIntroAnimatedRef.current = true;
+    setViewMode("before");
+    const t = window.setTimeout(() => {
+      setViewMode("after");
+    }, 450);
+    return () => window.clearTimeout(t);
+  }, [mode]);
 
   useEffect(() => {
     const map = mapRef.current;
