@@ -17,6 +17,7 @@ export default function CommuteMethodGauge({
   vehicleWalkShare = 0,
   transitShare = 0,
   transitPctLabel,
+  hideHeadlineValue = false,
 }) {
   const wfh = clamp01(workFromHomeShare);
   const transit = clamp01(transitShare);
@@ -65,15 +66,16 @@ export default function CommuteMethodGauge({
 
   return (
     <div className={styles.wrap}>
-      <p className={styles.title}>
-        <span className={styles.titleEm}>{pctTransit}%</span> commute with PRT
+      <p className={`${styles.title} type-h2-sans`}>
+        {!hideHeadlineValue ? <span className={styles.titleEm}>{pctTransit}%</span> : null} commute with PRT
       </p>
       <div className={styles.chart} aria-hidden>
         <svg className={styles.svg} viewBox="0 0 200 108" preserveAspectRatio="xMidYMax meet">
+          <path d={`M ${cx} ${cy} L ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy} Z`} fill="var(--w1, #f5f0e7)" />
           {paths}
         </svg>
       </div>
-      <ul className={styles.legend}>
+      <ul className={`${styles.legend} type-h4-mono-allcaps`}>
         <li>
           <span className={styles.swatch} data-variant="wfh" /> work from home
         </li>

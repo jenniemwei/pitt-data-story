@@ -124,12 +124,11 @@ function toNonNegativeNumber(value, context) {
 
 function routeColorForIndex(index) {
   const tokenPalette = [
-    "var(--color-line-primary)",
-    "var(--color-line-secondary)",
-    "var(--color-line-muted)",
-    "var(--b7)",
-    "var(--b8)",
-    "var(--b9)",
+    "var(--color-route1)",
+    "var(--color-route2)",
+    "var(--color-route3)",
+    "var(--color-route4)",
+    "var(--color-route5)",
   ];
   return tokenPalette[index % tokenPalette.length];
 }

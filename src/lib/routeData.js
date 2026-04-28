@@ -10,7 +10,8 @@ import { POVERTY_HIGH_THRESHOLD } from "./equity-map/constants";
  * - low:  &lt; 20%
  */
 
-const STATUS_CSV = "route_status_official.csv";
+// Contains poverty + baseline/recent ridership columns used by COVID recovery dots.
+const STATUS_CSV = "FY26_route_status_all.csv";
 
 let routesPromise = null;
 

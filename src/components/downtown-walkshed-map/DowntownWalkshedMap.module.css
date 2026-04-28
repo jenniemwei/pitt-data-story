@@ -6,19 +6,15 @@
 
 .header h2 {
   margin: 0 0 0.35rem;
-  font-size: 1.25rem;
   color: var(--default);
 }
 
 .header p {
   margin: 0 0 0.9rem;
   color: var(--secondary);
-  font-size: 0.92rem;
 }
 
 .header p code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.88em;
 }
 
 .toggleRow {
@@ -33,8 +29,6 @@
   background: var(--n0);
   color: var(--default);
   padding: 0.3rem 0.65rem;
-  font-size: 0.8rem;
-  letter-spacing: 0.01em;
   cursor: pointer;
 }
 
@@ -58,11 +52,9 @@
   border: 1px solid var(--border-subtle);
   background: var(--n0);
   color: var(--secondary);
-  font-size: 0.84rem;
 }
 
 .legendTitle {
-  font-weight: 600;
   color: var(--default);
   margin-bottom: 0.2rem;
 }

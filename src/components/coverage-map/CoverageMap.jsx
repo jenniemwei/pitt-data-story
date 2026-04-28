@@ -12,6 +12,7 @@ import {
   lossWeightForRoute,
   mergeDisplayAndNProfiles,
   normalizeStatus,
+  pickRouteStatusValue,
   parseRouteList,
 } from "../../lib/neighborhoodPanelPayload";
 import { dataAssetUrl } from "../../lib/dataAssetUrl";
@@ -26,7 +27,7 @@ const FLAT_BASEMAP_STYLE = {
   layers: [{ id: "basemap-flat", type: "background", paint: { "background-color": "#f7f7f7" } }],
 };
 const MAP_CENTER = [-79.9959, 40.4406];
-const MAP_INITIAL_ZOOM = 10.1;
+const MAP_INITIAL_ZOOM = 10.5;
 
 /**
  * Mapbox `fill-color` must be resolved hex (or rgba) strings — not `var(--b1)` text.
@@ -159,10 +160,8 @@ function fitNeighborhoodBounds(map, featureCollection, fitOptions) {
     extendBoundsForCoords(bounds, feature?.geometry?.coordinates);
   }
   if (!bounds.isEmpty()) {
-    const pad = Number.parseInt(getCssVar("--spacing-p-lg", "48"), 10);
-    const padding = Number.isFinite(pad) && pad > 0 ? pad : 48;
     map.fitBounds(bounds, {
-      padding,
+      padding: 32,
       maxZoom: 12.5,
       duration: 0,
       ...fitOptions,
@@ -175,11 +174,9 @@ function fitMapToFeature(map, feature, fitOptions) {
   const bounds = new mapboxgl.LngLatBounds();
   extendBoundsForCoords(bounds, feature.geometry.coordinates);
   if (!bounds.isEmpty()) {
-    const pad = Number.parseInt(getCssVar("--spacing-p-xl", "64"), 10);
-    const padding = Number.isFinite(pad) && pad > 0 ? pad : 72;
     map.fitBounds(bounds, {
-      padding,
-      maxZoom: 13.8,
+      padding: 32,
+      maxZoom: 12.5,
       duration: 550,
       ...fitOptions,
     });
@@ -227,12 +224,20 @@ function applyCoverageViewMode(map, viewMode) {
  *   mode?: "interactive" | "story" | "explore";
  *   storyViewMode?: "before" | "after";
  *   selectedNeighborhoods?: string[];
+ *   onToggleNeighborhood?: (name: string, shiftKey: boolean) => void;
+ *   onHoverNeighborhood?: (name: string | null) => void;
  * }} props
  *
  * mode="story"   — hides interactive controls; viewMode follows storyViewMode prop.
  * mode="interactive" (default) — existing behavior, fully interactive.
  */
-export default function CoverageMap({ mode = "interactive", storyViewMode, selectedNeighborhoods = [] }) {
+export default function CoverageMap({
+  mode = "interactive",
+  storyViewMode,
+  selectedNeighborhoods = [],
+  onToggleNeighborhood,
+  onHoverNeighborhood,
+}) {
   const mapRef = useRef(null);
   const containerRef = useRef(null);
   const selectedIdRef = useRef(null);
@@ -284,9 +289,6 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
   const clearSelectionOnMapRef = useRef(clearSelectionOnMap);
   clearSelectionOnMapRef.current = clearSelectionOnMap;
 
-  /** Re-center the city and clear a selected neighborhood. */
-  const recenterMap = clearSelectionOnMap;
-
   useEffect(() => {
     setCoveragePanelBase(selectedNeighborhood || hoverData);
     setCoverageSelected(selectedNeighborhood);
@@ -297,6 +299,7 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
 
     mapboxgl.accessToken = token;
     let cancelled = false;
+    let resizeObserver = null;
 
     Promise.all([
       fetch(dataAssetUrl("neighborhoods.geojson")).then((r) => r.json()),
@@ -333,11 +336,13 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
       const statusByRoute = new Map();
       const reductionTierByRoute = new Map();
       for (const row of routeRows) {
-        const routeId = normalizeRouteId(row.route_code || row.route_label || "");
+        const routeId = normalizeRouteId(
+          row.route_code || row.route_label || row["#"] || row.Sort || row["Route name:"] || "",
+        );
         if (!routeId) continue;
-        const status = normalizeStatus(row.route_status);
+        const status = normalizeStatus(pickRouteStatusValue(row));
         statusByRoute.set(routeId, status);
-        reductionTierByRoute.set(routeId, row.reduction_tier);
+        reductionTierByRoute.set(routeId, row.reduction_tier || row["Reduction Tier"] || "");
       }
 
       const routesByNeighborhood = new Map();
@@ -394,7 +399,7 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
       );
       cityFeatureCollectionRef.current = { type: "FeatureCollection", features: displayFeatures };
 
-      const pageBg = getCssVar("--color-bg-default", "#f7f7f7");
+      const pageBg = mode === "story" ? "rgba(0,0,0,0)" : getCssVar("--color-bg-default", "#f7f7f7");
 
       const map = new mapboxgl.Map({
         container: containerRef.current,
@@ -407,12 +412,20 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
           ),
         },
         center: MAP_CENTER,
-        zoom: MAP_INITIAL_ZOOM + 0.45,
+        zoom: MAP_INITIAL_ZOOM,
         attributionControl: true,
       });
       mapRef.current = map;
+      if (typeof ResizeObserver !== "undefined" && containerRef.current) {
+        resizeObserver = new ResizeObserver(() => {
+          if (!cancelled) map.resize();
+        });
+        resizeObserver.observe(containerRef.current);
+      }
 
-      map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "bottom-right");
+      if (mode !== "story") {
+        map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
+      }
       restrictMapboxFreeformZoom(map);
 
       map.on("load", () => {
@@ -422,8 +435,12 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
           promoteId: "neighborhood_name",
         });
         const fillPaint = buildCoverageFillPaint(viewModeRef.current);
-        const hoodBorderDefault = getCssVar("--map-coverage-hood-border", getCssVar("--color-border-dark", "#363636"));
-        const hoodBorderHover = getCssVar("--map-coverage-hood-border-hover", getCssVar("--color-border-light", "#ffffff"));
+        const hoodBorderDefault = mode === "story"
+          ? getCssVar("--color-border-light", "#ffffff")
+          : getCssVar("--map-coverage-hood-border", getCssVar("--color-border-dark", "#363636"));
+        const hoodBorderHover = mode === "story"
+          ? getCssVar("--color-border-light", "#ffffff")
+          : getCssVar("--map-coverage-hood-border-hover", getCssVar("--color-border-light", "#ffffff"));
         const hoodBorderSelected = getCssVar(
           "--map-coverage-hood-border-selected",
           getCssVar("--color-border-light", "#ffffff"),
@@ -433,8 +450,12 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
           id: "coverage-hood-fill",
           type: "fill",
           source: "coverage-hoods",
-          paint: fillPaint,
+          paint: mode === "story"
+            ? { ...fillPaint, "fill-opacity": 0.9 }
+            : fillPaint,
         });
+        map.setPaintProperty("coverage-hood-fill", "fill-color-transition", { duration: 700, delay: 0 });
+        map.setPaintProperty("coverage-hood-fill", "fill-opacity-transition", { duration: 700, delay: 0 });
         map.addLayer({
           id: "coverage-hood-outline",
           type: "line",
@@ -461,7 +482,7 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
           },
         });
 
-        const clearHoverState = (clearPanelHover) => {
+        const clearHoverState = () => {
           if (hoverHoodIdRef.current) {
             try {
               map.setFeatureState(
@@ -474,7 +495,6 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
             hoverHoodIdRef.current = null;
           }
           map.getCanvas().style.cursor = "";
-          if (clearPanelHover && !selectedRef.current) setHoverData(null);
         };
 
         const onMoveFromHoodFeature = (feature) => {
@@ -500,6 +520,7 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
             }
           }
           map.getCanvas().style.cursor = "pointer";
+          onHoverNeighborhood?.(String(id || "").trim() || null);
           if (selectedRef.current) return;
           setHoverData(buildHoverPayload(feature.properties, profilesRef.current));
         };
@@ -509,7 +530,8 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
           if (f) onMoveFromHoodFeature(f);
         });
         map.on("mouseleave", "coverage-hood-fill", () => {
-          clearHoverState(true);
+          clearHoverState();
+          onHoverNeighborhood?.(null);
         });
 
         const onClickHoodFeature = (feature) => {
@@ -538,11 +560,21 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
         if (mode !== "explore") {
           map.on("click", (e) => {
             const hits = map.queryRenderedFeatures(e.point, { layers: ["coverage-hood-fill"] });
+            if (selectedIdRef.current != null) {
+              clearSelectionOnMapRef.current();
+              return;
+            }
             if (hits.length > 0) {
               onClickHoodFeature(hits[0]);
-            } else if (selectedIdRef.current != null) {
-              clearSelectionOnMapRef.current();
             }
+          });
+        } else {
+          map.on("click", (e) => {
+            const hits = map.queryRenderedFeatures(e.point, { layers: ["coverage-hood-fill"] });
+            const hit = hits?.[0];
+            const name = String(hit?.properties?.neighborhood_name || "").trim();
+            if (!name) return;
+            onToggleNeighborhood?.(name, Boolean(e.originalEvent?.shiftKey));
           });
         }
 
@@ -590,9 +622,11 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
               layout: {
                 "line-join": "round",
                 "line-cap": "round",
-                visibility: "none",
+                visibility: showRoutes ? "visible" : "none",
               },
             });
+            map.setPaintProperty("coverage-routes-line", "line-color-transition", { duration: 700, delay: 0 });
+            map.setPaintProperty("coverage-routes-line", "line-opacity-transition", { duration: 700, delay: 0 });
             applyCoverageViewMode(map, viewModeRef.current);
             applyCoverageHoodFill(map, viewModeRef.current);
           }
@@ -606,10 +640,11 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
       setSelectedNeighborhood(null);
       selectedIdRef.current = null;
       hoverHoodIdRef.current = null;
+      if (resizeObserver) resizeObserver.disconnect();
       if (mapRef.current) mapRef.current.remove();
       mapRef.current = null;
     };
-  }, [token, mode]);
+  }, [token, mode, onToggleNeighborhood, onHoverNeighborhood]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -646,6 +681,8 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
         map.setFilter("coverage-hood-fill", null);
         map.setFilter("coverage-hood-outline", null);
         map.setFilter("coverage-hood-selected", null);
+        applyCoverageHoodFill(map, viewMode);
+        map.setPaintProperty("coverage-hood-fill", "fill-opacity", 1);
         if (map.getLayer("coverage-routes-line")) {
           map.setPaintProperty("coverage-routes-line", "line-opacity", viewMode === "before" ? 1 : [
             "match",
@@ -672,10 +709,23 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
         for (const routeId of routes) selectedRoutes.add(routeId);
       }
       const routeList = Array.from(selectedRoutes);
-      const filterExpr = ["in", ["get", "neighborhood_name"], ["literal", names]];
-      map.setFilter("coverage-hood-fill", filterExpr);
-      map.setFilter("coverage-hood-outline", filterExpr);
-      map.setFilter("coverage-hood-selected", filterExpr);
+      const selectedExpr = ["in", ["get", "neighborhood_name"], ["literal", names]];
+      const unselectedGrey = getCssVar("--n3", "#989898");
+      map.setFilter("coverage-hood-fill", null);
+      map.setFilter("coverage-hood-outline", null);
+      map.setFilter("coverage-hood-selected", selectedExpr);
+      map.setPaintProperty("coverage-hood-fill", "fill-color", [
+        "case",
+        selectedExpr,
+        buildCoverageFillColorExpression(viewMode),
+        unselectedGrey,
+      ]);
+      map.setPaintProperty("coverage-hood-fill", "fill-opacity", [
+        "case",
+        selectedExpr,
+        1,
+        0.35,
+      ]);
       if (map.getLayer("coverage-routes-line")) {
         map.setPaintProperty("coverage-routes-line", "line-opacity", [
           "case",
@@ -697,39 +747,44 @@ export default function CoverageMap({ mode = "interactive", storyViewMode, selec
   }, [mode, storyViewMode, viewMode]);
 
   return (
-    <div className={styles.coverageMapSection}>
+    <div className={`${styles.coverageMapSection} ${mode === "story" ? styles.coverageMapSectionStory : ""}`}>
       <div className={styles.mapShell}>
         <div ref={containerRef} className={styles.map} role="presentation" />
-        {mode !== "story" && (
-          <div className={styles.mapControls}>
-            <div className={`${styles.mapOverlay} type-body-m text-ink-default`} role="group" aria-label="Map mode">
-              <button
-                type="button"
-                className={`${styles.modeLink} type-body-sm ${viewMode === "before" ? `text-ink-default ${styles.modeLinkOn}` : "text-ink-secondary"}`}
-                onClick={() => setViewMode("before")}
-              >
-                before
-              </button>
-              <span className={`${styles.modeSep} text-ink-label`} aria-hidden>
-                |
-              </span>
-              <button
-                type="button"
-                className={`${styles.modeLink} type-body-sm ${viewMode === "after" ? `text-ink-default ${styles.modeLinkOn}` : "text-ink-secondary"}`}
-                onClick={() => setViewMode("after")}
-              >
-                after
-              </button>
-            </div>
-            <button type="button" className={`${styles.recenterBtn} type-body-sm text-ink-default`} onClick={recenterMap}>
-              Re-center map
+        <div className={styles.mapTopLeftControls}>
+          <div className={styles.modeControls} role="group" aria-label="Map mode">
+            <button
+              type="button"
+              className={`${styles.modeButton} ${viewMode === "before" ? styles.modeButtonOn : ""} type-h4-mono-allcaps`}
+              onClick={() => setViewMode("before")}
+              disabled={mode === "story"}
+            >
+              Before
             </button>
-            <label className={`${styles.routeToggle} type-body-sm text-ink-default`}>
+            <button
+              type="button"
+              className={`${styles.modeButton} ${viewMode === "after" ? styles.modeButtonOn : ""} type-h4-mono-allcaps`}
+              onClick={() => setViewMode("after")}
+              disabled={mode === "story"}
+            >
+              After
+            </button>
+          </div>
+          {mode !== "story" ? (
+            <label className={`${styles.routeToggle} type-body text-ink-default`}>
               <input type="checkbox" checked={showRoutes} onChange={(e) => setShowRoutes(e.target.checked)} />
               <span>routes</span>
             </label>
+          ) : null}
+        </div>
+        <div className={styles.mapBottomLeftLegend}>
+          <div className={styles.coverageLegend} aria-label="Coverage loss legend">
+            <div className={styles.coverageLegendBar} aria-hidden />
+            <div className={styles.coverageLegendLabels}>
+              <span className="type-h4-mono-allcaps text-ink-default">0% route coverage lost</span>
+              <span className="type-h4-mono-allcaps text-ink-default">100% route coverage lost</span>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

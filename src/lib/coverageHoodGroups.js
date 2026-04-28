@@ -5,6 +5,21 @@ import { buffer, cleanCoords, featureCollection, simplify, union as turfUnion } 
 /** Manual aliases where a non-standard hood label must map to a known group key. */
 export const HOOD_TO_GROUP_NAME_ALIASES = {};
 
+const PROFILE_SIGNATURE_FIELDS = [
+  "total_pop",
+  "share_below_50pct_poverty_threshold",
+  "share_below_100pct_poverty_threshold",
+  "share_below_100pct_poverty_25plus",
+  "share_commute_car_truck_van",
+  "share_commute_public_transit",
+  "share_commute_bicycle",
+  "share_commute_walked",
+  "share_commute_other_modes",
+  "share_commute_worked_from_home",
+  "share_hh_income_100k_to_199k",
+  "share_hh_income_200k_plus",
+];
+
 function canonLabel(s) {
   return String(s || "")
     .toLowerCase()
@@ -50,6 +65,16 @@ export function buildHoodToGroupNameMap(displayRows = [], hoodSet = new Set()) {
     .map((hood) => [hood, canonLabel(hood)])
     .sort((a, b) => b[1].length - a[1].length);
 
+  /** Prefer explicit CSV row mapping: neighborhood_group (member hood) -> profile_neighborhood_group (display label). */
+  for (const row of displayRows) {
+    const hoodName = String(row.neighborhood_group || "").trim();
+    const profileLabel = String(row.profile_neighborhood_group || "").trim();
+    if (!hoodName || !profileLabel) continue;
+    if (hoodSet.has(hoodName) && hoodName !== profileLabel) {
+      byHood.set(hoodName, profileLabel);
+    }
+  }
+
   for (const row of displayRows) {
     const label = String(row.neighborhood_group || "").trim();
     if (!label) continue;
@@ -62,6 +87,38 @@ export function buildHoodToGroupNameMap(displayRows = [], hoodSet = new Set()) {
       for (const hood of members) byHood.set(hood, label);
     }
   }
+
+  /**
+   * Auto-group any hood rows that share an exact profile signature (population + demographics),
+   * even if their display label is not a decomposable concatenation.
+   */
+  const rowsBySignature = new Map();
+  for (const row of displayRows) {
+    const hoodName = String(row.neighborhood_group || "").trim();
+    if (!hoodSet.has(hoodName)) continue;
+    const signature = PROFILE_SIGNATURE_FIELDS.map((k) => String(row?.[k] ?? "").trim()).join("|");
+    if (!signature) continue;
+    if (!rowsBySignature.has(signature)) rowsBySignature.set(signature, []);
+    rowsBySignature.get(signature).push(row);
+  }
+  for (const rows of rowsBySignature.values()) {
+    const memberHoods = Array.from(
+      new Set(
+        rows
+          .map((r) => String(r.neighborhood_group || "").trim())
+          .filter((n) => hoodSet.has(n)),
+      ),
+    );
+    if (memberHoods.length < 2) continue;
+    const candidateLabels = rows
+      .map((r) => String(r.profile_neighborhood_group || "").trim())
+      .filter(Boolean);
+    const preferred = candidateLabels.find((v) => v.includes("-")) || candidateLabels[0];
+    const fallback = memberHoods.join("-");
+    const groupLabel = preferred || fallback;
+    for (const hood of memberHoods) byHood.set(hood, groupLabel);
+  }
+
   for (const [h, g] of Object.entries(HOOD_TO_GROUP_NAME_ALIASES)) byHood.set(h, g);
   return byHood;
 }
@@ -322,6 +379,55 @@ export function buildGroupedCoverageFeatures(enrichedFeatures, hoodToGroup) {
     const baseProps = { ...first.properties };
     const merged = mergePolygonFeaturesForGroup(list);
     if (!merged) continue;
+    const routeSetBefore = new Set();
+    const routeSetAfter = new Set();
+    /** @type {Record<string, string>} */
+    const routeStatusById = {};
+    let totalBeforeCount = 0;
+    let totalAfterCount = 0;
+    let lostCoverageWeightedSum = 0;
+    for (const feature of list) {
+      const props = feature?.properties || {};
+      const beforeCsv = String(props.routes_before_csv || "");
+      const afterCsv = String(props.routes_after_csv || "");
+      const beforeList = beforeCsv
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
+      const afterList = afterCsv
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
+      for (const routeId of beforeList) routeSetBefore.add(routeId);
+      for (const routeId of afterList) routeSetAfter.add(routeId);
+      const afterStatusRaw = String(props.routes_after_status_json || "{}");
+      try {
+        const parsed = JSON.parse(afterStatusRaw);
+        if (parsed && typeof parsed === "object") {
+          for (const [routeId, status] of Object.entries(parsed)) {
+            if (routeId) routeStatusById[routeId] = String(status || "unchanged");
+          }
+        }
+      } catch {
+        /* ignore malformed rows */
+      }
+      const beforeCount = Number(props.routes_before_count) || beforeList.length;
+      const afterCount = Number(props.routes_after_count) || afterList.length;
+      totalBeforeCount += beforeCount;
+      totalAfterCount += afterCount;
+      const loss = Number(props.lost_coverage) || 0;
+      lostCoverageWeightedSum += loss * beforeCount;
+    }
+    const routesBeforeCount = routeSetBefore.size > 0 ? routeSetBefore.size : totalBeforeCount;
+    const routesAfterCount = routeSetAfter.size > 0 ? routeSetAfter.size : totalAfterCount;
+    // `lostCoverageWeightedSum` is built as Σ(memberLostCoverage * memberBeforeCount),
+    // so the matching denominator is Σ(memberBeforeCount), not unique route IDs.
+    // Using unique route count here can overstate loss (often clipping to 1.0) when
+    // grouped neighborhoods share many of the same routes.
+    const lostCoverageDenominator = totalBeforeCount > 0 ? totalBeforeCount : routesBeforeCount;
+    const lostCoverage = lostCoverageDenominator > 0
+      ? Math.max(0, Math.min(1, lostCoverageWeightedSum / lostCoverageDenominator))
+      : 0;
     out.push({
       type: "Feature",
       geometry: merged.geometry,
@@ -330,6 +436,16 @@ export function buildGroupedCoverageFeatures(enrichedFeatures, hoodToGroup) {
         neighborhood_name: groupName,
         group_display_name: groupName,
         member_hood_count: list.length,
+        lost_coverage: lostCoverage,
+        routes_before_csv: Array.from(routeSetBefore).sort((a, b) =>
+          String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" }),
+        ).join(", "),
+        routes_after_csv: Array.from(routeSetAfter).sort((a, b) =>
+          String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" }),
+        ).join(", "),
+        routes_after_status_json: JSON.stringify(routeStatusById),
+        routes_before_count: routesBeforeCount,
+        routes_after_count: routesAfterCount,
       },
     });
   }

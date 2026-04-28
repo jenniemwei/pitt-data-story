@@ -34,7 +34,6 @@
 }
 
 .select {
-  font: var(--weight-regular) var(--size-sm) / var(--leading-default) var(--font-sans);
   color: var(--color-text-default);
   border: var(--width-2) solid var(--color-border-medium);
   background: var(--color-bg-light);

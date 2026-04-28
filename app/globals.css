@@ -29,16 +29,16 @@
 
   /* coverage ramp */
 
-  --b1: #edffff;
-  --b2: #D7FFFF;
-  --b3: #A4E5EB;
-  --b4: #88C7CE;
-  --b5: #6CABB1;
-  --b6: #539298;
-  --b7: #38777D;
-  --b8: #12575E;
-  --b9: #002F35;
-  --b10: #0a191f;
+  --b1: #f5f5f5;
+  --b2: #e8e8e8;
+  --b3: #dbdbdb;
+  --b4: #cecece;
+  --b5: #bfbfbf;
+  --b6: #a8a8a8;
+  --b7: #8f8f8f;
+  --b8: #767676;
+  --b9: #5d5d5d;
+  --b10: #444444;
 
 
 
@@ -49,8 +49,24 @@
   --r3: #B94033;
   --r4: #9E241B;
 
+  /* Route palette (from style guide image): use for route/bus encodings. */
+  --color-route1: #EE81CE;
+  --color-route2: #74AF54;
+  --color-route3: #8776F7;
+  --color-route4: #F2C543;
+  --color-route5: #E47858;
+
   /* Map / viz: single ink fill read by CoverageMap until ramp is applied in paint */
   --accent-main: var(--g8);
+
+  /* --- Story layer tokens --- */
+  --story-section-min-height: 100vh;
+  --story-beat-padding: 4rem 2rem;
+  --story-copy-max-width: 600px;
+  --story-vis-max-width: 960px;
+  --story-transition-duration: 0.6s;
+  --story-copy-gap: 1.5rem;
+  --story-beat-number-size: var(--size-xs);
 }
 
 
@@ -207,107 +223,34 @@ route major reduction, route affected:--color-line-reduced2
    Type — product / chrome (navigation, cards, marketing shells)
    ============================================================================= */
 
-  /* use these for all text */
-  @utility type-body-m {
-    font: var(--weight-regular) var(--size-m) / var(--leading-default) var(--font-sans);
-    letter-spacing: var(--tracking-default);
-  }
-
-@utility type-body-sm {
-  font: var(--weight-regular) var(--size-sm) / var(--leading-default) var(--font-sans);
-  letter-spacing: var(--tracking-default);
-}
-
-
-@utility type-h1-narrative{
-  font: var(--weight-light) var(--size-2xl) / var(--leading-default) var(--font-serif);
-  letter-spacing: var(--tracking-display);
-}
-
-/* info panel header */
-
-@utility type-h2 {
-  font: var(--weight-regular) var(--size-lg) / var(--leading-default) var(--font-serif);
-  letter-spacing: var(--tracking-display);
-}
-
-/* data viz header */
-@utility type-h3 {
+/* use these for all text */
+@utility type-body {
   font: var(--weight-regular) var(--size-m) / var(--leading-default) var(--font-sans);
   letter-spacing: var(--tracking-default);
 }
 
-/* info panel subheader */
-
-@utility type-h4 {
-  font: var(--weight-regular) var(--size-sm) / var(--leading-default) var(--font-serif);
-  letter-spacing: var(--tracking-display);
-}
-@utility type-nav-link {
-  font: var(--weight-semibold) var(--size-sm) / var(--leading-default) var(--font-sans);
-  letter-spacing: 0;
-}
-
-
-
-
-@utility type-page-heading {
-  font: var(--weight-regular) var(--size-xl) / var(--leading-default) var(--font-serif);
+@utility type-h1-serif {
+  font: var(--weight-light) var(--size-2xl) / var(--leading-default) var(--font-serif);
   letter-spacing: var(--tracking-display);
 }
 
-
-
-
-/* =============================================================================
-   Type — data (charts, maps, metrics, legends, small UI in visualizations)
-   ============================================================================= */
-
-@utility type-data-label {
-  font: var(--weight-regular) var(--size-xs) / var(--leading-default) var(--font-mono);
-  letter-spacing: var(--tracking-default);
-  font-variant-numeric: tabular-nums;
-}
-
-
-@utility type-data-value {
-  font: var(--weight-regular) var(--size-m) / var(--leading-default) var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-
-@utility type-data-route-label {
-  font: var(--weight-semibold) var(--size-xs) / var(--leading-default) var(--font-sans);
-}
-
-
-/* ── Story layer tokens ───────────────────────────────────────── */
-:root {
-  --story-section-min-height: 100vh;
-  --story-beat-padding: 4rem 2rem;
-  --story-copy-max-width: 600px;
-  --story-vis-max-width: 960px;
-  --story-transition-duration: 0.6s;
-  --story-copy-gap: 1.5rem;
-  --story-beat-number-size: var(--size-xs);
-}
-
-/* Story narrative typography */
-@utility type-story-lede {
-  font: var(--weight-light) var(--size-xl) / 1.2 var(--font-serif);
+@utility type-h2-serif {
+  font: var(--weight-regular) var(--size-lg) / var(--leading-default) var(--font-serif);
   letter-spacing: var(--tracking-display);
 }
 
-@utility type-story-body {
-  font: var(--weight-regular) var(--size-m) / 1.6 var(--font-sans);
+@utility type-h2-sans {
+  font: var(--weight-regular) var(--size-m) / var(--leading-default) var(--font-sans);
   letter-spacing: var(--tracking-default);
 }
 
-@utility type-story-beat-label {
+@utility type-h4-mono-allcaps {
   font: var(--weight-regular) var(--size-xs) / var(--leading-default) var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
 }
+
 
 * {
   box-sizing: border-box;
@@ -320,8 +263,27 @@ body {
   background: var(--color-bg-default);
 }
 
-/* Semantic headings use display (Literata); low specificity so components can override. */
-.page-shell :where(h1, h2, h3, h4, h5, h6) {
+/* Story-only dark mode (guided pages). Explore remains default/light. */
+.story-dark {
+  width: 100%;
+  --color-bg-default: var(--n6);
+  --color-bg-light: var(--n5);
+  --color-bg-medium: #2a2a2a;
+  --color-bg-dark: var(--n10);
+
+  --color-text-default: var(--n0);
+  --color-text-secondary: var(--n2);
+  --color-subtle: var(--n3);
+
+  --color-border-medium: var(--n4);
+  --color-border-dark: var(--n3);
+
+  --default: var(--color-text-default);
+  --secondary: var(--color-text-secondary);
+}
+
+/* Semantic headings default to display (Literata) unless a type utility is attached. */
+.page-shell :where(h1, h2, h3, h4, h5, h6):not([class*="type-"]) {
   font-family: var(--font-serif);
 }
 
@@ -335,6 +297,12 @@ body {
 /* Full-bleed coverage story: drop shell width floor so the map can use the viewport. */
 .page-shell:has(.coverage-home),
 .page-shell:has(.home-full-bleed) {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+
+.page-shell:has(.story-dark) {
   width: 100%;
   max-width: none;
   min-width: 0;

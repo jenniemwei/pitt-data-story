@@ -1,6 +1,6 @@
 import { NeighborhoodPanelProvider } from "../../src/contexts/NeighborhoodPanelContext";
 import CoverageMap from "../../src/components/coverage-map/CoverageMap";
-import NeighborhoodRepresentationalRoutesMap from "../../src/components/route-web/RouteWeb";
+import RadialNetworkMapView from "../../src/components/route-web/RadialNetworkMapView";
 import HomeMapsLayout from "../HomeMapsLayout";
 import CovidRecoveryDotsComparison from "../../src/components/covid-recovery/CovidVis";
 import BusRouteComparisonSection from "../../src/components/bus-route-comparison/BusRouteComparisonSection";
@@ -11,7 +11,7 @@ export default function HomePage() {
       <NeighborhoodPanelProvider>
         <HomeMapsLayout>
           <CoverageMap />
-          <NeighborhoodRepresentationalRoutesMap />
+          <RadialNetworkMapView />
         </HomeMapsLayout>
       </NeighborhoodPanelProvider>
       <BusRouteComparisonSection />

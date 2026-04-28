@@ -86,8 +86,8 @@ export default function BusRouteComparisonSection() {
   return (
     <section className={styles.section} aria-label="Bus route frequency comparison">
       <div className={styles.header}>
-        <h2 className="type-h3 text-ink-default">Bus route comparison at a stop</h2>
-        <p className="type-body-sm text-ink-secondary">
+        <h2 className="type-h2-sans text-ink-default">Bus route comparison at a stop</h2>
+        <p className="type-body text-ink-secondary">
           Workflow: route must serve this stop, be a non-commuter bus, and touch the selected area. Headway uses{" "}
           <code>trips_wd</code> with <code>headwayMinutes = 60 / (trips_wd / 18)</code>; after-frequency applies fixed
           reductions (major 50%, minor 25%, eliminated 100%).
@@ -95,7 +95,7 @@ export default function BusRouteComparisonSection() {
       </div>
 
       <div className={styles.controls}>
-        <label className={`${styles.selectLabel} type-data-label text-ink-secondary`}>
+        <label className={`${styles.selectLabel} type-h4-mono-allcaps text-ink-secondary`}>
           Stop
           <select
             className={styles.select}
@@ -110,7 +110,7 @@ export default function BusRouteComparisonSection() {
           </select>
         </label>
 
-        <label className={`${styles.selectLabel} type-data-label text-ink-secondary`}>
+        <label className={`${styles.selectLabel} type-h4-mono-allcaps text-ink-secondary`}>
           Area
           <select className={styles.select} value={selectedArea} onChange={(event) => setSelectedArea(event.target.value)}>
             {AREA_OPTIONS.map((area) => (
@@ -122,8 +122,8 @@ export default function BusRouteComparisonSection() {
         </label>
       </div>
 
-      {subtitle ? <p className="type-data-label text-ink-subtle">{subtitle}</p> : null}
-      {error ? <p className="type-body-sm text-ink-default">{error}</p> : null}
+      {subtitle ? <p className="type-h4-mono-allcaps text-ink-subtle">{subtitle}</p> : null}
+      {error ? <p className="type-body text-ink-default">{error}</p> : null}
       {!error && comparisonProps ? <BusRouteComparison {...comparisonProps} /> : null}
     </section>
   );

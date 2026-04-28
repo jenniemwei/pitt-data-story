@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./BusRouteComparison.module.css";
 
 const ROW_HEIGHT = 44;
-const STOP_BLOCK_WIDTH = 28;
+const STOP_MARKER_DIAMETER = 28;
+const STOP_MARKER_RADIUS = STOP_MARKER_DIAMETER / 2;
 const DOT_DIAMETER = 12;
 const DOT_RADIUS = DOT_DIAMETER / 2;
 const MIN_SPACING = 18;
@@ -64,19 +65,35 @@ function RouteRow({
   return (
     <div className={styles.row}>
       {showLabels ? (
-        <span className={`${styles.label} type-body-m text-ink-default`} aria-hidden>
+        <span className={`${styles.label} type-h4-mono-allcaps text-ink-default`} aria-hidden>
           {rowLabel}
         </span>
       ) : null}
       <svg className={styles.svg} width={width} height={ROW_HEIGHT} viewBox={`0 0 ${width} ${ROW_HEIGHT}`} aria-hidden>
-        <rect x={width - STOP_BLOCK_WIDTH} y={0} width={STOP_BLOCK_WIDTH} height={ROW_HEIGHT} fill="var(--b9)" />
+        <circle
+          cx={width - STOP_MARKER_RADIUS}
+          cy={ROW_HEIGHT / 2}
+          r={STOP_MARKER_RADIUS}
+          fill="var(--b9)"
+        />
+        <text
+          x={width - STOP_MARKER_RADIUS}
+          y={ROW_HEIGHT / 2 + 4}
+          textAnchor="middle"
+          fill="var(--b1)"
+          fontSize="10"
+          fontFamily="var(--font-sans)"
+          fontWeight="600"
+        >
+          DT
+        </text>
         {routes.map((route) => (
           <line
             key={`${rowKey}-${route.id}-line`}
             ref={setLineRef(route.id)}
             x1={0}
             y1={ROW_HEIGHT / 2}
-            x2={width - STOP_BLOCK_WIDTH}
+            x2={width - STOP_MARKER_DIAMETER}
             y2={ROW_HEIGHT / 2}
             stroke={route.color}
             strokeWidth="1.5"
@@ -155,9 +172,9 @@ export default function BusRouteComparison({ stop, routes, selectedArea, width, 
       prevTsRef.current = ts;
 
       for (const row of rowsRef.current.values()) {
-        // Stop block is on the right; dots travel left → stop.
+        // Downtown marker is on the right; dots travel toward it.
         const minX = DOT_RADIUS;
-        const maxX = row.width - STOP_BLOCK_WIDTH - DOT_RADIUS;
+        const maxX = row.width - STOP_MARKER_DIAMETER - DOT_RADIUS;
 
         for (const routeData of row.perRoute) {
           const { route, hasDots, circles, headwayPx } = routeData;
@@ -176,10 +193,9 @@ export default function BusRouteComparison({ stop, routes, selectedArea, width, 
           // Advance shared offset for this route; keep in [0, headwayPx).
           routeData.offset = (routeData.offset + deltaSec * DOT_SPEED_PX_PER_SEC) % headwayPx;
 
-          // Phantom pool: dots enter from the right (maxX) and travel left toward
-          // the stop block. cx = maxX - offset - n*headway mirrors the L-to-R formula.
+          // Phantom pool: dots enter from the left and travel right toward downtown.
           for (let n = 0; n < circles.length; n += 1) {
-            const cx = maxX - routeData.offset - n * headwayPx;
+            const cx = minX + routeData.offset + n * headwayPx;
             if (cx >= minX && cx <= maxX) {
               circles[n].setAttribute("cx", String(cx));
               circles[n].setAttribute("visibility", "visible");
@@ -209,8 +225,8 @@ export default function BusRouteComparison({ stop, routes, selectedArea, width, 
   return (
     <section ref={containerRef} className={styles.wrap} aria-label={`Route service comparison for stop ${stop.name}`}>
       <div className={styles.topline}>
-        <p className={`${styles.stopName} type-body-m text-ink-default`}>Stop Name: {stop.name}</p>
-        <p className={`${styles.areaText} type-data-label text-ink-subtle`}>
+        <p className={`${styles.stopName} type-h4-mono-allcaps text-ink-default`}>Stop Name: {stop.name}</p>
+        <p className={`${styles.areaText} type-h4-mono-allcaps text-ink-subtle`}>
           {selectedArea ? `${selectedArea}` : ""}
         </p>
       </div>
@@ -225,14 +241,6 @@ export default function BusRouteComparison({ stop, routes, selectedArea, width, 
         showLabels={showLabels}
       />
 
-      <div className={styles.chips}>
-        {routes.map((route) => (
-          <span key={`${route.id}-chip`} className={`${styles.chip} type-data-route-label`} style={{ background: route.color }}>
-            {route.label}
-          </span>
-        ))}
-      </div>
-
       <RouteRow
         rowKey="after-row"
         rowLabel="after"
@@ -245,22 +253,22 @@ export default function BusRouteComparison({ stop, routes, selectedArea, width, 
 
       <div className={styles.legend}>
         <div className={styles.legendItem}>
-          <span className="type-data-label text-ink-secondary">Major Reduction</span>
+          <span className="type-h4-mono-allcaps text-ink-secondary">Major Reduction</span>
           <div className={styles.chips}>
             {majorRoutes.map((route) => (
-              <span key={`${route.id}-major`} className={`${styles.chip} type-data-route-label`} style={{ background: route.color }}>
+              <span key={`${route.id}-major`} className={`${styles.chip} type-h4-mono-allcaps`} style={{ background: route.color }}>
                 {route.label}
               </span>
             ))}
           </div>
         </div>
         <div className={styles.legendItem}>
-          <span className="type-data-label text-ink-secondary">Eliminated</span>
+          <span className="type-h4-mono-allcaps text-ink-secondary">Eliminated</span>
           <div className={styles.chips}>
             {eliminatedRoutes.map((route) => (
               <span
                 key={`${route.id}-eliminated`}
-                className={`${styles.chip} ${styles.chipEliminated} type-data-route-label`}
+                className={`${styles.chip} ${styles.chipEliminated} type-h4-mono-allcaps`}
                 style={{ background: route.color }}
               >
                 {route.label}

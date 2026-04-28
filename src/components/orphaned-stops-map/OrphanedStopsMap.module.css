@@ -6,19 +6,15 @@
 
 .header h1 {
   margin: 0 0 0.35rem;
-  font-size: 1.4rem;
   color: var(--default);
 }
 
 .header p {
   margin: 0 0 0.9rem;
   color: var(--secondary);
-  font-size: 0.95rem;
 }
 
 .header p code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.88em;
 }
 
 .map {
@@ -36,11 +32,9 @@
   border: 1px solid var(--border-subtle);
   background: var(--n0);
   color: var(--secondary);
-  font-size: 0.85rem;
 }
 
 .legendTitle {
-  font-weight: 600;
   color: var(--default);
   margin-bottom: 0.2rem;
 }

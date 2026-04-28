@@ -1,4 +1,5 @@
 import GuidedStory from "../../src/components/story/GuidedStory";
+import Nav from "../../src/components/nav/Nav";
 
 export const metadata = {
   title: "Pittsburgh Transit Equity — Story",
@@ -8,8 +9,9 @@ export const metadata = {
 
 export default function StoryPage() {
   return (
-    <main className="home-full-bleed min-h-screen w-full max-w-none min-w-0 overflow-x-hidden bg-[var(--color-bg-default)]">
+    <main className="story-dark home-full-bleed min-h-screen w-full max-w-none min-w-0 overflow-x-hidden bg-[var(--n6)] pb-24">
       <GuidedStory />
+      <Nav />
     </main>
   );
 }

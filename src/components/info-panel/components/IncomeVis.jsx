@@ -69,6 +69,7 @@ export default function PovertyPictogram({
   highIncomeHouseholdShare = 0,
   lowIncomeShare = null,
   peoplePerDot = 100,
+  hideHeadlineValue = false,
 }) {
   const below = clamp01(belowPovertyLineShare);
   const deep = clamp01(Math.min(deepPovertyShare, below));
@@ -120,10 +121,10 @@ export default function PovertyPictogram({
 
   return (
     <div className={styles.wrap}>
-      <p className={styles.title}>
-        <span className={styles.titleEm}>{pct}%</span> are below the poverty line
+      <p className={`${styles.title} type-h2-sans`}>
+        {!hideHeadlineValue ? <span className={styles.titleEm}>{pct}%</span> : null} are below the poverty line
       </p>
-      <p className={styles.legendNote}>
+      <p className={`${styles.legendNote} type-h4-mono-allcaps`}>
         <span className={styles.legendDot} aria-hidden />
         <span>= {peoplePerDot} people</span>
       </p>
@@ -131,17 +132,25 @@ export default function PovertyPictogram({
         className={styles.grid}
         style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}
         role="img"
-        aria-label={`Pictogram of about ${DOTS} times ${peoplePerDot} people by income and poverty status, with unfilled cells representing about ${Math.round(middle * 100)}% in the $50k-$99k range`}
+        aria-label={`Pictogram of about ${DOTS} times ${peoplePerDot} people showing $100k+ households, poverty, deep poverty, and unfilled cells for other households`}
       >
         {tones.map((tone, idx) => (
           <span key={idx} className={styles.cell} data-tone={tone} />
         ))}
       </div>
-      <div className={styles.axisRow}>
-        <span className={styles.axisHigh}>$100k+</span>
-        <span className={styles.axisMid}>$50k-$99k (unfilled)</span>
-        <span className={styles.axisPov}>poverty</span>
-        <span className={styles.axisDeep}>deep poverty</span>
+      <div className={`${styles.axisRow} type-h4-mono-allcaps`}>
+        <span className={styles.axisLabel}>
+          <span className={`${styles.axisSwatch} ${styles.axisSwatchHigh}`} aria-hidden />
+          <span className={styles.axisHigh}>$100k+</span>
+        </span>
+        <span className={styles.axisLabel}>
+          <span className={`${styles.axisSwatch} ${styles.axisSwatchPov}`} aria-hidden />
+          <span className={styles.axisPov}>poverty</span>
+        </span>
+        <span className={styles.axisLabel}>
+          <span className={`${styles.axisSwatch} ${styles.axisSwatchDeep}`} aria-hidden />
+          <span className={styles.axisDeep}>deep poverty</span>
+        </span>
       </div>
     </div>
   );

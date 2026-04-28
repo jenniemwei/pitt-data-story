@@ -72,123 +72,128 @@ export default function NeighborhoodInfoPanel() {
       ? Math.max(1, Math.round(populationForDots / 50))
       : 100;
 
-  const showCharts = Boolean(panelDisplay && row);
-  const routesLeadLabel = panelDisplay ? "Routes" : "Hover a neighborhood";
+  const hasProfile = Boolean(panelDisplay && row);
+  const reducedRoutes = panelDisplay?.afterRouteItems?.filter((item) => item.status === "reduced").map((item) => item.id) || [];
+  const unaffectedRoutes =
+    panelDisplay?.afterRouteItems?.filter((item) => item.status !== "reduced").map((item) => item.id) || [];
+  const afterRouteSet = new Set(panelDisplay?.afterRouteItems?.map((item) => item.id) || []);
+  const eliminatedRoutes = (panelDisplay?.beforeRoutes || []).filter((id) => !afterRouteSet.has(id));
+  const routesLeadLabel = panelDisplay?.routesLeadLabel || "Routes";
 
   return (
     <aside className={styles.sidebar} aria-label="Neighborhood details">
       <div className={styles.sidebarInner}>
-        <div className={styles.sidebarTop}>
-          {panelDisplay ? (
-            <>
-              <h2 className={`${styles.hoodTitle} type-h2 text-ink-default`}>{panelDisplay.neighborhood}</h2>
-              {canUseAge25Plus && useAge25Plus && pop25Plus != null ? (
-                <>
-                  <p className={`${styles.populationMeta} type-body-sm text-ink-secondary`}>
-                    Population (25+):{" "}
-                    <span className={`tabular-nums text-ink-default`}>{pop25Plus.toLocaleString("en-US")}</span>
-                  </p>
-                  {totalPop != null ? (
-                    <p className={`${styles.populationMeta} type-body-sm text-ink-secondary`}>
-                      All ages: <span className={`tabular-nums`}>{totalPop.toLocaleString("en-US")}</span>
+        <div className={styles.bottomContent}>
+          <div className={styles.sidebarTop}>
+            {panelDisplay ? (
+              <>
+                <h2 className={`${styles.hoodTitle} type-h2-serif text-ink-default`}>{panelDisplay.neighborhood}</h2>
+                {canUseAge25Plus && useAge25Plus && pop25Plus != null ? (
+                  <>
+                    <p className={`${styles.populationMeta} type-body text-ink-secondary`}>
+                      Population (25+):{" "}
+                      <span className={`tabular-nums text-ink-default`}>{pop25Plus.toLocaleString("en-US")}</span>
                     </p>
-                  ) : null}
-                </>
-              ) : totalPop != null ? (
-                <p className={`${styles.populationMeta} type-body-sm text-ink-secondary`}>
-                  Population{" "}
-                  <span className={`tabular-nums text-ink-default`}>{totalPop.toLocaleString("en-US")}</span>
-                </p>
-              ) : null}
-              {showAge25PlusToggle ? (
-                <label className={`${styles.ageToggle} type-body-sm text-ink-secondary`}>
-                  <input
-                    type="checkbox"
-                    checked={useAge25Plus}
-                    disabled={!canUseAge25Plus}
-                    onChange={(e) => setUseAge25Plus(e.target.checked)}
-                  />
-                  <span>
-                    Use age 25+ poverty data
-                    {!canUseAge25Plus ? " (2024 only)" : ""}
-                  </span>
-                </label>
-              ) : null}
-            </>
-          ) : (
-            <h2 className={`${styles.hoodTitleMuted} type-h2 text-ink-secondary`}>Pittsburgh neighborhoods</h2>
+                    {totalPop != null ? (
+                      <p className={`${styles.populationMeta} type-body text-ink-secondary`}>
+                        All ages: <span className={`tabular-nums`}>{totalPop.toLocaleString("en-US")}</span>
+                      </p>
+                    ) : null}
+                  </>
+                ) : totalPop != null ? (
+                  <p className={`${styles.populationMeta} type-body text-ink-secondary`}>
+                    Population{" "}
+                    <span className={`tabular-nums text-ink-default`}>{totalPop.toLocaleString("en-US")}</span>
+                  </p>
+                ) : null}
+                {showAge25PlusToggle ? (
+                  <label className={`${styles.ageToggle} type-body text-ink-secondary`}>
+                    <input
+                      type="checkbox"
+                      checked={useAge25Plus}
+                      disabled={!canUseAge25Plus}
+                      onChange={(e) => setUseAge25Plus(e.target.checked)}
+                    />
+                    <span>
+                      Use age 25+ poverty data
+                      {!canUseAge25Plus ? " (2024 only)" : ""}
+                    </span>
+                  </label>
+                ) : null}
+              </>
+            ) : (
+              <h2 className={`${styles.hoodTitleMuted} type-h2-serif text-ink-secondary`}>Pittsburgh neighborhoods</h2>
+            )}
+          </div>
+
+          {panelDisplay && (
+            <div className={styles.routesBlock}>
+              <p className={`${styles.routesLead} type-body text-ink-default`}>
+                {routesLeadLabel} ({panelDisplay.beforeCount}){" "}
+                <span className={`${styles.coveragePill} type-h4-mono-allcaps text-ink-secondary`}>
+                  lost coverage {(panelDisplay.lostCoverage * 100).toFixed(1)}%
+                </span>
+              </p>
+              <div className={styles.routeCols}>
+                <div className={styles.routeGroup}>
+                  <h3 className={`${styles.routeHeading} type-h4-mono-allcaps text-ink-secondary`}>
+                    Unaffected ({unaffectedRoutes.length})
+                  </h3>
+                  <p className={`${styles.routeList} type-h4-mono-allcaps text-ink-default`}>
+                    {unaffectedRoutes.join(", ") || "—"}
+                  </p>
+                </div>
+                <div className={styles.routeGroup}>
+                  <h3 className={`${styles.routeHeading} type-h4-mono-allcaps text-ink-secondary`}>
+                    Eliminated ({eliminatedRoutes.length})
+                  </h3>
+                  <p className={`${styles.routeList} type-h4-mono-allcaps text-ink-default`}>
+                    {eliminatedRoutes.join(", ") || "—"}
+                  </p>
+                </div>
+                <div className={styles.routeGroup}>
+                  <h3 className={`${styles.routeHeading} type-h4-mono-allcaps text-ink-secondary`}>
+                    Reduced ({reducedRoutes.length})
+                  </h3>
+                  <p className={`${styles.routeList} type-h4-mono-allcaps text-ink-default`}>
+                    {reducedRoutes.join(", ") || "—"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {panelDisplay && !row && (
+            <p className={`${styles.missingProfile} type-body text-ink-secondary`}>
+              No profile row found for this neighborhood (check that <code>display_profiles_2024.csv</code> is
+              built and synced).
+            </p>
+          )}
+
+          {!panelDisplay && (
+            <p className={`${styles.sidebarEmpty} type-body text-ink-secondary`}>
+              Hover a neighborhood on any map to see poverty and commute data for residents.
+            </p>
           )}
         </div>
 
-        {showCharts && (
+        <div className={styles.topContent}>
           <div className={styles.demoBlock}>
             <CommuteMethodGauge
               workFromHomeShare={wfh}
               vehicleWalkShare={vehicleWalk}
               transitShare={transit}
+              hideHeadlineValue={!hasProfile}
             />
             <PovertyPictogram
               belowPovertyLineShare={below100}
               deepPovertyShare={deepPov}
               highIncomeHouseholdShare={highInc}
               peoplePerDot={peoplePerDot}
+              hideHeadlineValue={!hasProfile}
             />
           </div>
-        )}
-
-        {panelDisplay && !row && (
-          <p className={`${styles.missingProfile} type-body-sm text-ink-secondary`}>
-            No profile row found for this neighborhood (check that <code>display_profiles_2024.csv</code> is
-            built and synced).
-          </p>
-        )}
-
-        {panelDisplay && (
-          <div className={styles.routesBlock}>
-            <p className={`${styles.routesLead} type-body-sm text-ink-default`}>
-              {routesLeadLabel}{" "}
-              <span className={`${styles.coveragePill} type-data-route-label text-ink-secondary`}>
-                lost coverage {(panelDisplay.lostCoverage * 100).toFixed(1)}%
-              </span>
-            </p>
-            <div className={styles.routeCols}>
-              <div>
-                <h3 className={`${styles.routeHeading} type-data-route-label text-ink-secondary`}>
-                  Before ({panelDisplay.beforeCount})
-                </h3>
-                <p className={`${styles.routeList} type-data-label text-ink-default`}>
-                  {panelDisplay.beforeRoutes.join(", ") || "—"}
-                </p>
-              </div>
-              <div>
-                <h3 className={`${styles.routeHeading} type-data-route-label text-ink-secondary`}>
-                  After ({panelDisplay.afterCount})
-                </h3>
-                <p className={`${styles.routeList} type-data-label text-ink-default`}>
-                  {panelDisplay.afterRouteItems?.length
-                    ? panelDisplay.afterRouteItems.map((item, i) => (
-                        <span key={item.id}>
-                          {i > 0 && ", "}
-                          <span
-                            className={item.status === "reduced" ? styles.routeNameReduced : undefined}
-                            title={item.status === "reduced" ? "Service reduced" : undefined}
-                          >
-                            {item.id}
-                          </span>
-                        </span>
-                      ))
-                    : panelDisplay.afterRoutes.join(", ") || "—"}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!panelDisplay && (
-          <p className={`${styles.sidebarEmpty} type-body-sm text-ink-secondary`}>
-            Hover a neighborhood on any map to see poverty and commute data for residents.
-          </p>
-        )}
+        </div>
       </div>
     </aside>
   );

@@ -1,58 +1,42 @@
 .wrap {
   width: 100%;
-  max-width: var(--story-vis-max-width, 960px);
-  margin: 0 auto 2rem;
-  padding: 1rem 0;
+  max-width: 100%;
+  height: 26rem;
+  margin: 0;
+  padding: 0;
 }
 
 .title {
-  margin: 0 0 0.35rem;
-  font-size: 1.2rem;
-  font-family: Literata, Georgia, "Times New Roman", serif;
-  color: var(--default);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  border: 0;
+  padding: 0;
+  clip: rect(0 0 0 0);
+  overflow: hidden;
 }
 
-.dek {
-  margin: 0 0 1rem;
-  font-size: 0.88rem;
-  line-height: 1.45;
-  color: var(--secondary);
-}
-
-.code {
-  font-size: 0.8em;
-}
-
-.scaleLine {
-  margin: 0 0 0.75rem;
-  font-size: 0.84rem;
-  color: var(--default);
-}
-
-.rowLabel {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--default);
-  margin: 0.75rem 0 0.4rem;
-}
-
-/* Three poverty tiers stacked top → bottom (one bar per row). */
+/* Two poverty tiers side-by-side (vertical bars). */
 .grid {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 1.25rem;
-  max-width: 44rem;
-  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  justify-items: center;
+  gap: 1.75rem;
+  height: 100%;
+  margin: 0;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .cell {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 0.85rem 1rem;
-  width: 100%;
+  gap: 0.65rem;
+  min-width: 7.5rem;
 }
 
 .cell .dotStack {
@@ -60,10 +44,8 @@
 }
 
 .cell .tierMeta {
-  flex: 1 1 auto;
-  min-width: 0;
-  align-items: flex-end;
-  text-align: right;
+  align-items: center;
+  text-align: center;
 }
 
 .cell .emptyBar {
@@ -71,25 +53,24 @@
 }
 
 .emptyBar {
-  --dot-size: 8px;
+  --dot-size: 12px;
   --dot-gap: 3px;
   min-height: calc(4 * var(--dot-size) + 3 * var(--dot-gap));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
   color: var(--secondary);
 }
 
 .dotStack {
-  --dot-size: 8px;
+  --dot-size: 12px;
   --dot-gap: 3px;
   display: grid;
-  /* rows × columns set inline (4 rows tall, column-first fill = horizontal bar). */
   gap: var(--dot-gap);
-  grid-auto-flow: column;
-  align-content: start;
+  grid-auto-flow: row;
+  align-content: end;
   justify-content: start;
+  min-height: calc((4 * var(--dot-size)) + (3 * var(--dot-gap)));
 }
 
 .slot {
@@ -117,31 +98,39 @@
 }
 
 .dotSolidOverlay {
-  opacity: 1;
+  opacity: 0;
   z-index: 1;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+  box-shadow: none;
+  transition: opacity 320ms ease;
+}
+
+.dotFilled {
+  opacity: 1;
 }
 
 .tierLabel {
-  font-size: 0.78rem;
-  font-family: Literata, Georgia, "Times New Roman", serif;
   color: var(--default);
+  min-height: 2.4em;
 }
 
 .tierMeta {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
   gap: 0.15rem;
+  min-height: 2.8rem;
 }
 
 .recoveryNote {
-  font-size: 0.72rem;
+  display: block;
+  min-height: 2.8rem;
   color: var(--secondary);
+  text-align: center;
+  transition: opacity 220ms ease, transform 220ms ease;
 }
 
 .loading,
 .err {
-  font-size: 0.85rem;
   color: var(--secondary);
 }
 
@@ -151,9 +140,7 @@
 
 .footnote {
   margin: 1rem 0 0;
-  font-size: 0.75rem;
   color: var(--secondary);
-  line-height: 1.4;
 }
 
 .cutTableWrap {
@@ -164,16 +151,11 @@
 
 .cutTableTitle {
   margin: 0 0 0.35rem;
-  font-size: 1rem;
-  font-weight: 600;
-  font-family: Literata, Georgia, "Times New Roman", serif;
   color: var(--default);
 }
 
 .cutTableDek {
   margin: 0 0 0.75rem;
-  font-size: 0.78rem;
-  line-height: 1.45;
   color: var(--secondary);
 }
 
@@ -193,9 +175,6 @@
 .cutAccordionSummary {
   cursor: pointer;
   padding: 0.55rem 0.75rem;
-  font-family: Literata, Georgia, "Times New Roman", serif;
-  font-size: 0.84rem;
-  font-weight: 600;
   color: var(--default);
   list-style-position: outside;
   margin-inline-start: 0.35rem;
@@ -206,7 +185,6 @@
 }
 
 .cutAccordionMeta {
-  font-weight: 500;
   color: var(--secondary);
 }
 
@@ -224,7 +202,6 @@
   width: 100%;
   min-width: 17rem;
   border-collapse: collapse;
-  font-size: 0.78rem;
   color: var(--default);
 }
 
@@ -237,10 +214,6 @@
 }
 
 .cutTable thead th {
-  font-weight: 600;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
   color: var(--secondary);
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
@@ -253,5 +226,4 @@
 .routeCode {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  font-weight: 600;
 }

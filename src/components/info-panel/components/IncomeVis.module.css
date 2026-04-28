@@ -4,14 +4,7 @@
 
 .title {
   margin: 0 0 0.5rem;
-  font-family: var(--font-serif, Literata, ui-serif, Georgia, serif);
-  font-size: var(--size-m);
-  line-height: 1.35;
   color: var(--color-text-default, #121212);
-}
-
-.titleEm {
-  font-weight: 600;
 }
 
 .legendNote {
@@ -19,8 +12,6 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-family: var(--font-sans, system-ui, sans-serif);
-  font-size: 0.72rem;
   color: var(--color-text-secondary, #363636);
 }
 
@@ -61,7 +52,7 @@
 }
 
 .cell[data-tone="empty"] {
-  background: transparent;
+  background: var(--w1, #f5f0e7);
 }
 
 .cell[data-tone="poverty"] {
@@ -73,21 +64,42 @@
 }
 
 .axisRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
   gap: var(--spacing-dot-gap-1);
   width: 100%;
-  font-family: var(--font-sans, system-ui, sans-serif);
-  font-size: 0.68rem;
   color: var(--color-text-secondary, #363636);
+}
+
+.axisLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.axisSwatch {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-dot);
+  flex-shrink: 0;
+}
+
+.axisSwatchHigh {
+  background: var(--color-fill-positive, #bfd0aa);
+}
+
+.axisSwatchPov {
+  background: var(--color-fill-neg2, #d85c4d);
+}
+
+.axisSwatchDeep {
+  background: var(--color-fill-neg3, #b94033);
 }
 
 .axisHigh {
   text-align: left;
-}
-
-.axisMid {
-  text-align: center;
 }
 
 .axisPov {

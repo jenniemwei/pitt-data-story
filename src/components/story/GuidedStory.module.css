@@ -1,55 +1,75 @@
 /* ─── Story shell ──────────────────────────────────────────────── */
 .story {
   width: 100%;
+  margin: 0 auto;
   min-width: 0;
   overflow-x: hidden;
   height: 100vh;
   overflow-y: auto;
   scroll-snap-type: y mandatory;
+  scroll-padding-block: 10vh;
   scroll-behavior: smooth;
+  color: var(--n2);
 }
 
 .story [data-story-beat] {
-  min-height: 95vh;
+  min-height: 100vh;
   scroll-snap-align: start;
   scroll-snap-stop: always;
   position: relative;
-  padding-bottom: max(5vh, 2rem);
+  padding-block: 10vh;
 }
 
 /* ─── Individual beat ─────────────────────────────────────────── */
 .beat {
-  min-height: var(--story-section-min-height, 100vh);
+  min-height: 80vh;
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
   padding: var(--story-beat-padding, 4rem 2rem);
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto;
   gap: 2rem;
   position: relative;
+  align-content: center;
 }
 
 /* Beat with sticky-vis layout: copy scrolls, vis stays in view */
 .beatStickyVis {
   display: grid;
-  grid-template-columns: minmax(0, var(--story-copy-max-width, 600px)) 1fr;
+  grid-template-columns: minmax(0, 1fr) 1fr;
   grid-template-rows: auto;
   gap: 3rem;
   align-items: start;
   padding: 0 2rem;
-  min-height: var(--story-section-min-height, 100vh);
+  min-height: 80vh;
+  width: 100%;
+  max-width: none;
+  margin: auto;
+}
+
+.beatHalfSplit {
+  grid-template-columns: 1fr 1fr;
 }
 
 .beatCopy {
+  width: 100%;
   padding: var(--story-beat-padding, 4rem 2rem);
-  max-width: var(--story-copy-max-width, 600px);
+  max-width: none;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .beatStickyVisPanel {
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: 10vh;
+  height: fit-content;
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
+  justify-content: center;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 /* ─── Copy elements ───────────────────────────────────────────── */
@@ -59,14 +79,16 @@
 }
 
 .lede {
+  width: 100%;
   margin: 0 0 var(--story-copy-gap, 1.5rem);
-  max-width: var(--story-copy-max-width, 600px);
+  max-width: none;
+  color: var(--n0);
 }
 
 .body {
   margin: 0 0 var(--story-copy-gap, 1.5rem);
   max-width: var(--story-copy-max-width, 600px);
-  color: var(--color-text-secondary);
+  color: var(--n2);
 }
 
 .body:last-child {
@@ -78,6 +100,7 @@
   display: flex;
   gap: 2.5rem;
   flex-wrap: wrap;
+  justify-content: center;
   margin: 2rem 0;
 }
 
@@ -87,12 +110,34 @@
 }
 
 .counterValue {
-  font: var(--weight-light) var(--size-2xl) / 1 var(--font-serif);
-  letter-spacing: var(--tracking-display);
   color: var(--color-text-default);
 }
 
 .counterLabel {
+  color: var(--color-subtle);
+}
+
+.covidStatGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.covidStatModule {
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.covidStatValue {
+  margin: 0;
+  color: var(--r2);
+}
+
+.covidStatLabel {
+  margin: 0.25rem 0 0;
   color: var(--color-subtle);
 }
 
@@ -135,9 +180,14 @@
 }
 
 .routeChipNote {
-  font-weight: var(--weight-regular);
   opacity: 0.75;
   margin-left: 0.2rem;
+}
+
+.cutsMapWrap {
+  width: 100%;
+  height: 70vh;
+  min-height: 460px;
 }
 
 /* ─── Beat 4: comparison cards ───────────────────────────────── */
@@ -146,7 +196,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
   margin: 2rem 0;
-  max-width: var(--story-vis-max-width, 960px);
+  max-width: none;
 }
 
 .comparisonCard {
@@ -156,9 +206,14 @@
   border-radius: 4px;
 }
 
-.comparisonCardLabel {
+.comparisonCardHoodTitle {
   margin: 0 0 1rem;
-  color: var(--color-subtle);
+}
+
+.comparisonVisBlock {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .comparisonStat {
@@ -179,7 +234,6 @@
 }
 
 .comparisonStatValue {
-  font: var(--weight-semibold) var(--size-m) / 1 var(--font-mono);
   text-align: right;
 }
 
@@ -202,7 +256,7 @@
 
 /* ─── Beat 5: neighborhood schematic ─────────────────────────── */
 .schematicWrap {
-  max-width: var(--story-vis-max-width, 960px);
+  max-width: none;
   margin: 2rem 0;
 }
 
@@ -222,7 +276,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
   margin: 2rem 0;
-  max-width: var(--story-vis-max-width, 960px);
+  max-width: none;
 }
 
 .hoodCard {
@@ -234,6 +288,7 @@
 
 .hoodCardName {
   margin: 0 0 0.25rem;
+  color: var(--n0);
 }
 
 .hoodCardSubtitle {
@@ -241,25 +296,9 @@
   color: var(--color-subtle);
 }
 
-.hoodStat {
+.hoodPanelViz {
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
-  gap: 0.5rem;
-  padding: 0.4rem 0;
-  border-bottom: var(--width-2) solid var(--color-border-medium);
-}
-
-.hoodStat:last-child {
-  border-bottom: none;
-}
-
-.hoodStatLabel {
-  color: var(--color-text-secondary);
-}
-
-.hoodStatValue {
-  font: var(--weight-semibold) var(--size-sm) / 1 var(--font-mono);
+  gap: 1rem;
 }
 
 /* ─── Beat 6: persona cards ───────────────────────────────────── */
@@ -267,7 +306,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
-  max-width: var(--story-vis-max-width, 960px);
+  max-width: none;
   margin-bottom: 2rem;
 }
 
@@ -287,6 +326,7 @@
 
 .personaName {
   margin: 0 0 0.25rem;
+  color: var(--n0);
 }
 
 .personaNeighborhood {
@@ -296,7 +336,7 @@
 
 .personaQuote {
   margin: 0;
-  color: var(--color-text-secondary);
+  color: var(--n0);
   font-style: italic;
 }
 
@@ -305,12 +345,56 @@
   color: var(--color-subtle);
 }
 
-/* Frequency vis wrap — two panels side by side */
-.frequencyGrid {
+/* Beat 6: transit need vs choice quotes */
+.aQuotesGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
-  max-width: var(--story-vis-max-width, 960px);
+  max-width: none;
+  margin-bottom: 2rem;
+}
+
+.aQuoteCard {
+  padding: 1.5rem;
+  background: var(--color-bg-medium);
+  border-radius: 4px;
+}
+
+.aQuoteChoice {
+  border-top: 3px solid var(--b7);
+}
+
+.aQuoteNeed {
+  border-top: 3px solid var(--r2);
+}
+
+.aQuoteTag {
+  margin: 0 0 0.35rem;
+  color: var(--color-subtle);
+}
+
+.aQuoteName {
+  margin: 0 0 0.25rem;
+  color: var(--n0);
+}
+
+.aQuoteMeta {
+  margin: 0 0 1rem;
+  color: var(--color-subtle);
+}
+
+.aQuoteText {
+  margin: 0;
+  color: var(--n0);
+  font-style: italic;
+}
+
+/* Frequency vis wrap — two panels side by side */
+.frequencyGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  max-width: none;
 }
 
 .frequencyPanel {
@@ -318,9 +402,57 @@
   gap: 0.75rem;
 }
 
+.frequencyPanelBody {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+  align-items: start;
+}
+
 .frequencyPanelLabel {
   margin: 0;
   color: var(--color-subtle);
+}
+
+.frequencyPersonaCard {
+  padding: 1rem;
+  background: var(--color-bg-medium);
+  border-radius: 4px;
+}
+
+.frequencyPersonaNeed {
+  border-top: 3px solid var(--r2);
+}
+
+.frequencyPersonaChoice {
+  border-top: 3px solid var(--b7);
+}
+
+.frequencyStopIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: var(--color-text-default);
+  margin-bottom: 0.6rem;
+}
+
+.frequencyPersonaName {
+  margin: 0 0 0.25rem;
+  color: var(--n0);
+}
+
+.frequencyPersonaMeta {
+  margin: 0 0 0.75rem;
+  color: var(--color-subtle);
+}
+
+.frequencyPersonaQuote {
+  margin: 0;
+  color: var(--n0);
+  font-style: italic;
 }
 
 /* ─── Beat 7: closing ─────────────────────────────────────────── */
@@ -336,7 +468,10 @@
 }
 
 .closingLede {
+  width: 100%;
+  max-width: none;
   margin: 0 0 2rem;
+  color: var(--n0);
 }
 
 .ctaWrap {
@@ -403,7 +538,7 @@
 /* ─── Full-bleed vis wrapper ──────────────────────────────────── */
 .visWrap {
   width: 100%;
-  max-width: var(--story-vis-max-width, 960px);
+  max-width: none;
 }
 
 .scrollCue {
@@ -447,17 +582,20 @@
 
 /* ─── Utilities ───────────────────────────────────────────────── */
 .centeredBeat {
-  max-width: var(--story-vis-max-width, 960px);
+  width: 100%;
+  max-width: none;
   margin: 0 auto;
   padding: var(--story-beat-padding, 4rem 2rem);
-  min-height: var(--story-section-min-height, 100vh);
+  min-height: 80vh;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto;
   gap: 2rem;
+  align-content: center;
 }
 
 .copyBlock {
-  max-width: var(--story-copy-max-width, 600px);
+  width: 100%;
+  max-width: none;
   display: grid;
   gap: var(--story-copy-gap, 1.5rem);
 }
@@ -476,6 +614,8 @@
   .comparisonGrid,
   .hoodGrid,
   .personaGrid,
+  .aQuotesGrid,
+  .frequencyPanelBody,
   .frequencyGrid {
     grid-template-columns: 1fr;
   }

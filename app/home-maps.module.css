@@ -7,9 +7,7 @@
  */
 .grid {
   --home-info-panel-width: clamp(280px, 34vw, 440px);
-  display: grid;
-  grid-template-columns: var(--home-info-panel-width) minmax(0, 1fr);
-  align-items: start;
+  display: block;
   width: 100%;
   max-width: none;
   min-width: 0;
@@ -18,11 +16,11 @@
 }
 
 .stickyPanelWrap {
-  position: sticky;
+  position: fixed;
+  left: 0;
   top: 0;
-  align-self: start;
   z-index: 20;
-  width: 100%;
+  width: var(--home-info-panel-width);
   max-width: none;
   height: 100dvh;
   min-height: 100dvh;
@@ -33,7 +31,8 @@
 }
 
 .mapsColumn {
-  width: 100%;
+  margin-left: var(--home-info-panel-width);
+  width: calc(100% - var(--home-info-panel-width));
   min-width: 0;
   max-width: none;
   border-left: none;
@@ -47,6 +46,7 @@
 
   .stickyPanelWrap {
     position: relative;
+    left: auto;
     top: auto;
     width: 100%;
     height: auto;
@@ -55,6 +55,7 @@
   }
 
   .mapsColumn {
+    margin-left: 0;
     width: 100%;
   }
 }

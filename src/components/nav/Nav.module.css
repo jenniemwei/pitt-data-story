@@ -1,0 +1,49 @@
+.wrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 1.25rem;
+  z-index: 120;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.pill {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.28rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-bg-light) 82%, transparent);
+  border: var(--width-2) solid var(--color-border-medium);
+  backdrop-filter: blur(8px);
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 84px;
+  padding: 0.42rem 0.9rem;
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.itemActive {
+  background: var(--color-bg-dark);
+  color: var(--color-bg-light);
+}
+
+@media (max-width: 640px) {
+  .wrap {
+    bottom: 0.9rem;
+  }
+
+  .item {
+    min-width: 74px;
+    padding: 0.38rem 0.72rem;
+  }
+}

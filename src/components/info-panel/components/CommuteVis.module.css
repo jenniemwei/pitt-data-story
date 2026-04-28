@@ -4,14 +4,10 @@
 
 .title {
   margin: 0 0 0.65rem;
-  font-family: var(--font-serif, Literata, ui-serif, Georgia, serif);
-  font-size: var(--size-m);
-  line-height: 1.35;
   color: var(--color-text-default, #121212);
 }
 
 .titleEm {
-  font-weight: var(--weight-bold);
 }
 
 .chart {
@@ -32,8 +28,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
-  font-family: var(--font-sans, system-ui, sans-serif);
-  font-size: 0.72rem;
   color: var(--color-text-default, #121212);
 }
 

@@ -1,11 +1,14 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { NeighborhoodPanelProvider } from "../../contexts/NeighborhoodPanelContext";
+import { getRidershipTotalsByPovertyTier } from "../../lib/routeData";
 import CoverageMap from "../coverage-map/CoverageMap";
 import CovidRecoveryDotsComparison from "../covid-recovery/CovidVis";
 import BusRouteComparison from "../bus-route-comparison/BusRouteComparison";
+import CommuteMethodGauge from "../info-panel/components/CommuteVis";
+import PovertyPictogram from "../info-panel/components/IncomeVis";
 import useScrollBeat from "../../lib/hooks/useScrollBeat";
 import styles from "./GuidedStory.module.css";
 
@@ -54,18 +57,14 @@ const REDUCED_HIGHLIGHTS = ["71A", "71B", "71C", "71D", "74", "77", "82", "86"];
 const COMPARISON_CARDS = [
   {
     hood: "Larimer",
-    subtitle: "74 reduced (major) · 86 reduced (minor) · P10, P17 eliminated",
     accentColor: "var(--r2)",
-    layer1: [
-      // CSV: share_below_100pct_poverty_threshold = 0.327993898
-      { label: "Poverty rate", value: "32.8%", highlight: true },
-      // CSV: share_commute_public_transit = 0.220588235
-      { label: "Transit commute share", value: "22.1%", highlight: true },
-      // CSV: total_pop = 1473
-      { label: "Population", value: "1,473", highlight: false },
-      // CSV: weekday_avg_riders_baseline / recent for route 74
-      { label: "Rt. 74 daily riders (baseline → recent)", value: "976 → 677", highlight: false },
-    ],
+    povertyShare: 0.328,
+    deepPovertyShare: 0.150552486,
+    highIncomeHouseholdShare: 0.097315436,
+    workFromHomeShare: 0.064516129,
+    vehicleWalkShare: 0.709677419,
+    transitShare: 0.221,
+    totalPop: 1473,
     layer2: [
       { label: "Transit dependence", value: "High — no car alternative", highlight: true },
       { label: "P10 / P17", value: "Eliminated", highlight: true },
@@ -74,56 +73,18 @@ const COMPARISON_CARDS = [
   },
   {
     hood: "Highland Park",
-    subtitle: "71B reduced (minor, 11pm cutoff) · 71A reduced · 93 reduced",
     accentColor: "var(--b5)",
-    layer1: [
-      // CSV: share_below_100pct_poverty_threshold = 0.071489002
-      { label: "Poverty rate", value: "7.1%", highlight: false },
-      // CSV: share_commute_public_transit = 0.1
-      { label: "Transit commute share", value: "10%", highlight: false },
-      // CSV: total_pop = 2364
-      { label: "Population", value: "2,364", highlight: false },
-      // CSV: weekday_avg_riders_baseline / recent for route 71B
-      { label: "Rt. 71B daily riders (baseline → recent)", value: "5,020 → 3,958", highlight: false },
-    ],
+    povertyShare: 0.071,
+    deepPovertyShare: 0.019853056,
+    highIncomeHouseholdShare: 0.524605983,
+    workFromHomeShare: 0.300766757,
+    vehicleWalkShare: 0.588671779,
+    transitShare: 0.1,
+    totalPop: 2364,
     layer2: [
       { label: "Transit dependence", value: "Low — cars available", highlight: false },
       { label: "71B daytime service", value: "Mostly preserved", highlight: false },
       { label: "Impact", value: "Late-night service lost; can adjust", highlight: false },
-    ],
-  },
-];
-
-// ─── Beat 5 neighborhood cards ────────────────────────────────────────────────
-const HOOD_CARDS = [
-  {
-    name: "Larimer",
-    subtitle: "Pittsburgh's highest-poverty neighborhood",
-    accent: "var(--r2)",
-    stats: [
-      // CSV: share_below_100pct_poverty_threshold
-      { label: "Poverty rate (100% threshold)", value: "32.8%" },
-      // CSV: total_pop
-      { label: "Population", value: "1,473" },
-      // CSV: share_commute_public_transit
-      { label: "Transit commute share", value: "22.1%" },
-      // CSV: share_commute_car_truck_van
-      { label: "Car commute share", value: "53.1%" },
-      { label: "Routes before FY26", value: "74, 86, P10, P17" },
-      { label: "Routes after FY26", value: "74 ↓ (major), 86 ↓ (minor)" },
-    ],
-  },
-  {
-    name: "Highland Park",
-    subtitle: "Low-poverty, transit-optional neighborhood",
-    accent: "var(--b5)",
-    stats: [
-      { label: "Poverty rate (100% threshold)", value: "7.1%" },
-      { label: "Population", value: "2,364" },
-      { label: "Transit commute share", value: "10%" },
-      { label: "Car commute share", value: "50.9%" },
-      { label: "Routes before FY26", value: "71B, 71A, 93" },
-      { label: "Routes after FY26", value: "71B ↓ (minor, no 11pm+), 71A ↓, 93 ↓" },
     ],
   },
 ];
@@ -174,14 +135,21 @@ const HIGHLAND_ROUTES = [
   },
 ];
 
-const BEAT_COUNT = 7;
-const BEAT_LABELS = ["Before", "COVID", "The cuts", "The math", "Two neighborhoods", "Two people", "Equity"];
+const BEAT_COUNT = 6;
+const BEAT_LABELS = ["Before + COVID", "The cuts", "The math", "Two neighborhoods", "Two people", "Equity"];
+
+function formatRiders(n) {
+  if (!Number.isFinite(n)) return "—";
+  if (n >= 1e6) return `${(n / 1e6).toFixed(2)}M`;
+  if (n >= 1e3) return `${Math.round(n / 100) / 10}k`;
+  return String(Math.round(n));
+}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function BeatLabel({ n, label }) {
   return (
-    <p className={`${styles.beatLabel} type-story-beat-label`}>
+    <p className={`${styles.beatLabel} type-h4-mono-allcaps`}>
       {String(n).padStart(2, "0")} — {label}
     </p>
   );
@@ -190,8 +158,8 @@ function BeatLabel({ n, label }) {
 function StatCounter({ value, label }) {
   return (
     <div className={styles.counterItem}>
-      <span className={styles.counterValue}>{value}</span>
-      <span className={`${styles.counterLabel} type-data-label text-ink-subtle`}>{label}</span>
+      <span className={`${styles.counterValue} type-h1-serif text-ink-default`}>{value}</span>
+      <span className={`${styles.counterLabel} type-h4-mono-allcaps text-ink-default`}>{label}</span>
     </div>
   );
 }
@@ -203,7 +171,7 @@ function RouteChipList({ routes, reduced = false }) {
       {routes.map((r) => (
         <li
           key={typeof r === "string" ? r : r.code}
-          className={`${styles.routeChip} ${reduced ? styles.routeChipReduced : ""} type-data-route-label`}
+          className={`${styles.routeChip} ${reduced ? styles.routeChipReduced : ""} type-h4-mono-allcaps`}
         >
           {typeof r === "string" ? r : r.code}
           {typeof r === "object" && r.note ? (
@@ -221,16 +189,22 @@ function ComparisonCards({ layer2Visible }) {
     <div className={styles.comparisonGrid}>
       {COMPARISON_CARDS.map((card) => (
         <div key={card.hood} className={styles.comparisonCard} style={{ borderTop: `3px solid ${card.accentColor}` }}>
-          <p className={`${styles.comparisonCardLabel} type-story-beat-label`}>{card.hood}</p>
-          <p className={`type-body-sm text-ink-secondary`} style={{ margin: "0 0 1rem" }}>{card.subtitle}</p>
-          {card.layer1.map((s) => (
-            <div key={s.label} className={styles.comparisonStat}>
-              <span className={`${styles.comparisonStatLabel} type-body-sm`}>{s.label}</span>
-              <span className={[styles.comparisonStatValue, s.highlight ? styles.comparisonStatValueHighlight : ""].filter(Boolean).join(" ")}>
-                {s.value}
-              </span>
-            </div>
-          ))}
+          <h3 className={`${styles.comparisonCardHoodTitle} type-h2-serif text-ink-default`}>{card.hood}</h3>
+          <div className={styles.comparisonVisBlock}>
+            <CommuteMethodGauge
+              workFromHomeShare={card.workFromHomeShare}
+              vehicleWalkShare={card.vehicleWalkShare}
+              transitShare={card.transitShare}
+              hideHeadlineValue={false}
+            />
+            <PovertyPictogram
+              belowPovertyLineShare={card.povertyShare}
+              deepPovertyShare={card.deepPovertyShare}
+              highIncomeHouseholdShare={card.highIncomeHouseholdShare}
+              peoplePerDot={Math.max(1, Math.round(card.totalPop / 50))}
+              hideHeadlineValue={false}
+            />
+          </div>
           {card.layer2.map((s) => (
             <div
               key={s.label}
@@ -240,7 +214,7 @@ function ComparisonCards({ layer2Visible }) {
                 layer2Visible ? styles.comparisonStatLayer2Visible : "",
               ].filter(Boolean).join(" ")}
             >
-              <span className={`${styles.comparisonStatLabel} type-body-sm`}>{s.label}</span>
+              <span className={`${styles.comparisonStatLabel} type-body`}>{s.label}</span>
               <span className={[styles.comparisonStatValue, s.highlight ? styles.comparisonStatValueHighlight : ""].filter(Boolean).join(" ")}>
                 {s.value}
               </span>
@@ -256,7 +230,7 @@ function ComparisonCards({ layer2Visible }) {
 function NeighborhoodSchematic() {
   return (
     <div className={styles.schematicWrap}>
-      <p className={`${styles.schematicLabel} type-story-beat-label`}>
+      <p className={`${styles.schematicLabel} type-h4-mono-allcaps`}>
         Distance from Downtown — schematic (not to scale)
       </p>
       <svg
@@ -309,66 +283,31 @@ function NeighborhoodSchematic() {
   );
 }
 
-/** Beat 5: side-by-side neighborhood fact cards. */
-function NeighborhoodCards() {
+function AQuotes() {
   return (
-    <div className={styles.hoodGrid}>
-      {HOOD_CARDS.map((hood) => (
-        <div key={hood.name} className={styles.hoodCard} style={{ borderTop: `3px solid ${hood.accent}` }}>
-          <h3 className={`${styles.hoodCardName} type-h3 text-ink-default`}>{hood.name}</h3>
-          <p className={`${styles.hoodCardSubtitle} type-body-sm`}>{hood.subtitle}</p>
-          {hood.stats.map((s) => (
-            <div key={s.label} className={styles.hoodStat}>
-              <span className={`${styles.hoodStatLabel} type-body-sm`}>{s.label}</span>
-              <span className={`${styles.hoodStatValue} type-data-value`}>{s.value}</span>
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/** Beat 6: persona cards shown side-by-side. */
-function PersonaCards() {
-  return (
-    <div className={styles.personaGrid}>
-      {/* Persona A — Larimer, Route 74 */}
-      {/* NOTE: Route 74 is reduced (major) in CSV, NOT eliminated.
-          Persona copy reflects major frequency cuts, not route elimination. */}
-      <div className={`${styles.personaCard} ${styles.personaCardLarimer}`}>
-        <h3 className={`${styles.personaName} type-h3 text-ink-default`}>Diane</h3>
-        <p className={`${styles.personaNeighborhood} type-data-label text-ink-subtle`}>
-          Larimer · Route 74 · Stop E70267
+    <div className={styles.aQuotesGrid}>
+      <div className={`${styles.aQuoteCard} ${styles.aQuoteChoice}`}>
+        <p className={`${styles.aQuoteTag} type-h4-mono-allcaps`}>Transit choice rider</p>
+        <h3 className={`${styles.aQuoteName} type-h2-sans text-ink-default`}>Karl Cureton</h3>
+        <p className={`${styles.aQuoteMeta} type-h4-mono-allcaps text-ink-default`}>
+          Owns a car · buses for convenience
         </p>
-        <p className={`${styles.personaQuote} type-story-body`}>
-          "Diane leaves for work at 6:45am. She takes the Route 74 from Larimer Ave to reach her
-          hospital job in Oakland by 7:30. After the FY26 frequency cuts to Route 74, buses come
-          significantly less often. Missing one means missing her shift. She has no car. There is
-          no backup plan."
-        </p>
-        <p className={`${styles.personaDisclaimer} type-data-label`}>
-          Composite persona — not a real individual. Route 74 data: 976 → 677 daily riders
-          (CSV). FY26 status: reduced, major tier.
+        <p className={`${styles.aQuoteText} type-body`}>
+          "I would have to drive to work, pay to park..." losing his bus would be an inconvenience he
+          could get used to.
         </p>
       </div>
 
-      {/* Persona B — Highland Park, Route 71B */}
-      {/* Route 71B is reduced (minor) in CSV. Primary cut = no service after 11pm.
-          Stop E29055 verified in route_stop_per_route.csv. */}
-      <div className={`${styles.personaCard} ${styles.personaCardHighlandPark}`}>
-        <h3 className={`${styles.personaName} type-h3 text-ink-default`}>Marcus</h3>
-        <p className={`${styles.personaNeighborhood} type-data-label text-ink-subtle`}>
-          Highland Park · Route 71B · Stop E29055
+      <div className={`${styles.aQuoteCard} ${styles.aQuoteNeed}`}>
+        <p className={`${styles.aQuoteTag} type-h4-mono-allcaps`}>Transit need rider</p>
+        <h3 className={`${styles.aQuoteName} type-h2-sans text-ink-default`}>Kong Lee</h3>
+        <p className={`${styles.aQuoteMeta} type-h4-mono-allcaps text-ink-default`}>
+          Blind rider · Route 14 · bus-dependent caregiver trips
         </p>
-        <p className={`${styles.personaQuote} type-story-body`}>
-          "Marcus works downtown. He drives most days, but takes the 71B a few times a week.
-          After the FY26 cuts, the 71B ends at 11pm. He occasionally has to drive home from late
-          events instead of taking the bus. It's inconvenient. He adjusts."
-        </p>
-        <p className={`${styles.personaDisclaimer} type-data-label`}>
-          Composite persona — not a real individual. Route 71B data: 5,020 → 3,958 daily
-          riders (CSV). FY26 status: reduced, minor tier. Named route for Highland Park.
+        <p className={`${styles.aQuoteText} type-body`}>
+          "Maybe PRT can pay for my Uber rides, what do you think?" She jokes, but this is her
+          reality. She takes Route 14 several times a week to pick up her daughter from a half-day
+          kindergarten program, and Route 14 is one of 41 lines on the FY26 chopping block.
         </p>
       </div>
     </div>
@@ -383,32 +322,54 @@ function FrequencyComparison() {
   return (
     <div className={styles.frequencyGrid}>
       <div className={styles.frequencyPanel}>
-        <p className={`${styles.frequencyPanelLabel} type-story-beat-label`}>
+        <p className={`${styles.frequencyPanelLabel} type-h4-mono-allcaps`}>
           Larimer — Route 74 (major reduction)
         </p>
-        <p className={`type-data-label text-ink-subtle`} style={{ margin: "0 0 0.5rem" }}>
-          Daytime gap doubles — from ~20 to ~40 min between buses
-        </p>
-        <BusRouteComparison
-          stop={LARIMER_STOP}
-          routes={[LARIMER_ROUTES[0]]}
-          selectedArea="downtown"
-          showLabels
-        />
+        <div className={styles.frequencyPanelBody}>
+          <article className={`${styles.frequencyPersonaCard} ${styles.frequencyPersonaNeed}`}>
+            <span className={`${styles.frequencyStopIcon} type-h4-mono-allcaps`} style={{ background: LARIMER_ROUTES[0].color }}>
+              {LARIMER_ROUTES[0].label}
+            </span>
+            <h3 className={`${styles.frequencyPersonaName} type-h2-sans text-ink-default`}>Denise</h3>
+            <p className={`${styles.frequencyPersonaMeta} type-h4-mono-allcaps text-ink-default`}>
+              Larimer · Stop E70267
+            </p>
+            <p className={`${styles.frequencyPersonaQuote} type-body`}>
+              "Denise leaves for work at 6:45am. She takes Route 74 from Larimer Ave to reach her job in Oakland by 7:30. Missing one means missing her shift."
+            </p>
+          </article>
+          <BusRouteComparison
+            stop={LARIMER_STOP}
+            routes={[LARIMER_ROUTES[0]]}
+            selectedArea="downtown"
+            showLabels
+          />
+        </div>
       </div>
       <div className={styles.frequencyPanel}>
-        <p className={`${styles.frequencyPanelLabel} type-story-beat-label`}>
+        <p className={`${styles.frequencyPanelLabel} type-h4-mono-allcaps`}>
           Highland Park — Route 71B (minor reduction)
         </p>
-        <p className={`type-data-label text-ink-subtle`} style={{ margin: "0 0 0.5rem" }}>
-          Daytime frequency mostly preserved — main cut is no service after 11pm
-        </p>
-        <BusRouteComparison
-          stop={HIGHLAND_STOP}
-          routes={HIGHLAND_ROUTES}
-          selectedArea="shadyside"
-          showLabels
-        />
+        <div className={styles.frequencyPanelBody}>
+          <article className={`${styles.frequencyPersonaCard} ${styles.frequencyPersonaChoice}`}>
+            <span className={`${styles.frequencyStopIcon} type-h4-mono-allcaps`} style={{ background: HIGHLAND_ROUTES[0].color }}>
+              {HIGHLAND_ROUTES[0].label}
+            </span>
+            <h3 className={`${styles.frequencyPersonaName} type-h2-sans text-ink-default`}>Marcus</h3>
+            <p className={`${styles.frequencyPersonaMeta} type-h4-mono-allcaps text-ink-default`}>
+              Highland Park · Stop E29055
+            </p>
+            <p className={`${styles.frequencyPersonaQuote} type-body`}>
+              "Marcus works downtown. He drives most days, but takes the 71B a few times a week. It's inconvenient. He adjusts."
+            </p>
+          </article>
+          <BusRouteComparison
+            stop={HIGHLAND_STOP}
+            routes={HIGHLAND_ROUTES}
+            selectedArea="downtown"
+            showLabels
+          />
+        </div>
       </div>
     </div>
   );
@@ -420,7 +381,7 @@ function BeatScrollCue({ onClick }) {
       <button
         type="button"
         onClick={onClick}
-        className={`${styles.scrollCueButton} type-data-label text-ink-subtle`}
+        className={`${styles.scrollCueButton} type-h4-mono-allcaps text-ink-default`}
         aria-label="Scroll to next section"
       >
         more
@@ -454,6 +415,8 @@ function ProgressNav({ activeBeat, onNav }) {
 
 export default function GuidedStory() {
   const storyRef = useRef(null);
+  const [storyCoverageMode, setStoryCoverageMode] = useState("before");
+  const [covidTierData, setCovidTierData] = useState(null);
 
   // One ref per beat — declared individually to satisfy rules-of-hooks.
   const b0 = useRef(null);
@@ -462,20 +425,49 @@ export default function GuidedStory() {
   const b3 = useRef(null);
   const b4 = useRef(null);
   const b5 = useRef(null);
-  const b6 = useRef(null);
-  const beatRefs = [b0, b1, b2, b3, b4, b5, b6];
+  const beatRefs = [b0, b1, b2, b3, b4, b5];
 
   const { activeBeat } = useScrollBeat(storyRef);
 
-  // Layer-2 stats animate in when Beat 4 is reached.
-  const layer2Visible = activeBeat >= 3;
+  // Layer-2 stats animate in when "The math" is reached.
+  const layer2Visible = activeBeat >= 2;
 
-  // CoverageMap transitions from "before" (beat 0) to "after" (beat 2+).
-  const coverageViewMode = activeBeat >= 2 ? "after" : "before";
+  // Beat 3 story map pulses between before/after every 2 seconds.
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setStoryCoverageMode((prev) => (prev === "before" ? "after" : "before"));
+    }, 2000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    getRidershipTotalsByPovertyTier()
+      .then((d) => {
+        if (!cancelled) setCovidTierData(d);
+      })
+      .catch(() => {
+        if (!cancelled) setCovidTierData(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function scrollToBeat(i) {
     beatRefs[i]?.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+
+  const highTier = covidTierData?.high;
+  const lowTier = covidTierData?.low;
+  const highDecline =
+    highTier?.recoveryPct != null && Number.isFinite(highTier.recoveryPct)
+      ? `${highTier.recoveryPct >= 0 ? "+" : ""}${highTier.recoveryPct.toFixed(1)}%`
+      : "—";
+  const lowDecline =
+    lowTier?.recoveryPct != null && Number.isFinite(lowTier.recoveryPct)
+      ? `${lowTier.recoveryPct >= 0 ? "+" : ""}${lowTier.recoveryPct.toFixed(1)}%`
+      : "—";
 
   return (
     <>
@@ -483,159 +475,141 @@ export default function GuidedStory() {
 
       <article ref={storyRef} className={styles.story}>
 
-        {/* ── Beat 1: The system before ─────────────────────────────── */}
-        <section ref={b0} data-story-beat className={styles.beat} aria-labelledby="beat-1-h">
-          <div className={styles.copyBlock}>
-            <BeatLabel n={1} label="The system before" />
-            <h2 id="beat-1-h" className={`${styles.lede} type-story-lede text-ink-default`}>
-              Before the pandemic, 200,000 people rode Pittsburgh's buses every weekday.
+        {/* ── Beat 1: Before + COVID ────────────────────────────────── */}
+        <section
+          ref={b0}
+          data-story-beat
+          className={`${styles.beatStickyVis} ${styles.beatHalfSplit}`}
+          aria-labelledby="beat-1-h"
+        >
+          <div className={styles.beatCopy}>
+            <BeatLabel n={1} label="Before + COVID" />
+            <h2 id="beat-1-h" className={`${styles.lede} type-h1-serif text-ink-default`}>
+              Before the pandemic, 200,000 people rode Pittsburgh's buses every weekday. Recovery came
+              back unevenly.
             </h2>
-            <p className={`${styles.body} type-story-body`}>
-              Pittsburgh's Port Authority network reached virtually every neighborhood in the city.
-              Coverage was imperfect but remarkably broad — a baseline most residents took for
-              granted.
+            <p className={`${styles.body} type-body`}>
+              If we split riders by neighborhood poverty levels, we see that riders in 20%+ poverty
+              neighborhoods recovered more than riders in lower-poverty areas, where white-collar
+              work-from-home patterns likely reduced commute demand.{" "}
+              {highTier && lowTier
+                ? `In 2018, that was ${formatRiders(highTier.baselineSum)} riders in 20%+ poverty areas and ${formatRiders(lowTier.baselineSum)} riders in less than 20% poverty areas.`
+                : ""}
             </p>
+            <div className={styles.covidStatGrid} aria-label="Ridership decline summary by poverty tier">
+              <article className={styles.covidStatModule}>
+                <p className={`${styles.covidStatValue} type-h2-sans`}>{highDecline}</p>
+                <p className={`${styles.covidStatLabel} type-h4-mono-allcaps`}>
+                  high-poverty ridership decline post-COVID
+                </p>
+              </article>
+              <article className={styles.covidStatModule}>
+                <p className={`${styles.covidStatValue} type-h2-sans`}>{lowDecline}</p>
+                <p className={`${styles.covidStatLabel} type-h4-mono-allcaps`}>
+                  less than 20% poverty ridership decline post-COVID
+                </p>
+              </article>
+            </div>
           </div>
-          {/* <NeighborhoodPanelProvider>
-            <CoverageMap mode="story" storyViewMode="before" />
-          </NeighborhoodPanelProvider> */}
+          <div className={styles.beatStickyVisPanel}>
+            <CovidRecoveryDotsComparison />
+          </div>
           <BeatScrollCue onClick={() => scrollToBeat(1)} />
         </section>
 
-        {/* ── Beat 2: COVID recovery ────────────────────────────────── */}
-        <section ref={b1} data-story-beat className={styles.centeredBeat} aria-labelledby="beat-2-h">
+        {/* ── Beat 2: The cuts ──────────────────────────────────────── */}
+        <section
+          ref={b1}
+          data-story-beat
+          className={styles.beat}
+          aria-labelledby="beat-2-h"
+        >
           <div className={styles.copyBlock}>
-            <BeatLabel n={2} label="COVID recovery" />
-            <h2 id="beat-2-h" className={`${styles.lede} type-story-lede text-ink-default`}>
-              Ridership collapsed — then came back unevenly.
+            <BeatLabel n={2} label="The cuts" />
+            <h2 id="beat-2-h" className={`${styles.lede} type-h1-serif text-ink-default`}>
+              Facing a budget issues, PRT scored every route by ridership efficiency and planned a sweeping FY26 PRT plan, reducing 57 routes and eliminating 41 routes entirely.
             </h2>
-            <p className={`${styles.body} type-story-body`}>
-              In wealthier neighborhoods, people chose other options. In Larimer, Homewood, and
-              Knoxville, the bus snapped back almost immediately. It was never optional.
-            </p>
-            <p className={`${styles.body} type-story-body`}>
-              This is the structural reframe:{" "}
-              <strong>low ridership does not mean low need.</strong> Routes serving high-poverty
-              corridors maintained more of their pre-pandemic ridership than routes in wealthier
-              areas — because riders had no alternative.
-            </p>
+
+            <div className={styles.counterRow}>
+              <StatCounter value="neg 1" label="Routes eliminated" />
+              <StatCounter value="netural" label="Routes reduced" />
+              <StatCounter value="neutral" label="Stops orphaned (est.)" />
+            </div>
+
           </div>
-          <div className={styles.visWrap}>
-            <CovidRecoveryDotsComparison />
+          <div className={styles.cutsMapWrap}>
+            <NeighborhoodPanelProvider>
+              <CoverageMap mode="story" storyViewMode={storyCoverageMode} />
+            </NeighborhoodPanelProvider>
           </div>
           <BeatScrollCue onClick={() => scrollToBeat(2)} />
         </section>
 
-        {/* ── Beat 3: The cuts ──────────────────────────────────────── */}
-        <section ref={b2} data-story-beat className={styles.beat} aria-labelledby="beat-3-h">
+        {/* ── Beat 3: The problem with the math ────────────────────── */}
+        <section ref={b2} data-story-beat className={styles.centeredBeat} aria-labelledby="beat-3-h">
           <div className={styles.copyBlock}>
-            <BeatLabel n={3} label="The cuts" />
-            <h2 id="beat-3-h" className={`${styles.lede} type-story-lede text-ink-default`}>
-              Facing a budget shortfall, PRT scored every route by ridership efficiency.
+            <BeatLabel n={3} label="The problem with the math" />
+            <h2 id="beat-3-h" className={`${styles.lede} type-h1-serif text-ink-default`}>
+              But efficiency scores only count riders, not transit dependence and the ability to recover from a cut.
             </h2>
-            <p className={`${styles.body} type-story-body`}>
-              The FY26 plan eliminates {FY26_ROUTES_ELIMINATED} routes entirely and reduces service
-              on {FY26_ROUTES_REDUCED} others —{" "}
-              {FY26_ROUTES_ELIMINATED + FY26_ROUTES_REDUCED} of 100 routes affected.
-            </p>
 
-            <div className={styles.counterRow}>
-              <StatCounter value={FY26_ROUTES_ELIMINATED} label="Routes eliminated" />
-              <StatCounter value={FY26_ROUTES_REDUCED} label="Routes reduced" />
-              <StatCounter value={FY26_STOPS_LOST} label="Stops orphaned (est.)" />
-            </div>
-
-            <div className={styles.routeCallout}>
-              <p className={`${styles.routeCalloutTitle} type-data-label`}>
-                Eliminated — key routes (all confirmed in route_status_official.csv)
-              </p>
-              <RouteChipList routes={ELIMINATED_HIGHLIGHTS} />
-              <p className={`${styles.routeCalloutTitle} type-data-label`} style={{ marginTop: "1rem" }}>
-                Reduced — Penn Ave corridor + east end neighborhoods
-              </p>
-              <RouteChipList routes={REDUCED_HIGHLIGHTS} reduced />
-            </div>
           </div>
-          {/* <NeighborhoodPanelProvider>
-            <CoverageMap mode="story" storyViewMode={coverageViewMode} />
-          </NeighborhoodPanelProvider> */}
+          <AQuotes />
           <BeatScrollCue onClick={() => scrollToBeat(3)} />
         </section>
 
-        {/* ── Beat 4: The problem with the math ────────────────────── */}
+        {/* ── Beat 4: Two neighborhoods, up close ──────────────────── */}
         <section ref={b3} data-story-beat className={styles.centeredBeat} aria-labelledby="beat-4-h">
           <div className={styles.copyBlock}>
-            <BeatLabel n={4} label="The problem with the math" />
-            <h2 id="beat-4-h" className={`${styles.lede} type-story-lede text-ink-default`}>
-              Efficiency scores count passengers — not dependence.
+            <BeatLabel n={4} label="Two neighborhoods, up close" />
+            <h2 id="beat-4-h" className={`${styles.lede} type-h1-serif text-ink-default`}>
+              Larimer and Highland Park, neighborhoods two miles apart. Both are losing service, but with very differnt demographics, needs and
+              consequences.
             </h2>
-            <p className={`${styles.body} type-story-body`}>
-              A route serving 300 riders in Highland Park and a route serving 300 riders in
-              Larimer score identically. The contexts could not be more different.
+            <p className={`${styles.body} type-body`}>
+              Larimer loses two routes entirely (P10, P17) and sees major frequency cuts on Route
+              74 and minor cuts on Route 86. Highland Park loses its named route (71B) to 11pm
+              service cuts, with daytime frequency mostly preserved.
             </p>
-            <p className={`${styles.body} type-story-body`}>
-              Scroll to reveal what ridership counts erase.
+            <p className={`${styles.body} type-body`}>
+              Both neighborhoods. Both losing service. The difference is what losing service means.
             </p>
           </div>
           <ComparisonCards layer2Visible={layer2Visible} />
           <BeatScrollCue onClick={() => scrollToBeat(4)} />
         </section>
 
-        {/* ── Beat 5: Two neighborhoods, up close ──────────────────── */}
+        {/* ── Beat 5: Two people, one stop ──────────────────────────── */}
         <section ref={b4} data-story-beat className={styles.centeredBeat} aria-labelledby="beat-5-h">
           <div className={styles.copyBlock}>
-            <BeatLabel n={5} label="Two neighborhoods, up close" />
-            <h2 id="beat-5-h" className={`${styles.lede} type-story-lede text-ink-default`}>
-              Larimer and Highland Park. Two miles apart. Both losing service. Different
-              consequences.
+            <BeatLabel n={5} label="Two people, one stop" />
+            <h2 id="beat-5-h" className={`${styles.lede} type-h1-serif text-ink-default`}>
+              Same city. Same efficiency score. Different lives.
             </h2>
-            <p className={`${styles.body} type-story-body`}>
-              Larimer loses two routes entirely (P10, P17) and sees major frequency cuts on Route
-              74 and minor cuts on Route 86. Highland Park loses its named route (71B) to 11pm
-              service cuts, with daytime frequency mostly preserved.
-            </p>
-            <p className={`${styles.body} type-story-body`}>
-              Both neighborhoods. Both losing service. The difference is what losing service means.
+            <p className={`${styles.body} type-body`}>
+              Larimer: daytime gap doubles — from ~20 to ~40 min between buses. Highland Park:
+              daytime frequency mostly preserved — main cut is no service after 11pm.
             </p>
           </div>
-          <NeighborhoodSchematic />
-          <NeighborhoodCards />
+          <FrequencyComparison />
           <BeatScrollCue onClick={() => scrollToBeat(5)} />
         </section>
 
-        {/* ── Beat 6: Two people, one stop ──────────────────────────── */}
-        <section ref={b5} data-story-beat className={styles.centeredBeat} aria-labelledby="beat-6-h">
-          <div className={styles.copyBlock}>
-            <BeatLabel n={6} label="Two people, one stop" />
-            <h2 id="beat-6-h" className={`${styles.lede} type-story-lede text-ink-default`}>
-              Same city. Same efficiency score. Different lives.
-            </h2>
-            <p className={`${styles.body} type-story-body`}>
-              The animation shows bus arrival frequency at each person's primary stop — before and
-              after FY26 cuts. Wider spacing between dots means longer waits. Larimer's loss is a
-              working-hours problem. Highland Park's loss is a late-night inconvenience.
-            </p>
-          </div>
-          <PersonaCards />
-          <FrequencyComparison />
-          <BeatScrollCue onClick={() => scrollToBeat(6)} />
-        </section>
-
-        {/* ── Beat 7: The equity argument ───────────────────────────── */}
-        <section ref={b6} data-story-beat className={styles.closingBeat} aria-labelledby="beat-7-h">
-          <BeatLabel n={7} label="The equity argument" />
-          <h2 id="beat-7-h" className={`${styles.closingLede} type-story-lede text-ink-default`}>
-            Efficiency and equity aren't always in conflict.
+        {/* ── Beat 6: The equity argument ───────────────────────────── */}
+        <section ref={b5} data-story-beat className={styles.closingBeat} aria-labelledby="beat-6-h">
+          <BeatLabel n={6} label="The equity argument" />
+          <h2 id="beat-6-h" className={`${styles.closingLede} type-h1-serif text-ink-default`}>
+            Efficiency and equity aren't always in conflict. But when they are, the decision of which to prioritize should be grounded in differing human-level needs, not just numbers. 
+            one.
           </h2>
-          <p className={`${styles.body} type-story-body`}>
-            But when they are, choosing which to prioritize is a values decision — not a technical
-            one. Pittsburgh's cuts concentrate loss where loss is least recoverable.
+          <p className={`${styles.body} type-body`}>
+                Go to explore mode to see the people behind each neighborhood.
           </p>
           <div className={styles.ctaWrap}>
-            <Link href="/test" className={`${styles.ctaButton} type-body-m`}>
+            <Link href="/test" className={`${styles.ctaButton} type-body`}>
               Explore the full dashboard →
             </Link>
-            <Link href="/" className={`${styles.ctaLink} type-body-sm`}>
+            <Link href="/" className={`${styles.ctaLink} type-body`}>
               ↑ Back to top
             </Link>
           </div>

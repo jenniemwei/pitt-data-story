@@ -1,0 +1,200 @@
+.section {
+  margin-top: 0;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.inner {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-inline: 0;
+}
+
+.title {
+  margin: 0 0 0.35rem;
+  color: var(--color-text-default, #121212);
+}
+
+.lede {
+  margin: 0 0 1rem;
+  max-width: none;
+  color: var(--color-text-secondary, #363636);
+}
+
+.modeControls {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.modeButton {
+  border: var(--width-1) solid var(--color-border-medium, #86868a);
+  background: transparent;
+  color: var(--color-text-secondary, #363636);
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+  cursor: pointer;
+}
+
+.modeButtonOn {
+  background: var(--n4, #b8b8b8);
+  color: var(--color-text-default, #121212);
+}
+
+.mapWrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-bg-default, #f7f7f7);
+}
+
+.mapTopLeftControls {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  width: auto;
+  padding: 0;
+}
+
+.zoomControls {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.zoomButton {
+  min-width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 999px;
+  border: var(--width-1) solid var(--color-border-medium, #86868a);
+  background: transparent;
+  color: var(--color-text-secondary, #363636);
+  font-size: 1.2rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  box-shadow: none;
+}
+
+.zoomButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.zoomButton:not(:disabled) {
+  cursor: pointer;
+}
+
+.zoomButton:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.mapBottomLeftLegend {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 2;
+  width: min(420px, calc(100% - 2rem));
+}
+
+.povertyLegend {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.povertyLegendBar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  border: var(--width-1) solid color-mix(in srgb, var(--color-border-medium, #aeaaa5) 70%, transparent);
+  background: linear-gradient(
+    to right,
+    var(--color-fill-positive, #bfd0aa) 0%,
+    var(--color-fill-neg2, #d85c4d) 55%,
+    var(--color-fill-neg3, #b94033) 100%
+  );
+}
+
+.povertyLegendLabels {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.canvasWrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  min-height: 0;
+}
+
+.tooltip {
+  position: fixed;
+  pointer-events: none;
+  transform: translate(10px, 10px);
+  background: var(--color-bg-dark);
+  color: var(--color-bg-light);
+  border-radius: 4px;
+  padding: 4px 6px;
+  white-space: nowrap;
+  z-index: 30;
+}
+
+.panel {
+  margin-top: 0.75rem;
+  border: var(--width-2) solid var(--color-border-medium);
+  border-radius: 4px;
+  background: var(--color-bg-light);
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.panelTitle,
+.panelStat {
+  margin: 0;
+}
+
+.tokenMissing {
+  padding: 1.25rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-medium, #aeaaa5);
+  background: var(--color-warn-bg, #fff4df);
+  color: var(--color-warn-text, #6d4a12);
+}
+
+@media (max-width: 880px) {
+  .mapTopLeftControls {
+    left: 0.75rem;
+    top: 0.75rem;
+  }
+
+  .mapBottomLeftLegend {
+    left: 0.75rem;
+    bottom: 0.75rem;
+    width: calc(100% - 1.5rem);
+  }
+}
+

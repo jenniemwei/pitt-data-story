@@ -69,9 +69,13 @@ export function parseRouteList(raw) {
 
 export function normalizeStatus(raw) {
   const status = String(raw || "").trim().toLowerCase();
-  if (status === "eliminated") return "eliminated";
-  if (status === "reduced") return "reduced";
+  if (status.includes("eliminat")) return "eliminated";
+  if (status.includes("reduc") || status.includes("major") || status.includes("minor")) return "reduced";
   return "unchanged";
+}
+
+export function pickRouteStatusValue(row) {
+  return row?.route_status || row?.["Type of change:"] || row?.Category || "";
 }
 
 /** Per-route proportional loss for FY26 (elimination = 1; major reduction = 0.5; minor = 0.3). */
