@@ -2,6 +2,7 @@
   "scripts": {
     "dev": "next dev",
     "prebuild": "npm run sync-data",
+    "prebuild:static": "npm run sync-data",
     "build": "next build",
     "start": "next start",
     "sync-data": "node scripts/sync-public-data.mjs",

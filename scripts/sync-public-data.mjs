@@ -31,14 +31,22 @@ const allowed = [
   "route_demographics.csv",
 ];
 
+// If canonical source filenames change, map expected public names to fallback sources.
+const sourceAlias = {
+  "display_profiles_2024.csv": "neighborhood_display_profiles.csv",
+};
+
 const destDir = join(root, "public", "data");
 mkdirSync(destDir, { recursive: true });
 
 let copied = 0;
 for (const f of allowed) {
-  const src = join(root, "data", f);
-  if (!existsSync(src)) {
-    console.warn(`sync-public-data: skip (missing source): data/${f}`);
+  const preferredSrc = join(root, "data", f);
+  const aliasName = sourceAlias[f];
+  const aliasSrc = aliasName ? join(root, "data", aliasName) : null;
+  const src = existsSync(preferredSrc) ? preferredSrc : aliasSrc;
+  if (!src || !existsSync(src)) {
+    console.warn(`sync-public-data: skip (missing source): data/${f}${aliasName ? ` (or data/${aliasName})` : ""}`);
     continue;
   }
   cpSync(src, join(destDir, f));
