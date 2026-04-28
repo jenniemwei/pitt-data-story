@@ -531,9 +531,9 @@ export default function GuidedStory() {
             </h2>
 
             <div className={styles.counterRow}>
-              <StatCounter value="neg 1" label="Routes eliminated" />
-              <StatCounter value="netural" label="Routes reduced" />
-              <StatCounter value="neutral" label="Stops orphaned (est.)" />
+              <StatCounter value={FY26_ROUTES_ELIMINATED} label="Routes eliminated" />
+              <StatCounter value={FY26_ROUTES_REDUCED} label="Routes reduced" />
+              <StatCounter value={FY26_STOPS_LOST} label="Stops orphaned (est.)" />
             </div>
 
           </div>
@@ -605,14 +605,6 @@ export default function GuidedStory() {
           <p className={`${styles.body} type-body`}>
                 Go to explore mode to see the people behind each neighborhood.
           </p>
-          <div className={styles.ctaWrap}>
-            <Link href="/test" className={`${styles.ctaButton} type-body`}>
-              Explore the full dashboard →
-            </Link>
-            <Link href="/" className={`${styles.ctaLink} type-body`}>
-              ↑ Back to top
-            </Link>
-          </div>
         </section>
 
       </article>
