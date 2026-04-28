@@ -32,13 +32,10 @@ from pathlib import Path
 from statistics import mean
 from typing import Any
 
+from build_prt_fy2026_route_cuts import build_route_cut_rows, write_route_cut_rows
+
 REPO = Path(__file__).resolve().parents[1]
 NRS_JSON = REPO / "data" / "neighborhood_route_service.json"
-CUTS_CSV = (
-    REPO / "data" / "prt_fy2026_route_cuts.csv"
-    if (REPO / "data" / "prt_fy2026_route_cuts.csv").is_file()
-    else REPO / "data" / "primary" / "prt_fy2026_route_cuts.csv"
-)
 MONTHLY_RIDERSHIP_CSV = (
     REPO / "data" / "monthly_avg_ridership.csv"
     if (REPO / "data" / "monthly_avg_ridership.csv").is_file()
@@ -337,7 +334,7 @@ def write_csv(path: str, rows: list[dict[str, Any]], fieldnames: list[str]) -> N
         w.writerows(rows)
 
 
-def main() -> None:
+def main(*, persist_route_cuts_csv: bool = True) -> None:
     profiles = load_profiles()
     route_neighborhoods_lookup = build_route_neighborhoods_from_stops()
     county = None
@@ -348,9 +345,10 @@ def main() -> None:
                 break
     assert county is not None
 
-    all_cuts: list[dict[str, str]] = []
-    with CUTS_CSV.open(encoding="utf-8") as f:
-        all_cuts = list(csv.DictReader(f))
+    # Build route-cut rows in-memory to avoid mandatory intermediate read/write coupling.
+    all_cuts: list[dict[str, str]] = build_route_cut_rows()
+    if persist_route_cuts_csv:
+        write_route_cut_rows(all_cuts, REPO / "data" / "prt_fy2026_route_cuts.csv")
 
     eliminated = [r for r in all_cuts if r["primary_reduction_action"] == "eliminate"]
     non_elim = [r for r in all_cuts if r["primary_reduction_action"] != "eliminate"]

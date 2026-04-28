@@ -3,8 +3,8 @@
 
 **Why this pipeline exists (vs only hand-editing a CSV in ``public/data``):**
 - Ties every neighborhood polygon label to the same **crosswalk + overrides** as the route/FY26
-  pipeline, so profile rows match ``neighborhoods.geojson`` and merge cleanly with
-  ``n_profiles_new.csv`` in the app.
+  pipeline, so profile rows match ``neighborhoods.geojson`` and resolve directly in the app
+  info panel without runtime overlays.
 - When ACS or primary tables change, you **regenerate** one file instead of pasting error-prone
   partial updates.
 

@@ -1,101 +1,101 @@
 route_id,route_name,avg_daily_riders,pct_corridor_no_car,cut_type,neighborhoods_served,is_persona_a_route,is_persona_b_route
-002,2 - MOUNT ROYAL,466.8,31.1,eliminated,Mount Washington,false,false
-004,4 - TROY HILL,326.3,38.0,eliminated,Perry South,false,false
-007,7 - SPRING GARDEN,73.8,51.6,eliminated,Fineview,false,false
-014,14 - OHIO VALLEY,605.8,40.2,eliminated,Brighton Heights,false,false
-018,18 - MANCHESTER,45.7,44.6,eliminated,Central Northside,false,false
-019L,19L - EMSWORTH LIMITED,265.3,40.2,eliminated,Brighton Heights,false,false
-020,20 - KENNEDY,311.6,27.0,eliminated,Crafton Heights,false,false
-026,26 - CHARTIERS,641.7,27.0,eliminated,Crafton Heights,false,false
-029,29 - ROBINSON,769.2,28.0,eliminated,None (see geography note),false,false
-036,36 - BANKSVILLE,306.7,26.0,eliminated,Banksville,false,false
-038,38 - GREEN TREE,587.9,28.0,eliminated,None (see geography note),false,false
-039,39 - BROOKLINE,741.7,24.3,eliminated,Brookline,false,false
-040,40 - MOUNT WASHINGTON,368.5,31.1,eliminated,Mount Washington,false,false
-041,41 - BOWER HILL,635.8,21.8,eliminated,Beechview,false,false
-043,43 - BAILEY,279.7,39.3,eliminated,Knoxville,true,false
-051L,51L - CARRICK LIMITED,369.3,28.7,eliminated,Carrick,true,false
-052L,52L - HOMEVILLE LIMITED,258.3,29.7,eliminated,Homewood South,false,false
-053L,53L - HOMESTEAD PARK LIMITED,748.5,22.6,eliminated,Swisshelm Park,false,false
-058,58 - GREENFIELD,410.8,40.8,eliminated,Greenfield,false,false
-065,65 - SQUIRREL HILL,101.5,47.9,eliminated,Squirrel Hill South,false,false
-071,71 - EDGEWOOD TOWN CENTER,50.1,28.0,eliminated,None (see geography note),false,false
-G3,G3 - MOON FLYER,191.3,28.0,eliminated,None (see geography note),false,false
-G31,G31 - BRIDGEVILLE FLYER,219.6,24.3,eliminated,Brookline,false,false
-O1,O1 - ROSS FLYER,294.8,45.3,eliminated,Marshall-Shadeland,false,false
-O12,O12 - MCKNIGHT FLYER,394.3,40.2,eliminated,Brighton Heights,false,false
-O5,O5 - THOMPSON RUN FLYER VIA 279,44.2,28.0,eliminated,None (see geography note),false,false
-P10,P10 - ALLEGHENY VALLEY FLYER,221.3,40.2,eliminated,Brighton Heights,false,false
-P12,P12 - HOLIDAY PARK FLYER,292.6,28.0,eliminated,None (see geography note),false,false
-P13,P13 - MOUNT ROYAL FLYER,73.6,31.1,eliminated,Mount Washington,false,false
-P16,P16 - PENN HILLS FLYER,321.8,29.6,eliminated,East Hills,false,false
-P17,P17 - LINCOLN PARK FLYER,348.1,22.1,eliminated,Lincoln Place,false,false
-P67,P67 - MONROEVILLE FLYER,141.0,28.0,eliminated,None (see geography note),false,false
-P69,P69 - TRAFFORD FLYER,170.3,28.0,eliminated,None (see geography note),false,false
-P7,P7 - MCKEESPORT FLYER,276.5,28.0,eliminated,None (see geography note),false,false
-P71,P71 - SWISSVALE FLYER,151.0,22.6,eliminated,Swisshelm Park,false,false
-P76,P76 - LINCOLN HIGHWAY FLYER,300.8,28.0,eliminated,None (see geography note),false,false
-SLVR,SLVR - Libary via Overbrook,3531.5,23.2,eliminated,Overbrook,false,false
-Y1,Y1 - LARGE FLYER,111.6,28.0,eliminated,None (see geography note),false,false
-Y45,Y45 - BALDWIN MANOR FLYER,74.2,28.7,eliminated,Carrick,false,false
-Y47,Y47 - CURRY FLYER,536.6,24.3,eliminated,Brookline,false,false
-Y49,Y49 - PROSPECT FLYER,676.3,28.7,eliminated,Carrick,false,false
+002,2 - MOUNT ROYAL,466.8,31.1,eliminated,"North Shore, East Allegheny, Allegheny Center, Central Business District, Troy Hill",false,false
+004,4 - TROY HILL,326.3,38.0,eliminated,"Troy Hill, East Allegheny, North Shore, Allegheny Center, Summer Hill, Perry North, Central Business District",false,false
+007,7 - SPRING GARDEN,73.8,51.6,eliminated,"Spring Garden, East Allegheny, North Shore, Allegheny Center, Central Business District, Summer Hill",false,false
+014,14 - OHIO VALLEY,605.8,40.2,eliminated,"Chateau, Manchester, Marshall-Shadeland, Brighton Heights, California-Kirkbride",false,false
+018,18 - MANCHESTER,45.7,44.6,eliminated,"Manchester, Chateau, Allegheny West, Central Northside",false,false
+019L,19L - EMSWORTH LIMITED,265.3,40.2,eliminated,"Central Business District, Brighton Heights",false,false
+020,20 - KENNEDY,311.6,27.0,eliminated,"Esplen, South Shore, Central Business District, Elliott",false,false
+026,26 - CHARTIERS,641.7,27.0,eliminated,"Sheraden, Crafton Heights, Elliott, Windgap, West End, Central Business District, South Shore",false,false
+029,29 - ROBINSON,769.2,28.0,eliminated,"Elliott, Crafton Heights, Central Business District, West End, South Shore",false,false
+036,36 - BANKSVILLE,306.7,26.0,eliminated,"Banksville, Beechview, Central Business District",false,false
+038,38 - GREEN TREE,587.9,28.0,eliminated,"Central Business District, West End, Ridgemont, Westwood, South Shore",false,false
+039,39 - BROOKLINE,741.7,24.3,eliminated,"Brookline, Overbrook, Central Business District, Mount Washington, South Shore",false,false
+040,40 - MOUNT WASHINGTON,368.5,31.1,eliminated,"Mount Washington, South Shore, Duquesne Heights, Central Business District",false,false
+041,41 - BOWER HILL,635.8,21.8,eliminated,"Beechview, Brookline, Central Business District, Mount Washington, South Shore",false,false
+043,43 - BAILEY,279.7,39.3,eliminated,"Mount Washington, Allentown, Beltzhoover, South Side Slopes, South Shore, Central Business District",true,false
+051L,51L - CARRICK LIMITED,369.3,28.7,eliminated,"Carrick, Allentown, Central Business District, Knoxville, South Shore, Mount Washington",true,false
+052L,52L - HOMEVILLE LIMITED,258.3,29.7,eliminated,"Squirrel Hill South, Greenfield, Central Business District, Hazelwood, Bluff",false,false
+053L,53L - HOMESTEAD PARK LIMITED,748.5,22.6,eliminated,"Lincoln Place, Squirrel Hill South, Greenfield, Central Business District, Hazelwood, Bluff",false,false
+058,58 - GREENFIELD,410.8,40.8,eliminated,"Greenfield, Hazelwood, South Oakland, Central Oakland, North Oakland, West Oakland, Central Business District, Bluff, Squirrel Hill North",false,false
+065,65 - SQUIRREL HILL,101.5,47.9,eliminated,"Squirrel Hill South, Greenfield, South Oakland, Central Business District, Hazelwood, Bluff, Central Oakland",false,false
+071,71 - EDGEWOOD TOWN CENTER,50.1,28.0,eliminated,"Swisshelm Park, Point Breeze, Regent Square",false,false
+G3,G3 - MOON FLYER,191.3,28.0,eliminated,"Central Business District, South Shore, Oakwood, Sheraden, Elliott",false,false
+G31,G31 - BRIDGEVILLE FLYER,219.6,24.3,eliminated,"Central Business District, South Shore, Oakwood, Sheraden, Elliott",false,false
+O1,O1 - ROSS FLYER,294.8,45.3,eliminated,"Central Business District, Crawford-Roberts",false,false
+O12,O12 - MCKNIGHT FLYER,394.3,40.2,eliminated,"Central Business District, Crawford-Roberts, Summer Hill",false,false
+O5,O5 - THOMPSON RUN FLYER VIA 279,44.2,28.0,eliminated,"Summer Hill, Central Business District, Crawford-Roberts",false,false
+P10,P10 - ALLEGHENY VALLEY FLYER,221.3,40.2,eliminated,"Central Business District, Larimer, Homewood West, Lincoln-Lemington-Belmar, Shadyside, Highland Park, Polish Hill",false,false
+P12,P12 - HOLIDAY PARK FLYER,292.6,28.0,eliminated,"Central Business District, Shadyside, Homewood South, Point Breeze North, Polish Hill",false,false
+P13,P13 - MOUNT ROYAL FLYER,73.6,31.1,eliminated,"Central Business District, North Shore",false,false
+P16,P16 - PENN HILLS FLYER,321.8,29.6,eliminated,"Central Business District, Shadyside, Homewood South, Point Breeze North, Polish Hill",false,false
+P17,P17 - LINCOLN PARK FLYER,348.1,22.1,eliminated,"Lincoln-Lemington-Belmar, Larimer, Homewood West, Homewood North, Shadyside, Central Business District, Polish Hill, East Hills",false,false
+P67,P67 - MONROEVILLE FLYER,141.0,28.0,eliminated,"Central Business District, Shadyside, Homewood South, Point Breeze North, Polish Hill",false,false
+P69,P69 - TRAFFORD FLYER,170.3,28.0,eliminated,"Central Business District, Shadyside, Homewood South, Point Breeze North, Polish Hill",false,false
+P7,P7 - MCKEESPORT FLYER,276.5,28.0,eliminated,"Central Business District, Shadyside, Homewood South, Point Breeze North, Polish Hill",false,false
+P71,P71 - SWISSVALE FLYER,151.0,22.6,eliminated,"Central Business District, Shadyside, Homewood South, Point Breeze, Point Breeze North, Polish Hill, Regent Square, Swisshelm Park",false,false
+P76,P76 - LINCOLN HIGHWAY FLYER,300.8,28.0,eliminated,"Central Business District, Shadyside, Homewood South, Point Breeze North, Polish Hill",false,false
+SLVR,SLVR - Libary via Overbrook,3531.5,23.2,eliminated,"Central Business District, Brookline, Bon Air, Mount Washington, Beltzhoover, Carrick, Overbrook, North Shore, South Shore",false,false
+Y1,Y1 - LARGE FLYER,111.6,28.0,eliminated,"Brookline, Overbrook, Mount Washington, Central Business District, South Shore",false,false
+Y45,Y45 - BALDWIN MANOR FLYER,74.2,28.7,eliminated,"Overbrook, Brookline, Mount Washington, Central Business District, South Shore",false,false
+Y47,Y47 - CURRY FLYER,536.6,24.3,eliminated,"Overbrook, Brookline, Mount Washington, Central Business District, South Shore",false,false
+Y49,Y49 - PROSPECT FLYER,676.3,28.7,eliminated,"Overbrook, Brookline, Mount Washington, Central Business District, South Shore",false,false
 000,MONONGAHELA INCLINE,0.0,28.0,reduced,None (see geography note),false,false
-001,1 - FREEPORT ROAD,1543.3,44.1,reduced,"Lincoln-Lemington-Belmar, East Allegheny-North Shore, Central Business District - Crawford Roberts, Allegheny Center-Allegheny West, Troy Hill - Spring Garden",false,false
-006,6 - SPRING HILL,938.0,38.0,reduced,"Spring Hill-City View, Northview Heights - Summer Hill, East Allegheny-North Shore, Central Business District - Crawford Roberts, Allegheny Center-Allegheny West, Troy Hill - Spring Garden",false,false
-008,8 - PERRYSVILLE,1767.0,37.2,reduced,"Perry North, Perry South, Allegheny Center-Allegheny West, Central Northside, East Allegheny-North Shore, Central Business District - Crawford Roberts",false,false
-011,11 - FINEVIEW,401.0,44.7,reduced,"Perry South, Fineview, Central Business District - Crawford Roberts, Central Northside, Allegheny Center-Allegheny West, East Allegheny-North Shore",false,false
-012,12 - MCKNIGHT,947.9,33.5,reduced,"Northview Heights - Summer Hill, Central Business District - Crawford Roberts, East Allegheny-North Shore, Allegheny Center-Allegheny West, Spring Hill-City View, Perry North",false,false
-013,13 - BELLEVUE,1408.5,43.4,reduced,"Brighton Heights, Manchester-California-Kirkbride, Marshall-Shadeland, Allegheny Center-Allegheny West, Central Northside, Central Business District - Crawford Roberts, East Allegheny-North Shore",false,false
-016,16 - BRIGHTON,2185.0,42.0,reduced,"Brighton Heights, Marshall-Shadeland, Allegheny Center-Allegheny West, Perry South, Central Northside, Manchester-California-Kirkbride, Central Business District - Crawford Roberts, East Allegheny-North Shore",false,false
-017,17 - SHADELAND,941.1,42.0,reduced,"Marshall-Shadeland, Manchester-California-Kirkbride, Brighton Heights, Allegheny Center-Allegheny West, East Allegheny-North Shore, Central Northside, Central Business District - Crawford Roberts, Perry South",false,false
-021,21 - CORAOPOLIS,888.7,59.6,reduced,"Esplen-Sheraden-ChartiersCity-Windgap-Fairywood, South Shore, Central Business District - Crawford Roberts, West End - Elliott",false,false
-022,22 - MCCOY,536.2,59.6,reduced,"Esplen-Sheraden-ChartiersCity-Windgap-Fairywood, South Shore, Central Business District - Crawford Roberts, West End - Elliott",false,false
-024,24 - WEST PARK,1131.4,59.6,reduced,"Esplen-Sheraden-ChartiersCity-Windgap-Fairywood, South Shore, Central Business District - Crawford Roberts, West End - Elliott",false,false
-027,27 - FAIRYWOOD,765.6,43.3,reduced,"Esplen-Sheraden-ChartiersCity-Windgap-Fairywood, Crafton Heights, West End - Elliott, South Shore, Central Business District - Crawford Roberts",false,false
-028X,28X - AIRPORT FLYER,1298.1,63.4,reduced,"Shadyside, Squirrel Hill North, Central Business District - Crawford Roberts, North Oakland, Central Oakland, South Shore, Terrace Village - West Oakland, Bluff, East Carnegie - Oakwood, Esplen-Sheraden-ChartiersCity-Windgap-Fairywood, Larimer, Point Breeze-RegentSquare, South Oakland, Point Breeze North, West End - Elliott",false,true
-031,31 - BRIDGEVILLE,1040.1,43.3,reduced,"Westwood - Ridgemont, Central Business District - Crawford Roberts, East Carnegie - Oakwood, West End - Elliott, South Shore, Crafton Heights",false,false
-044,44 - VIA KNOXVILLE,548.4,41.2,reduced,"Beltzhoover - Bon Air, Arlington - Arlington Heights - Mount Oliver(City Neighborhood) - St. Clair, Carrick, Central Business District - Crawford Roberts, Knoxville, Mount Washington, South Shore, Allentown",true,false
-048,48 - ARLINGTON,1600.8,42.8,reduced,"South Side Flats, South Side Slopes, Allentown, Arlington - Arlington Heights - Mount Oliver(City Neighborhood) - St. Clair, Central Business District - Crawford Roberts, South Shore, Beltzhoover - Bon Air, Mount Washington",true,false
-051,51 - CARRICK,5417.1,40.7,reduced,"Carrick, South Side Flats, South Side Slopes, Central Business District - Crawford Roberts, South Shore, Knoxville",false,false
+001,1 - FREEPORT ROAD,1543.3,44.1,reduced,"North Shore, East Allegheny, Allegheny Center, Lincoln-Lemington-Belmar, Central Business District, Troy Hill",false,false
+006,6 - SPRING HILL,938.0,38.0,reduced,"Spring Hill-City View, East Allegheny, Northview Heights, Spring Garden, North Shore, Allegheny Center, Summer Hill, Central Business District",false,false
+008,8 - PERRYSVILLE,1767.0,37.2,reduced,"Perry South, Perry North, Central Northside, Allegheny Center, East Allegheny, North Shore, Central Business District",false,false
+011,11 - FINEVIEW,401.0,44.7,reduced,"Fineview, Perry South, Central Northside, Allegheny Center, East Allegheny, Central Business District, North Shore",false,false
+012,12 - MCKNIGHT,947.9,33.5,reduced,"East Allegheny, Perry North, Spring Hill-City View, Allegheny Center, Central Business District, Summer Hill, Northview Heights, North Shore",false,false
+013,13 - BELLEVUE,1408.5,43.4,reduced,"Marshall-Shadeland, Brighton Heights, California-Kirkbride, Allegheny Center, Central Northside, Manchester, North Shore, Central Business District",false,false
+016,16 - BRIGHTON,2185.0,42.0,reduced,"Brighton Heights, Perry South, Marshall-Shadeland, Allegheny Center, Central Northside, California-Kirkbride, North Shore, Central Business District",false,false
+017,17 - SHADELAND,941.1,42.0,reduced,"Marshall-Shadeland, Allegheny Center, Manchester, Central Northside, California-Kirkbride, Brighton Heights, Perry South, East Allegheny, North Shore, Central Business District",false,false
+021,21 - CORAOPOLIS,888.7,59.6,reduced,"Esplen, South Shore, Central Business District, Elliott",false,false
+022,22 - MCCOY,536.2,59.6,reduced,"Esplen, South Shore, Central Business District, Elliott",false,false
+024,24 - WEST PARK,1131.4,59.6,reduced,"Esplen, South Shore, Central Business District, Elliott",false,false
+027,27 - FAIRYWOOD,765.6,43.3,reduced,"Windgap, Crafton Heights, Sheraden, Fairywood, Elliott, Chartiers City, West End, Central Business District, South Shore",false,false
+028X,28X - AIRPORT FLYER,1298.1,63.4,reduced,"Shadyside, Squirrel Hill North, Central Oakland, North Oakland, Point Breeze, West Oakland, Central Business District, Point Breeze North, South Oakland, South Shore, Bluff, Oakwood, Sheraden, Elliott",false,true
+031,31 - BRIDGEVILLE,1040.1,43.3,reduced,"Westwood, Crafton Heights, Oakwood, Central Business District, Elliott, East Carnegie, West End, South Shore",false,false
+044,44 - VIA KNOXVILLE,548.4,41.2,reduced,"Beltzhoover, Mount Washington, Allentown, Knoxville, Carrick, Central Business District, Mt. Oliver, St. Clair, South Shore",true,false
+048,48 - ARLINGTON,1600.8,42.8,reduced,"South Side Slopes, South Side Flats, Allentown, Arlington, Mount Washington, Arlington Heights, South Shore, Beltzhoover, Central Business District",true,false
+051,51 - CARRICK,5417.1,40.7,reduced,"South Side Slopes, Carrick, South Side Flats, Knoxville, South Shore, Central Business District",false,false
 053,53 - HOMESTEAD PARK,0.0,22.1,reduced,Lincoln Place,false,false
-054,54 - NORTH SIDE-OAKLAND-SOUTH SIDE,2961.7,49.5,reduced,"Bloomfield, Beltzhoover - Bon Air, Knoxville, Allegheny Center-Allegheny West, Lower Lawrenceville, Polish Hill, Strip District, North Oakland, South Side Slopes, East Allegheny-North Shore, South Side Flats, Terrace Village - West Oakland, Central Oakland, Allentown, Mount Washington, South Oakland, Central Lawrenceville, Central Northside, Troy Hill - Spring Garden",true,false
+054,54 - NORTH SIDE-OAKLAND-SOUTH SIDE,2961.7,49.5,reduced,"Knoxville, Bloomfield, Lower Lawrenceville, Polish Hill, North Oakland, Strip District, Allegheny Center, South Side Slopes, Central Northside, Allentown, Central Lawrenceville, North Shore, East Allegheny, South Side Flats, Central Oakland, West Oakland, Allegheny West, South Oakland, Troy Hill, Chateau, Beltzhoover, Bon Air, Mount Washington",true,false
 055,55 - GLASSPORT,767.9,28.0,reduced,None (see geography note),false,false
-056,56 - LINCOLN PLACE,1008.1,54.9,reduced,"Hazelwood-Glen Hazel -New Homestead-Hays, Lincoln Place, Central Business District - Crawford Roberts, South Oakland, Bluff",false,false
-057,57 - HAZELWOOD,736.5,63.5,reduced,"Hazelwood-Glen Hazel -New Homestead-Hays, Central Business District - Crawford Roberts, South Oakland, Bluff, Squirrel Hill South",false,false
+056,56 - LINCOLN PLACE,1008.1,54.9,reduced,"Hazelwood, Lincoln Place, Hays, New Homestead, Central Business District, South Oakland, Bluff",false,false
+057,57 - HAZELWOOD,736.5,63.5,reduced,"Hazelwood, Glen Hazel, Central Business District, South Oakland, Bluff, Squirrel Hill South",false,false
 059,59 - MON VALLEY,1930.6,28.0,reduced,None (see geography note),false,false
 060,60 - MCKEESPORT - WALNUT,414.4,28.0,reduced,None (see geography note),false,false
-061A,61A - NORTH BRADDOCK,4045.4,67.4,reduced,"Squirrel Hill North, Bluff, Central Business District - Crawford Roberts, Terrace Village - West Oakland, North Oakland, Squirrel Hill South, Point Breeze-RegentSquare, Central Oakland, South Oakland",false,false
-061B,61B - BRADDOCK-SWISSVALE,3388.4,67.4,reduced,"Squirrel Hill North, Bluff, Central Business District - Crawford Roberts, Point Breeze-RegentSquare, Terrace Village - West Oakland, North Oakland, Squirrel Hill South, Central Oakland, South Oakland",false,false
-061C,61C - MCKEESPORT-HOMESTEAD,4872.6,63.6,reduced,"Squirrel Hill South, Squirrel Hill North, Bluff, Central Business District - Crawford Roberts, Greenfield, Terrace Village - West Oakland, North Oakland, Central Oakland, South Oakland, Hazelwood-Glen Hazel -New Homestead-Hays",false,false
-061D,61D - MURRAY,3118.2,63.6,reduced,"Squirrel Hill South, Squirrel Hill North, Greenfield, Terrace Village - West Oakland, North Oakland, Central Oakland, South Oakland, Bluff, Hazelwood-Glen Hazel -New Homestead-Hays",false,false
-064,64 - LAWRENCEVILLE - WATERFRONT,1586.4,50.4,reduced,"Bloomfield, Squirrel Hill South, Squirrel Hill North, Shadyside, Greenfield, Lower Lawrenceville, Point Breeze-RegentSquare, Central Lawrenceville, Friendship, Hazelwood-Glen Hazel -New Homestead-Hays",false,false
-067,67 - MONROEVILLE,1431.1,68.4,reduced,"Squirrel Hill North, Point Breeze-RegentSquare, Central Business District - Crawford Roberts, North Oakland, Point Breeze North, Bluff, Central Oakland, Terrace Village - West Oakland, South Oakland",false,true
-069,69 - TRAFFORD,1061.7,68.4,reduced,"Squirrel Hill North, Point Breeze-RegentSquare, Central Business District - Crawford Roberts, North Oakland, Point Breeze North, Bluff, Central Oakland, Terrace Village - West Oakland, South Oakland",false,true
-071A,71A - NEGLEY,3335.1,62.4,reduced,"North Oakland, East Liberty, Highland Park, Terrace Village - West Oakland, Shadyside, Bloomfield, Friendship, Central Oakland, Garfield, South Oakland, Bluff",false,false
-071B,71B - HIGHLAND PARK,3958.4,65.7,reduced,"Shadyside, Highland Park, Bluff, Central Business District - Crawford Roberts, East Liberty, Squirrel Hill North, Terrace Village - West Oakland, North Oakland, Central Oakland, South Oakland",false,false
-071C,71C - POINT BREEZE,3597.5,60.9,reduced,"North Oakland, East Liberty, Shadyside, Point Breeze North, Point Breeze-RegentSquare, Terrace Village - West Oakland, Bloomfield, Friendship, Central Oakland, South Oakland, Bluff, Larimer",false,true
-071D,71D - HAMILTON,2435.8,57.1,reduced,"Homewood South, Shadyside, Squirrel Hill North, North Oakland, Terrace Village - West Oakland, Homewood North - Homewood West, Central Oakland, East Hills, Point Breeze North, Point Breeze-RegentSquare, South Oakland, Bluff, Larimer",false,true
-074,74 - HOMEWOOD-SQUIRREL HILL,676.5,48.7,reduced,"Lincoln-Lemington-Belmar, Squirrel Hill South, Homewood North - Homewood West, Point Breeze-RegentSquare, Squirrel Hill North, East Liberty, Larimer, Homewood South, Point Breeze North, Shadyside",false,true
-075,75 - ELLSWORTH,2610.5,54.9,reduced,"Morningside, Shadyside, East Liberty, South Side Flats, Larimer, Lincoln-Lemington-Belmar, North Oakland, Terrace Village - West Oakland, Central Oakland, Highland Park, South Oakland",false,false
-077,77 - PENN HILLS,1188.8,48.1,reduced,"Homewood North - Homewood West, East Liberty, Larimer, Bloomfield, East Hills, Central Business District - Crawford Roberts, Homewood South, Polish Hill, Friendship, North Oakland, Shadyside",false,false
-081,81 - OAK HILL,1306.8,65.0,reduced,"Terrace Village - West Oakland, Central Business District - Crawford Roberts, Middle Hill, South Side Flats, Central Oakland, North Oakland, South Oakland, Bluff",false,false
-082,82 - LINCOLN,3390.8,54.2,reduced,"Lincoln-Lemington-Belmar, Central Business District - Crawford Roberts, East Liberty, Middle Hill, Larimer, Shadyside, North Oakland, Terrace Village - West Oakland, Bloomfield, Homewood North - Homewood West, Upper Hill, Bluff, Friendship",false,false
-083,83 - BEDFORD HILL,1685.6,60.4,reduced,"Terrace Village - West Oakland, Central Business District - Crawford Roberts, Upper Hill, Bedford Dwellings, Middle Hill, South Side Flats, North Oakland, Central Oakland, South Oakland, Bluff",false,false
-086,86 - LIBERTY,1834.3,44.7,reduced,"Bloomfield, Strip District, East Liberty, Homewood North - Homewood West, Homewood South, Larimer, Lower Lawrenceville, Shadyside, Central Business District - Crawford Roberts, East Hills, Polish Hill, Friendship",false,false
-087,87 - FRIENDSHIP,1232.3,47.0,reduced,"Morningside, Bloomfield, Upper Lawrenceville, Stanton Heights, Strip District, East Liberty, Lower Lawrenceville, Central Lawrenceville, Friendship, Central Business District - Crawford Roberts, Garfield, Polish Hill, Highland Park",false,false
-088,88 - PENN,1179.4,49.8,reduced,"Strip District, Bloomfield, East Liberty, Garfield, Lower Lawrenceville, Central Business District - Crawford Roberts, Central Lawrenceville, Shadyside, Larimer, Friendship, Polish Hill, Point Breeze North",false,true
-091,91 - BUTLER STREET,2182.4,44.1,reduced,"Central Lawrenceville, Strip District, Upper Lawrenceville, Lower Lawrenceville, Lincoln-Lemington-Belmar, Central Business District - Crawford Roberts, Stanton Heights, Polish Hill",false,false
-093,93 - LAWRENCEVILLE - HAZELWOOD,1577.0,55.7,reduced,"Hazelwood-Glen Hazel -New Homestead-Hays, Greenfield, Squirrel Hill South, Central Lawrenceville, North Oakland, Upper Lawrenceville, South Oakland, Central Oakland, Bloomfield, Lower Lawrenceville, Terrace Village - West Oakland",false,false
+061A,61A - NORTH BRADDOCK,4045.4,67.4,reduced,"Squirrel Hill North, Bluff, Squirrel Hill South, Crawford-Roberts, West Oakland, Central Oakland, North Oakland, South Oakland, Point Breeze, Central Business District, Regent Square",false,false
+061B,61B - BRADDOCK-SWISSVALE,3388.4,67.4,reduced,"Squirrel Hill South, Squirrel Hill North, Bluff, Crawford-Roberts, West Oakland, Central Oakland, North Oakland, South Oakland, Point Breeze, Central Business District, Regent Square",false,false
+061C,61C - MCKEESPORT-HOMESTEAD,4872.6,63.6,reduced,"Squirrel Hill South, Bluff, Squirrel Hill North, Crawford-Roberts, West Oakland, Central Oakland, Greenfield, North Oakland, South Oakland, Hazelwood, Central Business District",false,false
+061D,61D - MURRAY,3118.2,63.6,reduced,"Squirrel Hill South, Squirrel Hill North, Central Oakland, Greenfield, West Oakland, North Oakland, South Oakland, Hazelwood, Bluff",false,false
+064,64 - LAWRENCEVILLE - WATERFRONT,1586.4,50.4,reduced,"Bloomfield, Squirrel Hill North, Squirrel Hill South, Shadyside, Central Lawrenceville, Greenfield, Point Breeze, Lower Lawrenceville, Friendship, Hazelwood",false,false
+067,67 - MONROEVILLE,1431.1,68.4,reduced,"Squirrel Hill North, Point Breeze, Point Breeze North, Central Oakland, North Oakland, West Oakland, Central Business District, Bluff, South Oakland",false,true
+069,69 - TRAFFORD,1061.7,68.4,reduced,"Squirrel Hill North, Point Breeze, Point Breeze North, Central Oakland, North Oakland, West Oakland, Central Business District, Bluff, South Oakland",false,true
+071A,71A - NEGLEY,3335.1,62.4,reduced,"East Liberty, Shadyside, Bloomfield, North Oakland, Friendship, Garfield, West Oakland, Highland Park, Central Oakland, South Oakland, Bluff",false,false
+071B,71B - HIGHLAND PARK,3958.4,65.7,reduced,"Shadyside, Squirrel Hill North, Bluff, Crawford-Roberts, West Oakland, East Liberty, Highland Park, North Oakland, Central Oakland, South Oakland, Central Business District",false,false
+071C,71C - POINT BREEZE,3597.5,60.9,reduced,"Shadyside, Bloomfield, East Liberty, North Oakland, Point Breeze, Point Breeze North, Friendship, West Oakland, Central Oakland, South Oakland, Bluff",false,true
+071D,71D - HAMILTON,2435.8,57.1,reduced,"Shadyside, Homewood South, Point Breeze North, Squirrel Hill North, North Oakland, West Oakland, Central Oakland, Homewood West, East Hills, Point Breeze, South Oakland, Bluff",false,true
+074,74 - HOMEWOOD-SQUIRREL HILL,676.5,48.7,reduced,"Lincoln-Lemington-Belmar, Point Breeze, Homewood North, Squirrel Hill North, Larimer, East Liberty, Point Breeze North, Squirrel Hill South, Shadyside, Homewood South",false,true
+075,75 - ELLSWORTH,2610.5,54.9,reduced,"East Liberty, Shadyside, Larimer, North Oakland, Central Oakland, West Oakland, South Side Flats, South Oakland, Highland Park, Morningside, Lincoln-Lemington-Belmar",false,false
+077,77 - PENN HILLS,1188.8,48.1,reduced,"Shadyside, East Liberty, Homewood North, Bloomfield, Homewood South, Larimer, East Hills, Homewood West, Friendship, North Oakland, Polish Hill, Central Business District",false,false
+081,81 - OAK HILL,1306.8,65.0,reduced,"Terrace Village, Crawford-Roberts, West Oakland, Middle Hill, South Oakland, North Oakland, Central Oakland, Central Business District, Bluff, South Side Flats",false,false
+082,82 - LINCOLN,3390.8,54.2,reduced,"Shadyside, Terrace Village, East Liberty, Lincoln-Lemington-Belmar, Middle Hill, Crawford-Roberts, Larimer, Upper Hill, Bloomfield, Homewood West, North Oakland, Friendship, Homewood North, Bluff, Central Business District",false,false
+083,83 - BEDFORD HILL,1685.6,60.4,reduced,"Terrace Village, Middle Hill, West Oakland, North Oakland, Bedford Dwellings, Crawford-Roberts, Upper Hill, Central Oakland, South Oakland, Bluff, Central Business District, South Side Flats",false,false
+086,86 - LIBERTY,1834.3,44.7,reduced,"Shadyside, East Liberty, Bloomfield, Homewood South, Strip District, Homewood North, Larimer, Polish Hill, Lower Lawrenceville, Homewood West, East Hills, Friendship, Central Business District",false,false
+087,87 - FRIENDSHIP,1232.3,47.0,reduced,"Stanton Heights, Garfield, Morningside, Central Lawrenceville, Highland Park, Upper Lawrenceville, Bloomfield, East Liberty, Strip District, Polish Hill, Lower Lawrenceville, Friendship, Central Business District",false,false
+088,88 - PENN,1179.4,49.8,reduced,"Bloomfield, Strip District, Garfield, Central Lawrenceville, East Liberty, Lower Lawrenceville, Shadyside, Friendship, Polish Hill, Central Business District, Point Breeze North",false,true
+091,91 - BUTLER STREET,2182.4,44.1,reduced,"Central Lawrenceville, Strip District, Lower Lawrenceville, Upper Lawrenceville, Lincoln-Lemington-Belmar, Polish Hill, Stanton Heights, Central Business District",false,false
+093,93 - LAWRENCEVILLE - HAZELWOOD,1577.0,55.7,reduced,"Hazelwood, Squirrel Hill South, Greenfield, Central Lawrenceville, Glen Hazel, North Oakland, Central Oakland, South Oakland, Upper Lawrenceville, Bloomfield, Lower Lawrenceville, West Oakland",false,false
 BLLB,BLUE LINE - LIBRARY,0.0,28.0,reduced,None (see geography note),false,false
 BLSV,BLUE LINE - SOUTH HILLS VILLAGE,0.0,28.0,reduced,None (see geography note),false,false
-BLUE,BLUE - SouthHills Village via Overbrook,2942.6,33.4,reduced,"Central Business District - Crawford Roberts, Beltzhoover - Bon Air, East Allegheny-North Shore, Brookline, Carrick, Mount Washington, Overbrook, South Shore",false,false
-G2,G2 - WEST BUSWAY,1400.1,59.6,reduced,"Central Business District - Crawford Roberts, South Shore, East Carnegie - Oakwood, Esplen-Sheraden-ChartiersCity-Windgap-Fairywood, West End - Elliott",false,false
-P1,P1 - EAST BUSWAY-ALL STOPS,4694.6,41.7,reduced,"Central Business District - Crawford Roberts, Shadyside, Homewood South, Larimer, Polish Hill",false,false
-P3,P3 - EAST BUSWAY-OAKLAND,1767.8,57.6,reduced,"North Oakland, Shadyside, Central Oakland, Bloomfield, Homewood South, Larimer, South Oakland, Terrace Village - West Oakland",false,false
-P68,P68 - BRADDOCK HILLS FLYER,1267.8,41.7,reduced,"Central Business District - Crawford Roberts, Shadyside, Homewood South, Larimer, Polish Hill",false,false
-P78,P78 - OAKMONT FLYER,785.0,41.7,reduced,"Central Business District - Crawford Roberts, Shadyside, Homewood South, Larimer, Polish Hill",false,false
-RED,RED - Castle Shannon via Beechview,4267.1,37.5,reduced,"Beechview, Central Business District - Crawford Roberts, Mount Washington, East Allegheny-North Shore, South Shore",false,false
-Y46,Y46 - ELIZABETH FLYER,886.0,34.5,reduced,"Brookline, Overbrook, Central Business District - Crawford Roberts, Mount Washington, South Shore",false,false
-015,15 - CHARLES,694.2,37.2,unchanged,"Perry South, Perry North, Allegheny Center-Allegheny West, Central Business District - Crawford Roberts, Central Northside, Northview Heights - Summer Hill, East Allegheny-North Shore, Manchester-California-Kirkbride",false,false
-089,89 - GARFIELD COMMONS,198.4,50.3,unchanged,"Garfield, East Liberty, Larimer, Shadyside, Stanton Heights, Point Breeze North",false,true
+BLUE,BLUE - SouthHills Village via Overbrook,2942.6,33.4,reduced,"Central Business District, Brookline, Bon Air, Mount Washington, Beltzhoover, Carrick, Overbrook, North Shore, South Shore",false,false
+G2,G2 - WEST BUSWAY,1400.1,59.6,reduced,"Central Business District, South Shore, Oakwood, Sheraden, Elliott",false,false
+P1,P1 - EAST BUSWAY-ALL STOPS,4694.6,41.7,reduced,"Central Business District, Shadyside, Homewood South, Point Breeze North, Polish Hill",false,false
+P3,P3 - EAST BUSWAY-OAKLAND,1767.8,57.6,reduced,"North Oakland, Shadyside, Central Oakland, West Oakland, Bloomfield, South Oakland, Homewood South, Point Breeze North",false,false
+P68,P68 - BRADDOCK HILLS FLYER,1267.8,41.7,reduced,"Central Business District, Shadyside, Homewood South, Point Breeze North, Polish Hill",false,false
+P78,P78 - OAKMONT FLYER,785.0,41.7,reduced,"Central Business District, Shadyside, Homewood South, Point Breeze North, Polish Hill",false,false
+RED,RED - Castle Shannon via Beechview,4267.1,37.5,reduced,"Beechview, Central Business District, Mount Washington, North Shore, South Shore",false,false
+Y46,Y46 - ELIZABETH FLYER,886.0,34.5,reduced,"Overbrook, Brookline, Mount Washington, Central Business District, South Shore",false,false
+015,15 - CHARLES,694.2,37.2,unchanged,"Perry South, Perry North, Central Northside, Allegheny Center, California-Kirkbride, East Allegheny, Summer Hill, Central Business District, North Shore",false,false
+089,89 - GARFIELD COMMONS,198.4,50.3,unchanged,"Garfield, East Liberty, Shadyside, Stanton Heights, Point Breeze North",false,true

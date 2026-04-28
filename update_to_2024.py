@@ -3,34 +3,28 @@
 update_to_2024.py
 
 Rebuilds ~/Documents/pitt-data-story/public/data/neighborhood_display_profiles.csv
-using ACS 2020-2024 5-year estimates (released January 29 2026), writing the
-result to display_profiles_2024.csv in the same folder.
+using ACS 2020-2024 5-year estimates (released January 29 2026).
 
-Approach:
-  - Downloads the WPRDC block→neighborhood crosswalk (Chris Briem / UCSUR)
-    to derive block-group → neighborhood mappings at the highest available precision
-  - Pulls ACS 2024 data at block-group level (poverty/pop) and tract level
-    (commute + income bands, which are only published at tract level)
-  - Aggregates using population-weighted sums — never averages percentages
-  - Applies manual tract overrides for groups that the crosswalk combines
-    in a misleading way (Northview Heights / Summer Hill)
-  - Splits formerly combined CSV rows into independent rows:
-      Terrace Village  / West Oakland
-      Northview Heights / Summer Hill
+Tract assignments come from neighborhoods_2024_tracts.csv (same directory as
+this script). The output preserves ALL existing groupings from the input CSV —
+no rows are added or removed, combined groups stay combined, and every row that
+belongs to the same profile_neighborhood_group gets identical values derived
+from that group's tract codes.
 
-Usage (no arguments needed — paths are hardcoded to your project):
+Usage:
     python update_to_2024.py [--api-key YOUR_KEY] [--dry-run]
 
 Requirements:
     pip install requests
 
-Free Census API key (avoids rate limits):
-    https://api.census.gov/data/key_signup.html
+API key (free): https://api.census.gov/data/key_signup.html
+Set via:        export CENSUS_API_KEY=your_key
 """
 
 import argparse
 import csv
 import io
+import os
 import shutil
 import sys
 import time
@@ -40,69 +34,51 @@ from pathlib import Path
 import requests
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-HOME      = Path.home()
-DATA_DIR  = HOME / "Documents" / "pitt-data-story" / "public" / "data"
-INPUT_CSV = DATA_DIR / "neighborhood_display_profiles.csv"
-OUT_CSV   = DATA_DIR / "display_profiles_2024.csv"
-
-# ── WPRDC crosswalk URL ───────────────────────────────────────────────────────
-CROSSWALK_URL = (
-    "https://data.wprdc.org/dataset/95af9f2c-61c8-446b-ae72-852e195684f3"
-    "/resource/6b09ea3e-7d34-4665-ad0b-798a0efadc29"
-    "/download/index_pittsburghneighborhoods_blocks_2020.csv"
-)
+HOME       = Path.home()
+DATA_DIR   = HOME / "Documents" / "pitt-data-story" / "public" / "data"
+INPUT_CSV  = DATA_DIR / "neighborhood_display_profiles.csv"
+OUT_CSV    = DATA_DIR / "display_profiles_2024.csv"
+SCRIPT_DIR = Path(__file__).parent
+TRACTS_CSV = SCRIPT_DIR / "neighborhoods_2024_tracts.csv"
 
 # ── Census API ────────────────────────────────────────────────────────────────
 ACS_YEAR = "2024"
-STATE    = "42"    # Pennsylvania
-COUNTY   = "003"   # Allegheny County
+STATE    = "42"
+COUNTY   = "003"
 BASE_URL = f"https://api.census.gov/data/{ACS_YEAR}/acs/acs5"
 
-# ── ACS variable codes ────────────────────────────────────────────────────────
-# Poverty and population are available at block-group level (more precise).
-# Commute mode and income bands are tract-level only — we weight them by the
-# fraction of each tract's population that falls within the neighborhood.
-VARS_BG = {
-    "pop":         "B01003_001E",   # total population
-    "pov_uni":     "C17002_001E",   # poverty ratio universe
-    "pov_u50":     "C17002_002E",   # income/poverty ratio < 0.50 (deep poverty)
-    "pov_100":     "B17001_002E",   # below 100% poverty line
-    "pov_100_uni": "B17001_001E",   # poverty universe (B17001)
-    "hh":          "B11001_001E",   # households (for weighting median income)
-    "med_inc":     "B19013_001E",   # median household income
-}
-
+# ── ACS variables — ALL at tract level ───────────────────────────────────────
+# Poverty, commute, and income vars are NOT available at block-group level
+# in ACS 2024. Everything comes from the tract-level fetch.
 VARS_TRACT = {
-    "com_uni":     "B08301_001E",   # commute universe (workers 16+)
-    "com_car":     "B08301_002E",   # car/truck/van
-    "com_transit": "B08301_010E",   # public transit
-    "com_bike":    "B08301_018E",   # bicycle
-    "com_walk":    "B08301_019E",   # walked
-    "com_other":   "B08301_020E",   # other mode
-    "com_wfh":     "B08301_021E",   # worked from home
-    "inc_uni":     "B19001_001E",   # household income universe
-    "inc_100_124": "B19001_014E",   # $100k–$124,999
-    "inc_125_149": "B19001_015E",   # $125k–$149,999
-    "inc_150_199": "B19001_016E",   # $150k–$199,999
-    "inc_200plus": "B19001_017E",   # $200k+
+    "pop":         "B01003_001E",
+    "hh":          "B11001_001E",
+    "pov_uni":     "C17002_001E",
+    "pov_u50":     "C17002_002E",
+    "pov_100":     "B17001_002E",
+    "pov_100_uni": "B17001_001E",
+    "med_inc":     "B19013_001E",
+    "com_uni":     "B08301_001E",
+    "com_car":     "B08301_002E",
+    "com_transit": "B08301_010E",
+    "com_bike":    "B08301_018E",
+    "com_walk":    "B08301_019E",
+    "com_other":   "B08301_020E",
+    "com_wfh":     "B08301_021E",
+    "inc_uni":     "B19001_001E",
+    "inc_100_124": "B19001_014E",
+    "inc_125_149": "B19001_015E",
+    "inc_150_199": "B19001_016E",
+    "inc_200plus": "B19001_017E",
 }
 
-# ── S1701 subject table — 25+ poverty adjustment ───────────────────────────────────────────
-# Only fetched for student-skewed neighborhoods where raw poverty is inflated.
-# S-series tables are tract-level only, so these are weighted by tract
-# population fraction exactly like commute data.
-# S1701_C02_028E = count below poverty, age 25+
-# S1701_C01_028E = total population 25+ (poverty universe)
+# ── S1701 — 25+ poverty (student-skewed neighborhoods only) ───────────────────
 VARS_SUBJECT_25UP = {
     "pov_25up_count": "S1701_C02_028E",
     "pov_25up_uni":   "S1701_C01_028E",
 }
 
-# Neighborhoods whose raw poverty rate is meaningfully inflated by student
-# enrollment. Only these get share_below_100pct_poverty_25plus populated.
-# All other neighborhoods get an empty string in that column.
-# Source: Pittsburgh Neighborhood Project / PublicSource (Briem methodology)
-STUDENT_SKEWED = {
+STUDENT_SKEWED_GROUPS = {
     "Central Oakland",
     "North Oakland",
     "South Oakland",
@@ -111,110 +87,58 @@ STUDENT_SKEWED = {
     "Shadyside",
     "Squirrel Hill North",
     "Squirrel Hill South",
-    "Terrace Village",   # mixed: public housing + students
-    "West Oakland",      # mixed
+    "Terrace Village - West Oakland",
+    "Terrace Village",
+    "West Oakland",
 }
 
-# ── Manual tract overrides ────────────────────────────────────────────────────
-# These neighborhoods are excluded from WPRDC crosswalk aggregation and instead
-# fetched directly using specific tract codes. Reasons noted per neighborhood.
-#
-# Northview Heights / Summer Hill: historically shared a single census tract;
-# the 2020 redistricting split them. Using explicit tract codes ensures they
-# are fetched independently regardless of how the crosswalk labels them.
-#
-# Terrace Village / West Oakland: crosswalk separates these correctly, but we
-# keep explicit tracts to guarantee the split always produces independent rows
-# and to make the data source auditable.
-MANUAL_TRACT_OVERRIDES = {
-    # Northview Heights / Summer Hill — split from combined historical tract
-    "Northview Heights": ["250900"],
-    "Summer Hill":       ["251000"],
-
-    # Terrace Village / West Oakland — guarantee independent rows
-    "Terrace Village":   ["051000", "051100"],
-    "West Oakland":      ["040200"],
-
-    # South Side combined group — WPRDC crosswalk uses "Arlington - Arlington Heights
-    # - Mount Oliver(City Neighborhood) - St. Clair" as NeighborhoodGroup, so none
-    # of the four individual names appear as keys. Override with explicit tracts.
-    # Tract sources: Statistical Atlas / Census tract reference map.
-    # Note: Arlington and Arlington Heights share tract 561600 (very small area).
-    "Arlington":          ["561600"],
-    "Arlington Heights":  ["561600"],   # shares tract with Arlington
-    "Mt. Oliver":         ["560400"],   # CSV uses Mt. Oliver; official = Mount Oliver
-    "St. Clair":          ["560500"],
-
-    # Beltzhoover / Bon Air — similarly combined in crosswalk
-    "Beltzhoover":        ["173400"],
-    "Bon Air":            ["173500"],
-
-    # Troy Hill / Spring Garden — combined in crosswalk
-    "Troy Hill":          ["562600"],
-    "Spring Garden":      ["562500"],
-
-    # East Allegheny / North Shore / Chateau — combined
-    "East Allegheny":     ["240200"],
-    "North Shore":        ["240100"],
-    "Chateau":            ["240100"],   # shares with North Shore
-
-    # Allegheny Center / Allegheny West — share tract 562700 but different block groups
-    # Crosswalk handles these correctly at block-group level so leave in crosswalk,
-    # but add here as fallback in case crosswalk key lookup fails.
-    # (Will only be used if crosswalk lookup returns nothing for these names.)
+# ── Name bridge: profile_neighborhood_group → tract CSV name ──────────────────
+# Only entries that differ need to be listed.
+GROUP_TO_TRACT_CSV = {
+    # Hyphenation differences
+    "Allegheny Center-Allegheny West":
+        "Allegheny Center - Allegheny West",
+    "Arlington - Arlington Heights - Mount Oliver(City Neighborhood) - St. Clair":
+        "Arlington - Arlington Heights - Mount Oliver (City Neighborhood) - St. Clair",
+    "East Allegheny-North Shore":
+        "East Allegheny - North Shore",
+    "Esplen-Sheraden-ChartiersCity-Windgap-Fairywood":
+        "Esplen \u2013 Sheraden \u2013 Chartiers City \u2013 Windgap - Fairywood",
+    "Hazelwood-Glen Hazel -New Homestead-Hays":
+        "Hazelwood - Glen Hazel - Hays - New Homestead",
+    "Point Breeze-RegentSquare":
+        "Point Breeze - Regent Square",
+    # Split groups that share data with their partner
+    "Northview Heights":
+        "Northview Heights - Summer Hill",
+    "Summer Hill":
+        "Northview Heights - Summer Hill",
+    "Terrace Village":
+        "Terrace Village - West Oakland",
+    "West Oakland":
+        "Terrace Village - West Oakland",
+    # South Shore has no tracts in the CSV — will keep 2022 values
 }
-
-# ── Split group definitions ────────────────────────────────────────────────────
-# Maps profile_neighborhood_group (as it appears in CSV) → neighborhood names
-# that should replace it as independent rows in the output.
-SPLIT_GROUPS = {
-    "Northview Heights - Summer Hill": ["Northview Heights", "Summer Hill"],
-    "Terrace Village - West Oakland":  ["Terrace Village", "West Oakland"],
-}
-
-# ── Name normalization map ────────────────────────────────────────────────────
-# Maps neighborhood_group values in the CSV → official WPRDC crosswalk names.
-# Only entries that differ need to be listed. All others match exactly.
-# Common differences: abbreviations (Mt. vs Mount), punctuation, spacing.
-CSV_TO_CROSSWALK = {
-    # Confirmed mismatches from run output
-    "Crawford-Roberts":          "Crawford Roberts",    # WPRDC drops hyphen
-    "South Side Flats":          "Southside Flats",     # WPRDC: no space
-    "South Side Slopes":         "Southside Slopes",    # WPRDC: no space
-    "Mt. Oliver":                "Mount Oliver",        # WPRDC: full word
-
-    # Additional likely mismatches based on WPRDC naming patterns
-    "Mt. Washington":            "Mount Washington",
-    "Spring Hill-City View":     "Spring Hill-City View",
-    "Lincoln-Lemington-Belmar":  "Lincoln-Lemington-Belmar",
-    "Point Breeze North":        "Point Breeze North",
-}
-
-def normalize_name(csv_name: str) -> str:
-    """Return the WPRDC crosswalk name for a given CSV neighborhood name."""
-    return CSV_TO_CROSSWALK.get(csv_name, csv_name)
 
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
-
 def safe_int(val) -> int:
-    """Parse Census API string values; treat N/A sentinel (-666666666) as 0."""
     try:
         v = int(float(str(val)))
         return 0 if v < 0 else v
     except (TypeError, ValueError):
         return 0
 
+def pct(num, denom) -> float:
+    return round(num / denom, 9) if denom else 0.0
 
-def api_get(url: str, params: dict, retries: int = 3) -> list[dict]:
-    """GET Census API with retry on rate limit. Returns list of row dicts."""
+def api_get(url: str, params: dict, retries=3) -> list[dict]:
     for attempt in range(retries):
         try:
             r = requests.get(url, params=params, timeout=30)
             r.raise_for_status()
-            raw     = r.json()
-            headers = raw[0]
-            return [dict(zip(headers, row)) for row in raw[1:]]
+            raw = r.json()
+            return [dict(zip(raw[0], row)) for row in raw[1:]]
         except requests.HTTPError as e:
             code = e.response.status_code if e.response else 0
             if code == 429 and attempt < retries - 1:
@@ -226,79 +150,62 @@ def api_get(url: str, params: dict, retries: int = 3) -> list[dict]:
     return []
 
 
-def pct(num, denom) -> float:
-    return round(num / denom, 9) if denom else 0.0
-
-
-# ── Step 1: Download WPRDC crosswalk ──────────────────────────────────────────
-
-def load_crosswalk() -> dict[str, set[tuple[str, str]]]:
+# ── Step 1: Load tract CSV ────────────────────────────────────────────────────
+def load_tract_csv() -> dict[str, list[str]]:
     """
-    Returns { neighborhood_name: set of (tract_6digit, blkgrp_digit) }
-    Excludes any neighborhood in MANUAL_TRACT_OVERRIDES.
+    Returns { tract_csv_name: [tract_code, ...] }
+    Skips comment lines, splits on semicolon, deduplicates.
     """
-    print("Downloading WPRDC block→neighborhood crosswalk...")
-    r = requests.get(CROSSWALK_URL, timeout=30)
-    r.raise_for_status()
+    if not TRACTS_CSV.exists():
+        print(f"✗ Tract CSV not found: {TRACTS_CSV}")
+        print(f"  Place neighborhoods_2024_tracts.csv next to this script.")
+        sys.exit(1)
 
-    # Build exclusion set here (not module-level) to avoid forward-reference.
-    # Covers both CSV names and their normalized crosswalk equivalents.
-    _override_xwalk_names = set(MANUAL_TRACT_OVERRIDES.keys()) | {
-        normalize_name(k) for k in MANUAL_TRACT_OVERRIDES
-    }
+    result = {}
+    with open(TRACTS_CSV, encoding="utf-8") as f:
+        lines = [l for l in f if not l.startswith("#")]
 
-    result: dict[str, set] = defaultdict(set)
-    reader = csv.DictReader(io.StringIO(r.text))
-
+    reader = csv.DictReader(io.StringIO("".join(lines)))
     for row in reader:
-        hood   = row.get("Neighborhood", "").strip()
-        tract  = row.get("TRACT",  "").strip().zfill(6)
-        blkgrp = row.get("BLKGRP", "").strip()
-        if hood and tract and blkgrp and hood not in _override_xwalk_names:
-            result[hood].add((tract, blkgrp))
+        name   = row.get("Neighborhood", "").strip()
+        tracts_raw = row.get("Tracts", "").strip()
+        if not name or not tracts_raw:
+            continue
+        # Deduplicate while preserving order
+        seen = set()
+        tracts = []
+        for t in tracts_raw.split(";"):
+            t = t.strip()
+            if t and t not in seen:
+                seen.add(t)
+                tracts.append(t)
+        result[name] = tracts
 
-    n_bg = sum(len(v) for v in result.values())
-    print(f"  {len(result)} neighborhoods, {n_bg} block-group assignments loaded")
+    print(f"  Loaded {len(result)} entries from tract CSV")
     return result
 
 
-# Pre-compute set of crosswalk-side names that correspond to manual overrides.
-# Needed because load_crosswalk sees WPRDC names, but MANUAL_TRACT_OVERRIDES
-# uses CSV names. e.g. override "South Side Flats" → crosswalk "Southside Flats".
-# We exclude both so the crosswalk dict never contains a neighborhood we override.
-# ── Step 2: Bulk-fetch all Allegheny County ACS data ─────────────────────────
-
-def fetch_all_blockgroups(api_key: str | None) -> dict[tuple, dict]:
+def resolve_tracts(profile_group: str, tract_lookup: dict[str, list[str]]) -> list[str] | None:
     """
-    One API call → all block groups in Allegheny County.
-    Returns { (tract_6digit, blkgrp_digit): row_dict }
+    Given a profile_neighborhood_group value, returns its tract codes.
+    Tries direct match first, then the bridge map.
+    Returns None if no match found.
     """
-    var_str = ",".join(sorted(set(VARS_BG.values())))
-    params  = {
-        "get": f"NAME,{var_str}",
-        "for": "block group:*",
-        "in":  f"state:{STATE} county:{COUNTY}",
-    }
-    if api_key:
-        params["key"] = api_key
-
-    print("Fetching ACS 2024 block-group data (poverty / population)...")
-    rows = api_get(BASE_URL, params)
-    print(f"  {len(rows)} block groups returned")
-
-    return {
-        (row.get("tract", "").zfill(6), row.get("block group", "")): row
-        for row in rows
-    }
+    # Direct match
+    if profile_group in tract_lookup:
+        return tract_lookup[profile_group]
+    # Bridge map
+    csv_name = GROUP_TO_TRACT_CSV.get(profile_group)
+    if csv_name and csv_name in tract_lookup:
+        return tract_lookup[csv_name]
+    return None
 
 
-def fetch_all_tracts(api_key: str | None) -> dict[str, dict]:
-    """
-    One API call → all tracts in Allegheny County.
-    Returns { tract_6digit: row_dict }
-    """
+# ── Step 2: Fetch all Allegheny County tract data ─────────────────────────────
+def fetch_all_tracts(api_key) -> dict[str, dict]:
+    """Single API call → all Allegheny County tracts."""
     var_str = ",".join(sorted(set(VARS_TRACT.values())))
-    params  = {
+    params = {
         "get": f"NAME,{var_str}",
         "for": "tract:*",
         "in":  f"state:{STATE} county:{COUNTY}",
@@ -306,21 +213,14 @@ def fetch_all_tracts(api_key: str | None) -> dict[str, dict]:
     if api_key:
         params["key"] = api_key
 
-    print("Fetching ACS 2024 tract data (commute / income bands)...")
+    print("Fetching ACS 2024 tract data...")
     rows = api_get(BASE_URL, params)
     print(f"  {len(rows)} tracts returned")
-
     return {row.get("tract", "").zfill(6): row for row in rows}
 
 
-# ── Step 2b: Fetch S1701 subject table for student-skewed tracts ─────────────
-
-def fetch_subject_25up(tract_codes: list[str], api_key: str | None) -> dict[str, dict]:
-    """
-    Fetches S1701 subject table at tract level for a specific set of tracts.
-    Returns { tract_6digit: row_dict } for 25+ poverty counts.
-    Only called for student-skewed neighborhoods — not all tracts.
-    """
+def fetch_subject_25up(tract_codes: list[str], api_key) -> dict[str, dict]:
+    """S1701 subject table — targeted fetch for skewed-neighborhood tracts only."""
     var_str = ",".join(sorted(set(VARS_SUBJECT_25UP.values())))
     params = {
         "get": f"NAME,{var_str}",
@@ -329,168 +229,110 @@ def fetch_subject_25up(tract_codes: list[str], api_key: str | None) -> dict[str,
     }
     if api_key:
         params["key"] = api_key
-
     url = f"https://api.census.gov/data/{ACS_YEAR}/acs/acs5/subject"
     rows = api_get(url, params)
     return {row.get("tract", "").zfill(6): row for row in rows}
 
 
-# ── Step 3: Aggregate to neighborhood ────────────────────────────────────────
+# ── Step 3: Aggregate tracts → shares ────────────────────────────────────────
+def aggregate_tracts(tract_codes: list[str], tract_index: dict) -> dict:
+    """Sum raw counts across all tracts for a neighborhood group."""
+    totals = defaultdict(int)
+    found = 0
 
-def aggregate_from_bg_keys(
-    bg_keys: set[tuple[str, str]],
-    bg_index: dict,
-    tract_index: dict,
-) -> dict:
-    """
-    Aggregate a set of (tract, blkgrp) pairs into a single counts dict.
-    Block-group fields: summed directly.
-    Tract fields: weighted by (hood_pop_in_tract / full_tract_pop).
-    """
-    totals      = defaultdict(int)
-    tract_pops  = defaultdict(int)   # tract → population contributed by this hood
-
-    # Sum block-group level fields
-    for key in bg_keys:
-        row = bg_index.get(key)
+    for tract in tract_codes:
+        row = tract_index.get(tract)
         if not row:
             continue
-        for name, code in VARS_BG.items():
-            if name != "med_inc":
-                totals[code] += safe_int(row.get(code, 0))
-        tract_pops[key[0]] += safe_int(row.get(VARS_BG["pop"], 0))
+        found += 1
+        for code in VARS_TRACT.values():
+            totals[code] += safe_int(row.get(code, 0))
 
-    # Weighted median household income
-    total_hh = totals[VARS_BG["hh"]]
+    # Weighted median income by household count
+    total_hh = totals[VARS_TRACT["hh"]]
     if total_hh > 0:
         weighted = sum(
-            safe_int(bg_index[k].get(VARS_BG["med_inc"], 0)) *
-            safe_int(bg_index[k].get(VARS_BG["hh"], 0))
-            for k in bg_keys if k in bg_index
+            safe_int(tract_index[t].get(VARS_TRACT["med_inc"], 0)) *
+            safe_int(tract_index[t].get(VARS_TRACT["hh"], 0))
+            for t in tract_codes if t in tract_index
         )
-        totals[VARS_BG["med_inc"]] = round(weighted / total_hh)
+        totals[VARS_TRACT["med_inc"]] = round(weighted / total_hh)
 
-    # Tract-level commute + income (population-weighted partial allocation)
-    for tract, hood_pop in tract_pops.items():
-        tract_row = tract_index.get(tract)
-        if not tract_row or not hood_pop:
-            continue
-        full_pop = safe_int(tract_row.get(VARS_BG["pop"], 0)) or hood_pop
-        weight   = hood_pop / full_pop
-        for code in VARS_TRACT.values():
-            totals[code] += round(safe_int(tract_row.get(code, 0)) * weight)
-
-    return dict(totals)
+    return dict(totals), found
 
 
-def aggregate_from_tracts(
-    tract_codes: list[str],
-    bg_index: dict,
-    tract_index: dict,
-) -> dict:
-    """
-    Aggregate using explicit tract codes (manual overrides).
-    Finds all block groups belonging to those tracts from the pre-fetched index.
-    """
-    bg_keys = {
-        key for key in bg_index
-        if key[0] in tract_codes
-    }
-    return aggregate_from_bg_keys(bg_keys, bg_index, tract_index)
-
-
-def to_shares(t: dict) -> dict:
-    """Convert aggregated raw counts → CSV share columns."""
-    inc_100_199 = (t.get(VARS_TRACT["inc_100_124"], 0) +
-                   t.get(VARS_TRACT["inc_125_149"], 0) +
-                   t.get(VARS_TRACT["inc_150_199"], 0))
-    return {
-        "total_pop":
-            t.get(VARS_BG["pop"], 0),
-        "share_below_50pct_poverty_threshold":
-            pct(t.get(VARS_BG["pov_u50"],     0), t.get(VARS_BG["pov_uni"],     0)),
-        "share_below_100pct_poverty_threshold":
-            pct(t.get(VARS_BG["pov_100"],     0), t.get(VARS_BG["pov_100_uni"], 0)),
-        "share_commute_car_truck_van":
-            pct(t.get(VARS_TRACT["com_car"],     0), t.get(VARS_TRACT["com_uni"], 0)),
-        "share_commute_public_transit":
-            pct(t.get(VARS_TRACT["com_transit"], 0), t.get(VARS_TRACT["com_uni"], 0)),
-        "share_commute_bicycle":
-            pct(t.get(VARS_TRACT["com_bike"],    0), t.get(VARS_TRACT["com_uni"], 0)),
-        "share_commute_walked":
-            pct(t.get(VARS_TRACT["com_walk"],    0), t.get(VARS_TRACT["com_uni"], 0)),
-        "share_commute_other_modes":
-            pct(t.get(VARS_TRACT["com_other"],   0), t.get(VARS_TRACT["com_uni"], 0)),
-        "share_commute_worked_from_home":
-            pct(t.get(VARS_TRACT["com_wfh"],     0), t.get(VARS_TRACT["com_uni"], 0)),
-        "share_hh_income_100k_to_199k":
-            pct(inc_100_199,                         t.get(VARS_TRACT["inc_uni"], 0)),
-        "share_hh_income_200k_plus":
-            pct(t.get(VARS_TRACT["inc_200plus"],  0), t.get(VARS_TRACT["inc_uni"], 0)),
-        # 25+ poverty — populated only for student-skewed neighborhoods (others = "")
-        # Aggregated from subject table S1701, tract-level, population-weighted
-        "share_below_100pct_poverty_25plus":
-            pct(t.get(VARS_SUBJECT_25UP["pov_25up_count"], 0),
-                t.get(VARS_SUBJECT_25UP["pov_25up_uni"],   0)),
-    }
-
-
-# ── Helper: inject subject-table 25+ counts into aggregated totals ───────────
-
-def _inject_subject_25up(totals: dict, tract_codes: set[str],
-                          subject_index: dict[str, dict]) -> None:
-    """
-    Adds weighted 25+ poverty counts from the S1701 subject table into
-    an already-aggregated totals dict, in-place.
-    Uses the same population-fraction weighting as commute data.
-    """
+def inject_subject_25up(totals: dict, tract_codes: list[str],
+                         subject_index: dict) -> None:
+    """Add 25+ poverty counts from S1701 into totals dict in-place."""
     for tract in tract_codes:
         row = subject_index.get(tract)
         if not row:
             continue
-        # Weight by full tract pop (already available via bg aggregation proxy)
-        # For subject data we use unweighted sum since we only pulled the
-        # exact tracts belonging to this neighborhood.
-        totals[VARS_SUBJECT_25UP["pov_25up_count"]] = (
-            totals.get(VARS_SUBJECT_25UP["pov_25up_count"], 0) +
-            safe_int(row.get(VARS_SUBJECT_25UP["pov_25up_count"], 0))
-        )
-        totals[VARS_SUBJECT_25UP["pov_25up_uni"]] = (
-            totals.get(VARS_SUBJECT_25UP["pov_25up_uni"], 0) +
-            safe_int(row.get(VARS_SUBJECT_25UP["pov_25up_uni"], 0))
-        )
+        for key, code in VARS_SUBJECT_25UP.items():
+            totals[code] = totals.get(code, 0) + safe_int(row.get(code, 0))
+
+
+def to_shares(t: dict, is_student_skewed: bool) -> dict:
+    """Convert aggregated raw counts → CSV share columns."""
+    inc_100_199 = (t.get(VARS_TRACT["inc_100_124"], 0) +
+                   t.get(VARS_TRACT["inc_125_149"], 0) +
+                   t.get(VARS_TRACT["inc_150_199"], 0))
+
+    pov_25plus = (
+        pct(t.get(VARS_SUBJECT_25UP["pov_25up_count"], 0),
+            t.get(VARS_SUBJECT_25UP["pov_25up_uni"],   0))
+        if is_student_skewed else ""
+    )
+
+    return {
+        "total_pop":
+            t.get(VARS_TRACT["pop"], 0),
+        "share_below_50pct_poverty_threshold":
+            pct(t.get(VARS_TRACT["pov_u50"],     0), t.get(VARS_TRACT["pov_uni"],     0)),
+        "share_below_100pct_poverty_threshold":
+            pct(t.get(VARS_TRACT["pov_100"],     0), t.get(VARS_TRACT["pov_100_uni"], 0)),
+        "share_commute_car_truck_van":
+            pct(t.get(VARS_TRACT["com_car"],     0), t.get(VARS_TRACT["com_uni"],     0)),
+        "share_commute_public_transit":
+            pct(t.get(VARS_TRACT["com_transit"], 0), t.get(VARS_TRACT["com_uni"],     0)),
+        "share_commute_bicycle":
+            pct(t.get(VARS_TRACT["com_bike"],    0), t.get(VARS_TRACT["com_uni"],     0)),
+        "share_commute_walked":
+            pct(t.get(VARS_TRACT["com_walk"],    0), t.get(VARS_TRACT["com_uni"],     0)),
+        "share_commute_other_modes":
+            pct(t.get(VARS_TRACT["com_other"],   0), t.get(VARS_TRACT["com_uni"],     0)),
+        "share_commute_worked_from_home":
+            pct(t.get(VARS_TRACT["com_wfh"],     0), t.get(VARS_TRACT["com_uni"],     0)),
+        "share_hh_income_100k_to_199k":
+            pct(inc_100_199,                         t.get(VARS_TRACT["inc_uni"],     0)),
+        "share_hh_income_200k_plus":
+            pct(t.get(VARS_TRACT["inc_200plus"], 0), t.get(VARS_TRACT["inc_uni"],     0)),
+        "share_below_100pct_poverty_25plus":
+            pov_25plus,
+    }
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
-
 def main():
-    parser = argparse.ArgumentParser(
-        description="Rebuild neighborhood CSV using ACS 2024 + WPRDC crosswalk"
-    )
-    parser.add_argument("--api-key", default=None,
-                        help="Census API key — free at api.census.gov/data/key_signup.html")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Show what would happen without writing any files")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--api-key", default=None)
+    parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    # Fall back to environment variable if no key passed directly.
-    # Set it with: export CENSUS_API_KEY=your_key  (add to ~/.zshrc to persist)
-    import os
     if not args.api_key:
         args.api_key = os.environ.get("CENSUS_API_KEY")
 
-    # ── Validate ─────────────────────────────────────────────────────────────
+    # ── Validate paths ────────────────────────────────────────────────────────
     if not INPUT_CSV.exists():
-        print(f"✗ Input file not found:\n  {INPUT_CSV}")
-        print("  Check that the path matches your project structure.")
+        print(f"✗ Input CSV not found: {INPUT_CSV}")
         sys.exit(1)
-    print(f"✓ Input:  {INPUT_CSV}")
-    print(f"  Output: {OUT_CSV}\n")
+    print(f"✓ Input:      {INPUT_CSV}")
+    print(f"  Output:     {OUT_CSV}")
+    print(f"  Tract CSV:  {TRACTS_CSV}\n")
 
-    # ── Safety copy ───────────────────────────────────────────────────────────
     if not args.dry_run:
         shutil.copy2(INPUT_CSV, OUT_CSV)
-        print(f"✓ Created backup copy as {OUT_CSV.name}\n")
+        print(f"✓ Copied original as backup\n")
 
     # ── Load original CSV ─────────────────────────────────────────────────────
     with open(INPUT_CSV, newline="", encoding="utf-8") as f:
@@ -498,198 +340,142 @@ def main():
         fieldnames = list(reader.fieldnames)
         orig_rows  = list(reader)
 
-    # Add new column after share_below_100pct_poverty_threshold if not present
+    print(f"  {len(orig_rows)} rows in original CSV")
+
+    # Add 25+ column if not present
     new_col = "share_below_100pct_poverty_25plus"
     if new_col not in fieldnames:
         idx = fieldnames.index("share_below_100pct_poverty_threshold") + 1
         fieldnames.insert(idx, new_col)
-    print(f"  {len(orig_rows)} rows in original CSV\n")
 
-    # ── Download crosswalk ────────────────────────────────────────────────────
-    try:
-        crosswalk = load_crosswalk()
-    except Exception as e:
-        print(f"✗ Crosswalk download failed: {e}")
-        sys.exit(1)
+    # ── Load tract lookup ─────────────────────────────────────────────────────
+    print("\nLoading tract CSV...")
+    tract_lookup = load_tract_csv()
 
-    # ── Bulk-fetch ACS data (2 API calls total) ───────────────────────────────
-    try:
-        bg_index    = fetch_all_blockgroups(args.api_key)
-        tract_index = fetch_all_tracts(args.api_key)
-    except Exception as e:
-        print(f"✗ Census API error: {e}")
-        sys.exit(1)
+    # ── Validate: which groups resolve to tracts? ─────────────────────────────
+    unique_groups = {r["profile_neighborhood_group"] for r in orig_rows}
+    group_tracts = {}
+    unresolved   = []
+    for pg in sorted(unique_groups):
+        tracts = resolve_tracts(pg, tract_lookup)
+        if tracts:
+            group_tracts[pg] = tracts
+        else:
+            unresolved.append(pg)
 
-    print()
+    print(f"\n  {len(group_tracts)} groups resolved to tract codes")
+    if unresolved:
+        print(f"  {len(unresolved)} groups unresolved (will keep 2022 values):")
+        for pg in unresolved:
+            print(f"    '{pg}'")
 
-    # ── Identify tracts covering student-skewed neighborhoods ─────────────────
-    # Collect tract codes from the crosswalk for skewed neighborhoods, plus
-    # any manual overrides that are in STUDENT_SKEWED.
-    skewed_tracts: set[str] = set()
-    for hood in STUDENT_SKEWED:
-        if hood in MANUAL_TRACT_OVERRIDES:
-            skewed_tracts.update(MANUAL_TRACT_OVERRIDES[hood])
-        elif hood in crosswalk:
-            skewed_tracts.update(t for t, _ in crosswalk[hood])
-
-    subject_index: dict[str, dict] = {}
-    if skewed_tracts:
-        print(f"Fetching S1701 25+ poverty data for {len(skewed_tracts)} tracts "
-              f"covering student-skewed neighborhoods...")
+    # ── Fetch ACS tract data ──────────────────────────────────────────────────
+    if not args.dry_run:
         try:
-            subject_index = fetch_subject_25up(sorted(skewed_tracts), args.api_key)
-            print(f"  {len(subject_index)} tracts returned")
+            tract_index = fetch_all_tracts(args.api_key)
         except Exception as e:
-            print(f"  ⚠  S1701 fetch failed ({e}) — 25+ column will be empty for all")
+            print(f"✗ Census API error: {e}")
+            sys.exit(1)
+    else:
+        tract_index = {}
+        print("\n[dry-run] Skipping Census API calls")
 
-    # ── Compute shares for every neighborhood ─────────────────────────────────
-    print("\nComputing neighborhood shares...")
-    shares_lookup: dict[str, dict] = {}
+    # ── Validate tract codes against fetched data ─────────────────────────────
+    if tract_index:
+        available = set(tract_index.keys())
+        bad = [(pg, t) for pg, tracts in group_tracts.items()
+               for t in tracts if t not in available]
+        if bad:
+            print(f"\n⚠  {len(bad)} tract codes not found in ACS data:")
+            for pg, t in bad:
+                print(f"   '{pg}': tract {t}")
+            print(f"   Available range: {min(available)} → {max(available)}")
+        else:
+            print(f"  ✓ All tract codes validated against ACS data")
 
-    # Crosswalk-based (bulk of neighborhoods)
-    for hood, bg_keys in crosswalk.items():
-        try:
-            # Merge subject table data into totals for student-skewed hoods
-            t = aggregate_from_bg_keys(bg_keys, bg_index, tract_index)
-            if hood in STUDENT_SKEWED:
-                _inject_subject_25up(t, {tk for tk, _ in bg_keys}, subject_index)
-            s = to_shares(t)
-            if hood not in STUDENT_SKEWED:
-                s["share_below_100pct_poverty_25plus"] = ""
-            shares_lookup[hood] = s
-        except Exception as e:
-            print(f"  ⚠  {hood}: {e}")
+    # ── Fetch S1701 for student-skewed groups ─────────────────────────────────
+    subject_index = {}
+    if not args.dry_run:
+        skewed_tracts = sorted({
+            t for pg, tracts in group_tracts.items()
+            if pg in STUDENT_SKEWED_GROUPS
+            for t in tracts
+        })
+        if skewed_tracts:
+            print(f"\nFetching S1701 25+ data for {len(skewed_tracts)} tracts...")
+            try:
+                subject_index = fetch_subject_25up(skewed_tracts, args.api_key)
+                print(f"  {len(subject_index)} tracts returned")
+            except Exception as e:
+                print(f"  ⚠  S1701 fetch failed ({e}) — 25+ column will be empty")
 
-    # Manual overrides
-    print("\nProcessing manual tract overrides...")
-    for hood, tracts in MANUAL_TRACT_OVERRIDES.items():
-        try:
-            t = aggregate_from_tracts(tracts, bg_index, tract_index)
-            if hood in STUDENT_SKEWED:
-                _inject_subject_25up(t, set(tracts), subject_index)
-            s = to_shares(t)
-            if hood not in STUDENT_SKEWED:
-                s["share_below_100pct_poverty_25plus"] = ""
-            shares_lookup[hood] = s
-            print(f"  ✓ {hood:<30}  "
-                  f"pop={s['total_pop']:,}  "
-                  f"pov={s['share_below_100pct_poverty_threshold']:.1%}  "
-                  f"transit={s['share_commute_public_transit']:.1%}")
-        except Exception as e:
-            print(f"  ✗ {hood}: {e}")
+    # ── Compute shares per group ──────────────────────────────────────────────
+    print("\nComputing shares per group...")
+    group_shares: dict[str, dict] = {}
 
-    print(f"\n  Shares computed for {len(shares_lookup)} neighborhoods total\n")
+    for pg, tract_codes in group_tracts.items():
+        if not tract_index:
+            continue
+        totals, found = aggregate_tracts(tract_codes, tract_index)
+        if found == 0:
+            print(f"  ⚠  {pg}: no tracts found in ACS data")
+            continue
 
-    # ── Collect split-group templates (one original row per group) ────────────
-    group_templates: dict[str, dict] = {}
+        is_skewed = pg in STUDENT_SKEWED_GROUPS
+        if is_skewed:
+            inject_subject_25up(totals, tract_codes, subject_index)
+
+        shares = to_shares(totals, is_skewed)
+        group_shares[pg] = shares
+
+        print(f"  ✓ {pg:<50}  "
+              f"pop={shares['total_pop']:,}  "
+              f"pov={shares['share_below_100pct_poverty_threshold']:.1%}  "
+              f"transit={shares['share_commute_public_transit']:.1%}")
+
+    # ── Rebuild output rows — same structure as input ─────────────────────────
+    print(f"\nRebuilding {len(orig_rows)} rows...")
+    output_rows = []
+    n_updated = n_kept = 0
+
     for row in orig_rows:
-        pg = row.get("profile_neighborhood_group", "")
-        if pg in SPLIT_GROUPS and pg not in group_templates:
-            group_templates[pg] = row
+        pg      = row.get("profile_neighborhood_group", "")
+        new_row = dict(row)
+        new_row.setdefault(new_col, "")
 
-    # ── Rebuild output rows ───────────────────────────────────────────────────
-    print("Rebuilding output rows...")
-    output_rows       = []
-    seen_split_groups = set()
-    n_updated = n_skipped = n_split = 0
-
-    for row in orig_rows:
-        hood = row["neighborhood_group"]
-        pg   = row.get("profile_neighborhood_group", "")
-
-        # ── Split group: replace with independent member rows ─────────────────
-        if pg in SPLIT_GROUPS:
-            if pg not in seen_split_groups:
-                seen_split_groups.add(pg)
-                template = group_templates.get(pg, row)
-
-                for member in SPLIT_GROUPS[pg]:
-                    new_row = dict(template)
-                    new_row["neighborhood_group"]         = member
-                    new_row["geography_type"]             = "neighborhood"
-                    new_row["profile_neighborhood_group"] = member
-
-                    s = shares_lookup.get(member)
-                    if s:
-                        for col, val in s.items():
-                            if col in new_row:
-                                new_row[col] = val
-                        print(f"  ✓ Split → {member:<28}  "
-                              f"pop={s['total_pop']:,}  "
-                              f"pov={s['share_below_100pct_poverty_threshold']:.1%}")
-                    else:
-                        print(f"  ⚠  Split → {member} — no data found, using combined original")
-
-                    output_rows.append(new_row)
-                    n_split += 1
-            continue  # discard original combined row
-
-        # ── Regular row: update with 2024 shares ─────────────────────────────
-        # Manual overrides take priority — check by CSV name first
-        s = shares_lookup.get(hood) or shares_lookup.get(normalize_name(hood))
-        if s:
-            new_row = dict(row)
-            for col, val in s.items():
+        shares = group_shares.get(pg)
+        if shares:
+            for col, val in shares.items():
                 if col in new_row:
                     new_row[col] = val
-            output_rows.append(new_row)
             n_updated += 1
         else:
-            # Keep original 2022 values — crosswalk name mismatch
-            row.setdefault(new_col, "")
-            output_rows.append(row)
-            n_skipped += 1
-            print(f"  ⚠  No crosswalk entry for '{hood}' (tried '{normalize_name(hood)}') — keeping 2022 values")
+            n_kept += 1
 
-    # ── Write ─────────────────────────────────────────────────────────────────
-    print(f"\n{'[dry-run] ' if args.dry_run else ''}Writing output...")
+        output_rows.append(new_row)
+
+    # ── Write output ──────────────────────────────────────────────────────────
     if not args.dry_run:
         with open(OUT_CSV, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(output_rows)
-        print(f"✓ Saved → {OUT_CSV}")
+        print(f"\n✓ Saved → {OUT_CSV}")
+    else:
+        print(f"\n[dry-run] Would write {len(output_rows)} rows to {OUT_CSV}")
 
-    # ── Summary ───────────────────────────────────────────────────────────────
-    net = len(output_rows) - len(orig_rows)
     print(f"""
 ── Summary ──────────────────────────────────────────────────────
-  ACS vintage:     2020-2024 5-year estimates (released Jan 29 2026)
-  Crosswalk:       WPRDC block→neighborhood index (Chris Briem / UCSUR)
-  Poverty / pop:   aggregated at block-group level  ← most precise
-  Commute / income: aggregated at tract level, population-weighted
+  ACS vintage:    2020-2024 5-year estimates
+  Tract source:   {TRACTS_CSV.name}
+  Input rows:     {len(orig_rows)}
+  Output rows:    {len(output_rows)}  (structure unchanged)
+  Updated:        {n_updated}
+  Kept 2022:      {n_kept}  ← should be 0 or just South Shore
 
-  Original rows:   {len(orig_rows)}
-  Output rows:     {len(output_rows)}  (net +{net} from splits)
-  Updated:         {n_updated}
-  Split rows:      {n_split}  (from {len(seen_split_groups)} combined groups)
-  Kept 2022 data:  {n_skipped}
-
-── Manual overrides (bypassed crosswalk) ────────────────────────
-  Northview Heights      → tracts 250900
-  Summer Hill            → tracts 251000
-  Terrace Village        → tracts 051000, 051100
-  West Oakland           → tracts 040200
-  Arlington              → tracts 561600
-  Arlington Heights      → tracts 561600
-  Mt. Oliver             → tracts 560400
-  St. Clair              → tracts 560500
-  Beltzhoover            → tracts 173400
-  Bon Air                → tracts 173500
-  Troy Hill              → tracts 562600
-  Spring Garden          → tracts 562500
-  East Allegheny         → tracts 240200
-  North Shore            → tracts 240100
-  Chateau                → tracts 240100
-
-  Note: in --dry-run mode these show as "kept 2022" because the
-  Census API is not called. Run without --dry-run to fetch them.
-
-── If n_skipped > 0 ─────────────────────────────────────────────
-  Neighborhood names in the CSV that didn't match the crosswalk
-  kept their original 2022 values. Check spelling — the crosswalk
-  uses Pittsburgh's official 90-neighborhood names exactly.
-  Common mismatches: "Mt. Oliver" vs "Mt Oliver", hyphenation, etc.
+── Grouping preserved ───────────────────────────────────────────
+  Combined groups (e.g. Beltzhoover/Bon Air) still share values.
+  No rows added or removed. Structure identical to input CSV.
 Done. ✓
 """)
 

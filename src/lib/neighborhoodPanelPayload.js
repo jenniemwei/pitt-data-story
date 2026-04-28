@@ -28,16 +28,29 @@ function putProfileByKeys(map, row, keyField = "neighborhood_group") {
       map.set(k2, { ...prev2, ...merged });
     }
   }
+  const aliasParts = String(row.hood_aliases || "")
+    .split(";")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  for (const part of aliasParts) {
+    const ka = normHoodKey(part);
+    if (!ka || ka === k1) continue;
+    const k2n = profileLabel ? normHoodKey(profileLabel) : "";
+    if (ka === k2n) continue;
+    const preva = map.get(ka) || {};
+    map.set(ka, { ...preva, ...merged });
+  }
 }
 
-/** Primary ACS from display CSV, optional n_profiles neighborhood rows overlay. */
-export function mergeDisplayAndNProfiles(displayRows, nProfileNeighborhoodRows) {
+/** Build panel profile map from a display CSV (2024 or 2022). */
+export function mergeDisplayAndNProfiles(displayRows) {
   const map = new Map();
   for (const row of displayRows) {
-    putProfileByKeys(map, row);
-  }
-  for (const row of nProfileNeighborhoodRows) {
-    putProfileByKeys(map, row);
+    putProfileByKeys(map, {
+      ...row,
+      // Keep explicit all-ages key so the 25+ toggle can switch poverty numerator cleanly.
+      share_below_100pct_poverty_threshold_all_ages: row.share_below_100pct_poverty_threshold,
+    });
   }
   return map;
 }
@@ -79,7 +92,7 @@ export function lossWeightForRoute(status, reductionTier) {
  * @returns {{
  *   neighborhood: string; lostCoverage: number; beforeCount: number; afterCount: number;
  *   beforeRoutes: string[]; afterRoutes: string[]; afterRouteItems: { id: string; status: string }[];
- *   profile: object | null
+ *   profile: object | null;
  * }}
  */
 export function buildHoverPayload(p, profilesByHood) {

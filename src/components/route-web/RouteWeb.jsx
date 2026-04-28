@@ -73,15 +73,18 @@ function dedupeConsecutive(names) {
   return out;
 }
 
-function buildProfileToHoods(displayRows, hoodSet) {
+function buildProfileToHoods(displayRows, hoodSet, hoodToGroup) {
   /** @type {Map<string, string[]>} */
   const map = new Map();
   for (const row of displayRows) {
     const profile = String(row.profile_neighborhood_group || "").trim();
-    const ng = String(row.neighborhood_group || "").trim();
-    if (!profile || !ng || !hoodSet.has(ng)) continue;
+    if (profile && !map.has(profile)) map.set(profile, []);
+  }
+  for (const hood of hoodSet) {
+    const profile = hoodToGroup.get(hood) || hood;
     if (!map.has(profile)) map.set(profile, []);
-    map.get(profile).push(ng);
+    const bucket = map.get(profile);
+    if (!bucket.includes(hood)) bucket.push(hood);
   }
   return map;
 }
@@ -329,23 +332,19 @@ export default function NeighborhoodRepresentationalRoutesMap() {
       fetch(dataAssetUrl("FY26_route_status_all.csv")).then((r) => r.text()),
       fetch(dataAssetUrl("display_profiles_2024.csv")).then((r) => r.text()),
       fetch(dataAssetUrl("fy26_route_n_profiles_all.csv")).then((r) => r.text()),
-      fetch(dataAssetUrl("n_profiles_new.csv"))
-        .then((r) => (r.ok ? r.text() : ""))
-        .catch(() => ""),
-      fetch(dataAssetUrl("n_crosswalk.csv")).then((r) => (r.ok ? r.text() : "")),
-    ]).then(([hoodGeo, fy26Raw, displayRaw, nProfRaw, nProfilesNewRaw, crosswalkCsv]) => {
+    ]).then(([hoodGeo, fy26Raw, displayRaw, nProfRaw]) => {
       if (cancelled || !containerRef.current) return;
 
       const fy26Rows = parseCsv(fy26Raw);
       const displayRows = parseCsv(displayRaw);
       const nProfRows = parseCsv(nProfRaw);
-      const nProfileRows = nProfilesNewRaw ? parseCsv(nProfilesNewRaw) : [];
-      const nHoodOnly = nProfileRows.filter(
-        (r) => String(r.geography_type || "").toLowerCase() === "neighborhood",
+      const profilesByHood = mergeDisplayAndNProfiles(displayRows);
+      const hoodSet = new Set(
+        (hoodGeo.features || [])
+          .map((f) => String(f?.properties?.hood || "").trim())
+          .filter(Boolean),
       );
-      const profilesByHood = mergeDisplayAndNProfiles(displayRows, nHoodOnly);
-
-      const hoodToGroup = buildHoodToGroupNameMap(crosswalkCsv);
+      const hoodToGroup = buildHoodToGroupNameMap(displayRows, hoodSet);
 
       const statusByRoute = new Map();
       const reductionTierByRoute = new Map();
@@ -366,7 +365,6 @@ export default function NeighborhoodRepresentationalRoutesMap() {
           routesByNeighborhood.get(neighborhood).add(routeId);
         }
       }
-
       addGroupKeysToRoutesMap(routesByNeighborhood, hoodToGroup);
 
       hoverPanelDataRef.current = {
@@ -376,7 +374,6 @@ export default function NeighborhoodRepresentationalRoutesMap() {
         profilesByHood,
       };
 
-      const hoodSet = new Set();
       /** @type {Map<string, [number, number]>} */
       const centroids = new Map();
       for (const f of hoodGeo.features || []) {
@@ -386,7 +383,7 @@ export default function NeighborhoodRepresentationalRoutesMap() {
         centroids.set(hood, centroid(f).geometry.coordinates);
       }
 
-      const profileToHoods = buildProfileToHoods(displayRows, hoodSet);
+      const profileToHoods = buildProfileToHoods(displayRows, hoodSet, hoodToGroup);
 
       const popByHood = new Map();
       const povByHood = new Map();
@@ -578,8 +575,12 @@ export default function NeighborhoodRepresentationalRoutesMap() {
               /* ignore */
             }
           }
-          const { routesByNeighborhood: rbn, statusByRoute: sbr, reductionTierByRoute: rtr, profilesByHood: pbh } =
-            hoverPanelDataRef.current;
+          const {
+            routesByNeighborhood: rbn,
+            statusByRoute: sbr,
+            reductionTierByRoute: rtr,
+            profilesByHood: pbh,
+          } = hoverPanelDataRef.current;
           const payload = buildHoverPayloadForNeighborhoodName(name, rbn, sbr, rtr, pbh);
           setReprHoverRef.current(payload);
         };

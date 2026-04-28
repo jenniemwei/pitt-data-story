@@ -3,6 +3,7 @@ import CoverageMap from "../src/components/coverage-map/CoverageMap";
 import NeighborhoodRepresentationalRoutesMap from "../src/components/route-web/RouteWeb";
 import HomeMapsLayout from "./HomeMapsLayout";
 import CovidRecoveryDotsComparison from "../src/components/covid-recovery/CovidVis";
+import BusRouteComparisonSection from "../src/components/data-viz/bus-route-comparison/BusRouteComparisonSection";
 
 export default function HomePage() {
   return (
@@ -13,6 +14,7 @@ export default function HomePage() {
           <NeighborhoodRepresentationalRoutesMap />
         </HomeMapsLayout>
       </NeighborhoodPanelProvider>
+      <BusRouteComparisonSection />
       <CovidRecoveryDotsComparison />
     </main>
   );

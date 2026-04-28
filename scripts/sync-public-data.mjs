@@ -22,7 +22,6 @@ const allowed = [
   "route_lines_current.geojson",
   "fy26_route_n_profiles_all.csv",
   "n_crosswalk.csv",
-  "n_profiles_new.csv",
   "display_profiles_2024.csv",
   "FY26_route_status_all.csv",
   "demographics.csv",

@@ -294,27 +294,30 @@ export default function CoverageMap() {
       fetch(dataAssetUrl("route_lines_current.geojson"))
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null),
-      fetch(dataAssetUrl("n_profiles_new.csv"))
-        .then((r) => (r.ok ? r.text() : ""))
-        .catch(() => ""),
       fetch(dataAssetUrl("display_profiles_2024.csv"))
         .then((r) => (r.ok ? r.text() : ""))
         .catch(() => ""),
-      fetch(dataAssetUrl("n_crosswalk.csv")).then((r) => (r.ok ? r.text() : "")),
-    ]).then(([hoodGeo, profilesRaw, routeStatusRaw, routeLineGeo, nProfilesRaw, displayRaw, crosswalkCsv]) => {
+    ]).then(
+      ([
+        hoodGeo,
+        profilesRaw,
+        routeStatusRaw,
+        routeLineGeo,
+        displayRaw,
+      ]) => {
       if (cancelled) return;
 
       const profileRows = parseCsv(profilesRaw);
       const routeRows = parseCsv(routeStatusRaw);
-      const nProfileRows = nProfilesRaw ? parseCsv(nProfilesRaw) : [];
-      const displayRows = displayRaw ? parseCsv(displayRaw) : [];
-      const nHoodOnly = nProfileRows.filter(
-        (r) => String(r.geography_type || "").toLowerCase() === "neighborhood",
+      const displayRows2024 = displayRaw ? parseCsv(displayRaw) : [];
+      const profilesByHood2024 = mergeDisplayAndNProfiles(displayRows2024);
+      profilesRef.current = profilesByHood2024;
+      const hoodSet = new Set(
+        (hoodGeo.features || [])
+          .map((f) => String(f?.properties?.hood || "").trim())
+          .filter(Boolean),
       );
-      const profilesByHood = mergeDisplayAndNProfiles(displayRows, nHoodOnly);
-      profilesRef.current = profilesByHood;
-
-      const hoodToGroup = buildHoodToGroupNameMap(crosswalkCsv);
+      const hoodToGroup = buildHoodToGroupNameMap(displayRows2024, hoodSet);
 
       const statusByRoute = new Map();
       const reductionTierByRoute = new Map();

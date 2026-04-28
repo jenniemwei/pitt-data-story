@@ -1,0 +1,71 @@
+# neighborhoods_2024_tracts.csv
+# This file maps neighborhood or neighborhood group names to their 2024 tract codes, as shown in the provided images.
+# Format: Neighborhood,Tract1,Tract2,...
+# (Neighborhoods with multiple tracts have comma-separated tract codes)
+Neighborhood,Tracts
+Homewood North - Homewood West,130200;130700;130100;130200
+Homewood South,130800;130300;130400
+Knoxville,300100
+Larimer,120900;120800
+Lincoln Place,310200
+Lincoln-Lemington-Belmar,120300;561900;980000;981800;120300
+Lower Lawrenceville,060300
+Manchester-California-Kirkbride,210700;565200;250700
+Marshall-Shadeland,271600;271500;980900
+Middle Hill,050100
+Morningside,101400
+Mount Washington,190300;191400;191500
+North Oakland,562000;040400;982200
+Northview Heights - Summer Hill,261300;261200
+Overbrook,320700;320400
+Perry North,260700;980400
+Perry South,261400;261500
+Point Breeze North,141200
+Point Breeze - Regent Square,140500;140400;981100
+Polish Hill,060500
+Shadyside,070300;070600;070800;070900
+South Oakland,040900;980800
+South Side Flats,160900;170200
+South Side Slopes,160800;170600
+Spring Hill-City View,262000
+Squirrel Hill North,140200;140300
+Squirrel Hill South,141400;980300;980500
+Stanton Heights,100500;101800
+Strip District,020300
+Swisshelm Park,141100
+Terrace Village - West Oakland,051000;051100;040200
+Troy Hill - Spring Garden,241300;241200
+Upper Hill,050600
+Upper Lawrenceville,101100
+Westwood - Ridgemont,563100
+Allegheny Center - Allegheny West,563201;562700
+Allentown,180300
+Arlington - Arlington Heights - Mount Oliver (City Neighborhood) - St. Clair,161000;561700
+Banksville,202300
+Bedford Dwellings,050900
+Beechview,191600;192000
+Beltzhoover - Bon Air,562400
+Bloomfield,080600;080900;090300
+Bluff,010301;010302
+Brighton Heights,270100;270300;270800
+Brookline,191700;191800;191900;320600
+Carrick,290100;290200;290400
+Central Business District - Crawford Roberts,020100;030500
+Central Lawrenceville,090100;090200;981000
+Central Northside,565100;250300
+Central Oakland,040500;040600
+Chateau,980600
+Crafton Heights,281400;281500
+Duquesne Heights,191100
+East Allegheny - North Shore,563202;563200
+East Carnegie - Oakwood,562800
+East Hills,130600
+East Liberty,111300;111500
+West End - Elliott,562600
+Esplen – Sheraden – Chartiers City – Windgap - Fairywood,202200;562500;563000
+Fineview,250900
+Friendship,080700
+Garfield,101600;111400
+Greenfield,151600;151700
+Hazelwood - Glen Hazel - Hays - New Homestead,562300;562901;565300
+Highland Park,110600;980100

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useNeighborhoodPanel } from "../../contexts/NeighborhoodPanelContext";
 import CommuteMethodGauge from "./components/CommuteVis";
 import PovertyPictogram from "./components/IncomeVis";
@@ -10,10 +11,34 @@ function num(value, fallback = 0) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+const STUDENT_SKEWED = new Set([
+  "Central Oakland",
+  "North Oakland",
+  "South Oakland",
+  "Bluff",
+  "South Side Flats",
+  "Shadyside",
+  "Squirrel Hill North",
+  "Squirrel Hill South",
+  "Terrace Village",
+  "West Oakland",
+]);
+
 export default function NeighborhoodInfoPanel() {
   const { panelDisplay } = useNeighborhoodPanel();
+  const [useAge25Plus, setUseAge25Plus] = useState(true);
 
   const row = panelDisplay?.profile;
+  const neighborhoodName = String(panelDisplay?.neighborhood || "").trim();
+  const isStudentSkewed = STUDENT_SKEWED.has(neighborhoodName);
+  const hasAge25PlusField = row && String(row.share_below_100pct_poverty_25plus || "").trim() !== "";
+  const showAge25PlusToggle = Boolean(isStudentSkewed && hasAge25PlusField);
+  const canUseAge25Plus = showAge25PlusToggle;
+
+  useEffect(() => {
+    setUseAge25Plus(true);
+  }, [neighborhoodName]);
+
   const wfh = row ? num(row.share_commute_worked_from_home) : null;
   const transit = row ? num(row.share_commute_public_transit) : null;
   const vehicleWalk = row
@@ -23,12 +48,29 @@ export default function NeighborhoodInfoPanel() {
       num(row.share_commute_other_modes)
     : null;
   const deepPov = row ? num(row.share_below_50pct_poverty_threshold) : null;
-  const below100 = row ? num(row.share_below_100pct_poverty_threshold) : null;
+  const below100AllAges = row
+    ? num(
+        row.share_below_100pct_poverty_threshold_all_ages,
+        num(row.share_below_100pct_poverty_threshold),
+      )
+    : null;
+  const below100 = row
+    ? canUseAge25Plus && useAge25Plus
+      ? num(row.share_below_100pct_poverty_25plus, below100AllAges)
+      : below100AllAges
+    : null;
   const highInc =
     row != null ? num(row.share_hh_income_100k_to_199k) + num(row.share_hh_income_200k_plus) : null;
   const rawPop = row ? num(row.total_pop) : NaN;
   const totalPop = Number.isFinite(rawPop) && rawPop >= 0 ? Math.round(rawPop) : null;
-  const peoplePerDot = totalPop != null && totalPop > 0 ? Math.max(1, Math.round(totalPop / 50)) : 100;
+  const rawPop25Plus = row ? num(row.pop_25_plus, NaN) : NaN;
+  const pop25Plus = Number.isFinite(rawPop25Plus) && rawPop25Plus >= 0 ? Math.round(rawPop25Plus) : null;
+  const populationForDots =
+    canUseAge25Plus && useAge25Plus && pop25Plus != null ? pop25Plus : totalPop;
+  const peoplePerDot =
+    populationForDots != null && populationForDots > 0
+      ? Math.max(1, Math.round(populationForDots / 50))
+      : 100;
 
   const showCharts = Boolean(panelDisplay && row);
   const routesLeadLabel = panelDisplay ? "Routes" : "Hover a neighborhood";
@@ -40,11 +82,37 @@ export default function NeighborhoodInfoPanel() {
           {panelDisplay ? (
             <>
               <h2 className={`${styles.hoodTitle} type-h2 text-ink-default`}>{panelDisplay.neighborhood}</h2>
-              {totalPop != null ? (
+              {canUseAge25Plus && useAge25Plus && pop25Plus != null ? (
+                <>
+                  <p className={`${styles.populationMeta} type-body-sm text-ink-secondary`}>
+                    Population (25+):{" "}
+                    <span className={`tabular-nums text-ink-default`}>{pop25Plus.toLocaleString("en-US")}</span>
+                  </p>
+                  {totalPop != null ? (
+                    <p className={`${styles.populationMeta} type-body-sm text-ink-secondary`}>
+                      All ages: <span className={`tabular-nums`}>{totalPop.toLocaleString("en-US")}</span>
+                    </p>
+                  ) : null}
+                </>
+              ) : totalPop != null ? (
                 <p className={`${styles.populationMeta} type-body-sm text-ink-secondary`}>
                   Population{" "}
                   <span className={`tabular-nums text-ink-default`}>{totalPop.toLocaleString("en-US")}</span>
                 </p>
+              ) : null}
+              {showAge25PlusToggle ? (
+                <label className={`${styles.ageToggle} type-body-sm text-ink-secondary`}>
+                  <input
+                    type="checkbox"
+                    checked={useAge25Plus}
+                    disabled={!canUseAge25Plus}
+                    onChange={(e) => setUseAge25Plus(e.target.checked)}
+                  />
+                  <span>
+                    Use age 25+ poverty data
+                    {!canUseAge25Plus ? " (2024 only)" : ""}
+                  </span>
+                </label>
               ) : null}
             </>
           ) : (

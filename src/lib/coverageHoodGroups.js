@@ -1,39 +1,68 @@
-/**
- * Neighborhood groups: GeoJSON `hood` labels → ACS / display "NeighborhoodGroup" name
- * (from `n_crosswalk.csv` when GeographyType is `neighborhood group`), plus
- * a few manual aliases where block-group hood labels differ from crosswalk.
- */
+/** Neighborhood grouping helpers for coverage/route maps. */
 
 import { buffer, cleanCoords, featureCollection, simplify, union as turfUnion } from "@turf/turf";
-import Papa from "papaparse";
 
-/** Geojson uses separate "Arlington" / "Arlington Heights"; crosswalk uses a single combined hood row. */
-export const HOOD_TO_GROUP_NAME_ALIASES = {
-  Arlington: "Arlington - Arlington Heights - Mount Oliver(City Neighborhood) - St. Clair",
-  "Arlington Heights": "Arlington - Arlington Heights - Mount Oliver(City Neighborhood) - St. Clair",
-};
+/** Manual aliases where a non-standard hood label must map to a known group key. */
+export const HOOD_TO_GROUP_NAME_ALIASES = {};
+
+function canonLabel(s) {
+  return String(s || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function decomposeGroupLabel(label, hoodCanonPairs) {
+  const target = canonLabel(label);
+  if (!target) return [];
+  /** @type {Map<number, string[] | null>} */
+  const memo = new Map();
+  function dfs(idx) {
+    if (idx === target.length) return [];
+    if (memo.has(idx)) return memo.get(idx);
+    for (const [hood, hc] of hoodCanonPairs) {
+      if (!hc || !target.startsWith(hc, idx)) continue;
+      const tail = dfs(idx + hc.length);
+      if (tail) {
+        const ans = [hood, ...tail];
+        memo.set(idx, ans);
+        return ans;
+      }
+    }
+    memo.set(idx, null);
+    return null;
+  }
+  return dfs(0) || [];
+}
 
 /**
- * @param {string} crosswalkCsv
- * @returns {Map<string, string>} hood name → full NeighborhoodGroup display string
+ * Build hood→display-group mapping directly from display profile labels.
+ * If a display label matches a hood exactly, it stays standalone.
+ * If it is hyphenated/grouped, map every decomposed hood member to that label.
+ * @param {object[]} displayRows
+ * @param {Set<string>} hoodSet
+ * @returns {Map<string, string>} hood name → display label
  */
-export function buildHoodToGroupNameMap(crosswalkCsv) {
+export function buildHoodToGroupNameMap(displayRows = [], hoodSet = new Set()) {
   const byHood = new Map();
-  if (!crosswalkCsv?.trim()) return byHood;
-  const rows = Papa.parse(crosswalkCsv, { header: true, skipEmptyLines: true }).data;
-  for (const row of rows) {
-    const hood = String(row.hood || "").trim();
-    if (!hood) continue;
-    const gt = String(row.GeographyType || row.geography_type || "")
-      .trim()
-      .toLowerCase();
-    if (gt !== "neighborhood group") continue;
-    const ng = String(row.NeighborhoodGroup || row.neighborhood_group || "").trim();
-    if (ng) byHood.set(hood, ng);
+  for (const hood of hoodSet) byHood.set(hood, hood);
+
+  const hoodCanonPairs = Array.from(hoodSet)
+    .map((hood) => [hood, canonLabel(hood)])
+    .sort((a, b) => b[1].length - a[1].length);
+
+  for (const row of displayRows) {
+    const label = String(row.neighborhood_group || "").trim();
+    if (!label) continue;
+    if (hoodSet.has(label)) {
+      byHood.set(label, label);
+      continue;
+    }
+    const members = decomposeGroupLabel(label, hoodCanonPairs);
+    if (members.length >= 2) {
+      for (const hood of members) byHood.set(hood, label);
+    }
   }
-  for (const [h, g] of Object.entries(HOOD_TO_GROUP_NAME_ALIASES)) {
-    byHood.set(h, g);
-  }
+  for (const [h, g] of Object.entries(HOOD_TO_GROUP_NAME_ALIASES)) byHood.set(h, g);
   return byHood;
 }
 

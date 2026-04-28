@@ -1,0 +1,42 @@
+.section {
+  width: 100%;
+  max-width: 48rem;
+  margin: 0 auto 2rem;
+  padding: 1rem 0;
+  border-top: var(--width-2) solid var(--color-border-medium);
+  display: grid;
+  gap: 12px;
+}
+
+.header {
+  display: grid;
+  gap: 6px;
+}
+
+.header h2 {
+  margin: 0;
+}
+
+.header p {
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.selectLabel {
+  display: inline-grid;
+  gap: 4px;
+  width: min(360px, 100%);
+}
+
+.select {
+  font: var(--weight-regular) var(--size-sm) / var(--leading-default) var(--font-sans);
+  color: var(--color-text-default);
+  border: var(--width-2) solid var(--color-border-medium);
+  background: var(--color-bg-light);
+  padding: 8px 10px;
+}

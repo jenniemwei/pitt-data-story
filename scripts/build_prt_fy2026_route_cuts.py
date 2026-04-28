@@ -343,9 +343,8 @@ def primary_reduction(route: str) -> tuple[int, str, str]:
     return s, action, detail
 
 
-def main() -> None:
+def build_route_cut_rows() -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
-
     all_routes = sorted(
         set(COMMUTER_EFFICIENCY) | set(NON_COMMUTER_EFFICIENCY) | set(RAIL_EFFICIENCY),
         key=lambda x: (not x[0].isdigit(), x),
@@ -390,13 +389,20 @@ def main() -> None:
                 "source_document": SOURCE,
             }
         )
+    return rows
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    with OUT.open("w", newline="", encoding="utf-8") as f:
+
+def write_route_cut_rows(rows: list[dict[str, str]], out_path: Path = OUT) -> None:
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         w.writeheader()
         w.writerows(rows)
 
+
+def main() -> None:
+    rows = build_route_cut_rows()
+    write_route_cut_rows(rows, OUT)
     print(f"Wrote {len(rows)} rows to {OUT}")
 
 

@@ -7,6 +7,7 @@
     "sync-data": "node scripts/sync-public-data.mjs",
     "build:hood-profiles": "python3 scripts/build-neighborhood-display-profiles.py",
     "build:neighborhood-routes": "python3 scripts/build_neighborhood_route_service.py && python3 scripts/extend_fy26_map_neighborhoods.py && python3 scripts/refresh_fy26_status_anchors.py",
+    "build:data-pipeline": "python3 scripts/build_data_pipeline.py",
     "build:corridor-routes": "node scripts/build-corridor-story-routes.mjs",
     "build:static": "STATIC_EXPORT=1 next build",
     "preview:static": "npx --yes serve out"

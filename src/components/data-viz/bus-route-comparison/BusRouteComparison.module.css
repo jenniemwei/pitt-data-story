@@ -1,0 +1,82 @@
+.wrap {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.stopName {
+  margin: 0;
+}
+
+.areaText {
+  margin: 0;
+  text-transform: none;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.row + .row {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: var(--width-2) solid var(--color-border-medium);
+}
+
+.label {
+  width: 40px;
+  text-align: left;
+  flex: 0 0 40px;
+}
+
+.svg {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 44px;
+  overflow: visible;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: var(--color-text-default);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.legendItem {
+  display: grid;
+  gap: 6px;
+}
+
+.chipEliminated {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
